@@ -1,0 +1,31 @@
+{
+  "name": "@ai-matrix/team-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "AI-Matrix 专家团汇报仪表盘（PWA）",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "serve": "node server/server.mjs"
+  },
+  "dependencies": {
+    "@ant-design/x-markdown": "^2.9.0",
+    "@heroui/react": "^3.2.6",
+    "@heroui/styles": "3.2.6",
+    "framer-motion": "^14.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "recharts": "^3.10.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^4.5.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "~5.6.3",
+    "vite": "^6.3.5"
+  }
+}

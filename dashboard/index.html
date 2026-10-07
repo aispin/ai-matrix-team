@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#F3F5F9" />
+    <!-- 防闪：首帧前读记忆偏好设 [data-theme]，并按解析结果改写 theme-color（浅 #F3F5F9 / 深 #0F1218） -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          var resolved;
+          if (t === 'light' || t === 'dark') {
+            document.documentElement.dataset.theme = t;
+            resolved = t;
+          } else {
+            resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (m) m.setAttribute('content', resolved === 'dark' ? '#0F1218' : '#F3F5F9');
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <title>AI-Matrix 专家团 · 指挥台</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

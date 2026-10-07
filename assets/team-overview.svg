@@ -1,0 +1,114 @@
+<svg viewBox="0 0 760 430" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', Helvetica, Arial, sans-serif">
+  <title>AI-Matrix 专家团 v0.4 · 五席与合规巡检闭环</title>
+  <rect x="0" y="0" width="760" height="430" fill="#fbfaf8" rx="10"/>
+
+  <!-- Human -->
+  <rect x="292" y="14" width="176" height="38" rx="19" fill="#111827"/>
+  <text x="380" y="32" text-anchor="middle" font-size="13" font-weight="600" fill="#ffffff">创始人（唯一人类）</text>
+  <text x="380" y="45" text-anchor="middle" font-size="10.5" fill="#c7c9cf">拍 Type 1 · 给凭据 · 定优先级</text>
+
+  <line x1="380" y1="52" x2="380" y2="70" stroke="#9ca3af" stroke-width="1.3"/>
+  <polygon points="380,74 375,66 385,66" fill="#9ca3af"/>
+  <text x="390" y="68" font-size="10" fill="#6b7280">DR 决策请求</text>
+
+  <!-- Lead -->
+  <rect x="236" y="78" width="288" height="42" rx="8" fill="#2563eb"/>
+  <text x="380" y="96" text-anchor="middle" font-size="13" font-weight="600" fill="#ffffff">PC · 产研高级总监（团长）</text>
+  <text x="380" y="110" text-anchor="middle" font-size="10.5" fill="#dbeafe">派单 · 门禁 · 兼风控：核准 / 锁 / 契约登记</text>
+
+  <!-- fan out -->
+  <path d="M380 120 V136 H107 V152" fill="none" stroke="#9ca3af" stroke-width="1.2"/>
+  <path d="M380 120 V136 H289 V152" fill="none" stroke="#9ca3af" stroke-width="1.2"/>
+  <path d="M380 120 V136 H471 V152" fill="none" stroke="#9ca3af" stroke-width="1.2"/>
+  <path d="M380 120 V136 H653 V152" fill="none" stroke="#9ca3af" stroke-width="1.2"/>
+  <polygon points="107,156 103,148 111,148" fill="#9ca3af"/>
+  <polygon points="289,156 285,148 293,148" fill="#9ca3af"/>
+  <polygon points="471,156 467,148 475,148" fill="#9ca3af"/>
+  <polygon points="653,156 649,148 657,148" fill="#9ca3af"/>
+
+  <!-- Row 1: 四席成员 -->
+  <g>
+    <rect x="24" y="158" width="166" height="56" rx="8" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="1.6"/>
+    <text x="107" y="176" text-anchor="middle" font-size="12" font-weight="600" fill="#4c1d95">毛毛 · 资深产品设计师</text>
+    <text x="107" y="191" text-anchor="middle" font-size="10.5" fill="#6d28d9">BRD → PRD → 可交互设计稿</text>
+    <text x="107" y="205" text-anchor="middle" font-size="10" fill="#7c3aed">product-designer · 双手册</text>
+  </g>
+  <g>
+    <rect x="206" y="158" width="166" height="56" rx="8" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.6"/>
+    <text x="289" y="176" text-anchor="middle" font-size="12" font-weight="600" fill="#155e75">Bruce · 资深开发工程师</text>
+    <text x="289" y="191" text-anchor="middle" font-size="10.5" fill="#0e7490">架构速断（TDD/ADR/破坏性）</text>
+    <text x="289" y="205" text-anchor="middle" font-size="10" fill="#0891b2">implementer · 编码只碰白名单</text>
+  </g>
+  <g>
+    <rect x="388" y="158" width="166" height="56" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="1.6"/>
+    <text x="471" y="176" text-anchor="middle" font-size="12" font-weight="600" fill="#065f46">石头 · 资深质检工程师</text>
+    <text x="471" y="191" text-anchor="middle" font-size="10.5" fill="#047857">独立打回 · 影响面只核对</text>
+    <text x="471" y="205" text-anchor="middle" font-size="10" fill="#047857">qa-inspector · 兼合规巡检 W8</text>
+  </g>
+  <g>
+    <rect x="570" y="158" width="166" height="56" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+    <text x="653" y="176" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">陈波 · 资深运维工程师</text>
+    <text x="653" y="191" text-anchor="middle" font-size="10.5" fill="#64748b">部署 · 迁移 · CORS · 回滚</text>
+    <text x="653" y="205" text-anchor="middle" font-size="10" fill="#94a3b8">release-engineer</text>
+  </g>
+
+  <!-- Row 2: 受控面 + Express -->
+  <path d="M289 214 V226 H289 V240" fill="none" stroke="#9ca3af" stroke-width="1.2"/>
+  <g>
+    <rect x="206" y="242" width="166" height="52" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.4"/>
+    <text x="289" y="260" text-anchor="middle" font-size="12" font-weight="600" fill="#991b1b">受控面 C1 / C2</text>
+    <text x="289" y="275" text-anchor="middle" font-size="10.5" fill="#b91c1c">packages / services / 根 docs</text>
+    <text x="289" y="287" text-anchor="middle" font-size="10" fill="#b91c1c">无 WO + 无锁 = 违规</text>
+  </g>
+  <line x1="206" y1="268" x2="196" y2="268" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="3 3"/>
+  <polygon points="192,268 200,264 200,272" fill="#ef4444"/>
+  <text x="199" y="256" text-anchor="end" font-size="9.5" fill="#b91c1c">写前经 PC 核准</text>
+
+  <g>
+    <rect x="24" y="242" width="166" height="52" rx="8" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.4"/>
+    <text x="107" y="260" text-anchor="middle" font-size="12" font-weight="600" fill="#92400e">Express 模式（默认开）</text>
+    <text x="107" y="275" text-anchor="middle" font-size="10.5" fill="#b45309">小迭代零 spawn · QA 分级</text>
+    <text x="107" y="287" text-anchor="middle" font-size="10" fill="#b45309">例外清单 → Full Convoy</text>
+  </g>
+  <g>
+    <rect x="388" y="242" width="166" height="52" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+    <text x="471" y="260" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">已裁撤席位（2026-10-07）</text>
+    <text x="471" y="275" text-anchor="middle" font-size="10.5" fill="#64748b">架构师 → Bruce 兼任</text>
+    <text x="471" y="287" text-anchor="middle" font-size="10.5" fill="#64748b">风控师 → 团长全收 · 设计师 → 毛毛</text>
+  </g>
+  <g>
+    <rect x="570" y="242" width="166" height="52" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+    <text x="653" y="260" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">独立审计红线</text>
+    <text x="653" y="275" text-anchor="middle" font-size="10.5" fill="#64748b">石头不核准 / 不持锁 / 不写码</text>
+    <text x="653" y="287" text-anchor="middle" font-size="10" fill="#94a3b8">全队唯一不自审的人</text>
+  </g>
+
+  <!-- W8 loop -->
+  <rect x="24" y="312" width="712" height="100" rx="10" fill="#ecfdf5" stroke="#10b981" stroke-width="1.3"/>
+  <text x="40" y="332" font-size="12" font-weight="700" fill="#065f46">W8 · 合规巡检闭环（每月 / 里程碑 / 随机抽查）</text>
+  <g font-size="10.5" fill="#047857">
+    <rect x="40" y="342" width="130" height="46" rx="7" fill="#ffffff" stroke="#a7f3d0" stroke-width="1.2"/>
+    <text x="105" y="362" text-anchor="middle">① 脚本扫描</text>
+    <text x="105" y="377" text-anchor="middle" fill="#6ee7b7">aimatrix-inspect all</text>
+
+    <rect x="196" y="342" width="130" height="46" rx="7" fill="#ffffff" stroke="#a7f3d0" stroke-width="1.2"/>
+    <text x="261" y="362" text-anchor="middle">② 人工判定</text>
+    <text x="261" y="377" text-anchor="middle" fill="#6ee7b7">每项留证据</text>
+
+    <rect x="352" y="342" width="130" height="46" rx="7" fill="#ffffff" stroke="#a7f3d0" stroke-width="1.2"/>
+    <text x="417" y="362" text-anchor="middle">③ 巡检报告</text>
+    <text x="417" y="377" text-anchor="middle" fill="#6ee7b7">结论不可被改写</text>
+
+    <rect x="508" y="342" width="130" height="46" rx="7" fill="#ffffff" stroke="#a7f3d0" stroke-width="1.2"/>
+    <text x="573" y="362" text-anchor="middle">④ 开整改 WO</text>
+    <text x="573" y="377" text-anchor="middle" fill="#6ee7b7">PC（标 AUDIT）</text>
+  </g>
+  <g stroke="#10b981" stroke-width="1.2" fill="none">
+    <path d="M170 365 H192"/><polygon points="196,365 190,361 190,369" fill="#10b981"/>
+    <path d="M326 365 H348"/><polygon points="352,365 346,361 346,369" fill="#10b981"/>
+    <path d="M482 365 H504"/><polygon points="508,365 502,361 502,369" fill="#10b981"/>
+    <path d="M638 388 V398 H38 V392" stroke-dasharray="4 3"/>
+    <polygon points="34,392 40,388 40,396" fill="#10b981"/>
+  </g>
+  <text x="380" y="410" text-anchor="middle" font-size="10" fill="#047857">整改完成后回到日常工作流 W3 / W4 —— 石头不写代码、不核准 WO、不持锁，因此是唯一能审计全队而不自审的人</text>
+</svg>

@@ -1,0 +1,6 @@
+# 运行态与依赖
+dashboard/node_modules/
+dashboard/data/
+dashboard/dist/
+dashboard/tsconfig.tsbuildinfo
+**/.DS_Store

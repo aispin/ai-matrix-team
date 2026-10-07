@@ -1,0 +1,16 @@
+{
+  "name": "AI-Matrix 专家团 · 指挥台",
+  "short_name": "专家团指挥台",
+  "description": "专家团工作进展汇报仪表盘：管线看板、工单、待拍板事项与汇报历史",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3F5F9",
+  "theme_color": "#F3F5F9",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

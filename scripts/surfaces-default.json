@@ -1,0 +1,90 @@
+{
+  "$comment": "面域清单（唯一规则源）。与 docs/03-shared-surface-control.md（团队仓） §1 表格同源：改任一处必须同步另一处。规则自上而下首个命中生效。",
+  "version": 1,
+  "defaultTier": "C2",
+  "defaultNote": "未匹配路径从严按 C2 处理（03 §1 判定原则）",
+  "skip": {
+    "tier": "S",
+    "note": "软链激活点 / 构建产物 / 依赖目录：不参与门禁",
+    "patterns": [
+      "node_modules/**",
+      "**/node_modules/**",
+      ".workbuddy/**",
+      "**/dist/**",
+      "**/.turbo/**",
+      "**/coverage/**"
+    ]
+  },
+  "rules": [
+    {
+      "tier": "T",
+      "note": "台账面：任何角色可写，格式必须套模板（wo lint 校验）；runtime/state/ 为机器写、不入库",
+      "patterns": [".ai-matrix-team/runtime/**"]
+    },
+    {
+      "tier": "C1",
+      "note": "共享核心：WO + 资深风控师核准 + 共享锁；破坏性需事前 INTENT + 兼容证明；改后当日登记；全矩阵 typecheck/test/build 必绿",
+      "patterns": [
+        "packages/shared-types/**",
+        "packages/llm/**",
+        "packages/config/**",
+        "packages/utils/**",
+        "services/**",
+        "matrix.config.schema.json",
+        "pnpm-workspace.yaml",
+        "tsconfig.base.json",
+        "package.json",
+        ".github/**",
+        ".env.example"
+      ]
+    },
+    {
+      "tier": "C3",
+      "note": "App 私有受控：App 责任角色可写；跨 App 影响时必须开 WO；PRD/TDD 重大修订需主理人知会",
+      "patterns": [
+        "apps/*/matrix.config.json",
+        "apps/*/.env.example",
+        "apps/*/docs/**"
+      ]
+    },
+    {
+      "tier": "F",
+      "note": "自由面：直接改，无需 WO；仍需通过 QA 门禁（typecheck/test/build）",
+      "patterns": [
+        "apps/*/src/**",
+        "apps/*/packages/**",
+        "apps/*/scripts/**",
+        "apps/*/public/**"
+      ]
+    },
+    {
+      "tier": "C2",
+      "note": "专家团资产 + 共享外围（轻单）：WO + 资深风控师核准 + 共享锁；改后当日登记；回归范围由守卫裁定",
+      "patterns": [
+        ".ai-matrix-team/**",
+        "packages/**",
+        "scripts/**",
+        "infra/**",
+        "docs/**"
+      ]
+    }
+  ],
+  "contractDocs": {
+    "$comment": "★ 契约类文档 → 改动必须同步对应 Role Skill 的 references/ 或正文（guard sync-check，退出码 6 提示不阻塞）",
+    "rules": [
+      { "pattern": "docs/architecture.md", "skills": ["aimatrix-architect", "aimatrix-product-designer"] },
+      { "pattern": "docs/shared-contracts.md", "skills": ["aimatrix-guardian"] },
+      { "pattern": "docs/brd-standard.md", "skills": ["aimatrix-product-designer"] },
+      { "pattern": "docs/app-onboarding.md", "skills": ["aimatrix-product-designer", "aimatrix-developer"] },
+      { "pattern": "docs/deploy*.md", "skills": ["aimatrix-devops"] },
+      { "pattern": "docs/llm-service.md", "skills": ["aimatrix-architect"] },
+      { "pattern": "docs/cloudbase-integration.md", "skills": ["aimatrix-architect"] }
+    ]
+  },
+  "wo": {
+    "statusesActive": ["APPROVED", "LOCKED", "IMPLEMENTING", "VERIFYING", "BLOCKED_DR"],
+    "statusesNeedingLock": ["APPROVED", "LOCKED", "IMPLEMENTING", "VERIFYING"],
+    "lockTtlMinutes": 240,
+    "lockRenewable": true
+  }
+}
