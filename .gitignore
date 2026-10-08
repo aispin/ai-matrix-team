@@ -4,3 +4,7 @@ dashboard/data/
 dashboard/dist/
 dashboard/tsconfig.tsbuildinfo
 **/.DS_Store
+
+# 治理运行态与工作区记忆（不进 git）
+.ai-matrix-team/
+.workbuddy/

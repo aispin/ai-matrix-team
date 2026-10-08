@@ -21,7 +21,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { DatabaseSync } from 'node:sqlite';
-import { resolveHarness } from './harness/index.mjs';
+import { resolveHarness, setProjectRoot } from './harness/index.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
@@ -34,7 +34,9 @@ const ABOUT = JSON.parse(fs.readFileSync(path.join(__dirname, 'about.json'), 'ut
 const CONFIG = JSON.parse(fs.readFileSync(path.join(ROOT, '.ai-matrix-team', 'project.json'), 'utf8'));
 const DB = path.join(TEAM_ROOT, 'dashboard', 'data', 'dashboard.db');
 
-// harness 适配层（DR-20261005-003）：实例/会话数据经适配器取得，WorkBuddy 细节不进主逻辑
+// harness 适配层（DR-20261005-003）：实例/会话数据经适配器取得，WorkBuddy 细节不进主逻辑。
+// 先注入项目根（修登记表路径偏移：登记表实际落在 <项目根>/.ai-matrix-team/runtime/state/instances.json）
+setProjectRoot(ROOT);
 const HARNESS = await resolveHarness(CONFIG.harness?.id || process.env.AIMATRIX_HARNESS);
 const harnessInstances = () => { try { return HARNESS.instances() || []; } catch { return []; } };
 /** 执行字段语法：`角色#呼号`；无 # 视为纯角色（老单兼容，DR-20261005-003） */

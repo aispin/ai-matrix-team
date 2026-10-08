@@ -65,6 +65,32 @@
 
 - **契约**：`{ id, label, instances(): [{callsign, session, wo, startedAt, harness}] }`，同步、fail-soft、绝不抛错；
 - **铁律**：不能阻塞正常使用——主路径只读登记表；任何探测类扩展必须 async + ≤500ms 超时 + TTL 负缓存，失败静默降级；
-- **接入新 harness**（codex / deepseek harness…）：登记条目写 `harness: '<id>'`，新增 `harness/<id>.mjs` 实现同契约；选择用 `project.json.harness.id` 或环境变量 `AIMATRIX_HARNESS`，加载失败自动落 `generic`（只读登记表）。
+- **约定即注册**：`harness/` 目录下有 `<id>.mjs` 即视为该环境已注册，**无需**改任何清单文件；删掉该文件，下次启动自动落 `generic`（只读登记表、展示全部条目），不报错；
+- **环境标识命名规则**：`<id>` 必须匹配正则 `^[a-z0-9][a-z0-9-]{0,31}$`（小写字母/数字/连字符，首位不为连字符，长度 1–32）。这条同时是安全口径——考虑到 id 会被拼进模块路径加载，**非法 id 一律事前拒绝**，不会进到加载环节；
+- **选择生效方式**：`project.json` 的 `harness.id`，或环境变量 `AIMATRIX_HARNESS`（优先级：`project.json` > 环境变量 > 缺省 `workbuddy`）；加载失败自动落 `generic`。
+
+### 接入一个新运行环境（照抄清单 · 改动面 = 1 个新增文件 + 1 行登记）
+
+已落地样板：`harness/codex.mjs`、`harness/claude-code.mjs`（`WO-20261008-01`，规格：`docs/specs/SPEC-20261008-01-multi-harness-adapter.md`）。
+
+1. **起名字**：按上面的命名规则定一个 `<id>`（如 `codex`），与文件名、登记表字段值三者同名。
+2. **加一个文件**：在 `dashboard/server/harness/` 下新增 `<id>.mjs`，照抄下面这段（只改 `id` 与展示名 `label`；`label` 非空且不得与「WorkBuddy」「通用（仅登记表）」重名）：
+
+   ```js
+   import { readInstancesFile } from './index.mjs';
+   export default {
+     id: '<id>',
+     label: '<展示名>',
+     instances() {
+       try {
+         return readInstancesFile().filter((i) => i && typeof i === 'object' && (i.harness || 'workbuddy') === '<id>');
+       } catch { return []; }
+     },
+   };
+   ```
+
+3. **登记一行**：登记文件里给对应实例条目写 `"harness": "<id>"`（缺该字段的条目按 `workbuddy` 计，历史数据不必回补）。
+4. **选它**：`project.json` 写 `"harness": { "id": "<id>" }`，或启动时 `AIMATRIX_HARNESS=<id>`。
+5. **不用做的事**：不用改注册清单、不用改看板主逻辑、不用改门禁命令行工具。删掉该文件即注销，下次启动自动回兜底视图。
 
 guard 侧检查：`guard instances`（撞号 / 未登记，WARN 级），report 与 audit 附带提醒。
