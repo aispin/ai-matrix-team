@@ -56,6 +56,38 @@ const ROLES = [
 const TEAM_VERSION = '0.5.0';
 const SOLO_VERSION = '0.1.0';
 
+// ---------------------------------------------------------------- 共享文案（plugin.json 与 README 同源）
+
+// 团队包开场提示语：同时用于 plugin.json 的 quickPrompts 与 README 的「怎么用」，避免两处漂移
+const TEAM_QUICK_PROMPTS = [
+  { zh: '我要接入一个新 App，走完整立项到上线流程', en: 'Onboard a new app — run the full pipeline from business case to release' },
+  { zh: '我要改 packages 下的共享模块，帮我走共享面变更流程', en: 'I need to change a shared package — run the shared-surface change workflow' },
+  { zh: '帮我梳理现在有哪些待我拍板的决策项，再跑一次合规巡检', en: 'List decisions waiting for my call, then run a compliance sweep' },
+];
+
+// 独立包开场提示语（键为角色 id）：同上，plugin.json 与 README 同源
+const SOLO_QUICK_PROMPTS = {
+  'aimatrix-team-team-lead': [
+    { zh: '扫一下当前项目的合规状况，给出治理建议', en: 'Audit this project and suggest fixes' },
+    { zh: '我有个新需求，判面域并开工单推进', en: 'Classify my requirement and open a work order' },
+    { zh: '回顾最近的工单台账，汇总遗留风险', en: 'Review recent work orders and risks' },
+  ],
+  'aimatrix-team-product-designer': [
+    { zh: '我有个产品想法，帮我按 Working Backwards 写 BRD、PRD 和可交互设计稿。', en: 'Write a Working Backwards BRD, PRD and interactive draft for my idea' },
+    { zh: '评审这份需求清单，把不可验收的条目打回重写', en: 'Review these requirements and flag unverifiable ones' },
+    { zh: '把这段口头需求整理成带验收标准的 PRD 条目', en: 'Turn this verbal requirement into PRD items with acceptance criteria' },
+  ],
+};
+
+// 五席一句话职责（README 专用；缩写首次出现附中文释义，章程 T4）
+const ROLE_DUTY = {
+  'team-lead.md': '判面域、开工单（WO，Work Order，工作单）、逐阶段派单带机器门禁；兼受控面守门与决策台账（DR，Decision Record，决策记录）',
+  'product-designer.md': '一条链：商业需求文档（BRD，Business Requirements Document）→ 产品需求文档（PRD，Product Requirements Document）→ 可交互设计稿',
+  'developer.md': '按图施工：架构速断、写码、补单测；白名单外面域一律先问不先改',
+  'qa.md': '独立审计：类型检查、测试与验收标准（AC，Acceptance Criteria）逐条核，不给门禁豁免',
+  'devops.md': '发布与回滚：流水线、环境与灰度，出事能回滚',
+};
+
 // ---------------------------------------------------------------- 工具
 
 const renderFor = (srcText, agentName) =>
@@ -75,13 +107,69 @@ function desiredFiles() {
   out.set(path.join(PLUGINS, 'ai-matrix-team', '.codebuddy-plugin', 'plugin.json'), JSON.stringify(teamPluginJson(), null, 2) + '\n');
   out.set(path.join(PLUGINS, 'ai-matrix-team', 'settings.json'), JSON.stringify({ agent: 'aimatrix-team-team-lead' }, null, 2) + '\n');
   out.set(path.join(PLUGINS, 'ai-matrix-team', 'manifest.yaml'), manifest('ai-matrix-team', TEAM_VERSION));
+  out.set(path.join(PLUGINS, 'ai-matrix-team', 'README.md'), teamReadme());
   // 独立包
   for (const r of ROLES.filter((x) => x.standalone)) {
     out.set(path.join(PLUGINS, r.id, '.codebuddy-plugin', 'plugin.json'), JSON.stringify(soloPluginJson(r), null, 2) + '\n');
     out.set(path.join(PLUGINS, r.id, 'settings.json'), JSON.stringify({ agent: r.id }, null, 2) + '\n');
     out.set(path.join(PLUGINS, r.id, 'manifest.yaml'), manifest(r.id, SOLO_VERSION));
+    out.set(path.join(PLUGINS, r.id, 'README.md'), soloReadme(r));
   }
   return out;
+}
+
+// ---------------------------------------------------------------- README（校验器建议项：README.md is recommended）
+
+/** 团队包 README：团队是什么 + 五席谁干什么 + 怎么用 */
+function teamReadme() {
+  const rows = ROLES.map((r) =>
+    `| ${r.displayName.zh} | ${r.profession.zh} | ${ROLE_DUTY[r.file]} |`).join('\n');
+  const prompts = TEAM_QUICK_PROMPTS.map((q) => `- ${q.zh}`).join('\n');
+  return `# AI-Matrix 专家团
+
+AI-Matrix 专家团是一支五席软件交付团：从立项到上线全链覆盖，每个阶段带机器门禁与可审计交接单，人来拍板、机器来守门。
+
+## 五席分工
+
+| 代号 | 职务 | 负责什么 |
+|---|---|---|
+${rows}
+
+## 怎么用
+
+在 WorkBuddy 专家中心选择「AI-Matrix 专家团」，用下面任意一句开场即可：
+
+${prompts}
+
+## 真源纪律
+
+成员定义的唯一真源是本仓库 \`members/*.md\`（五席成员定义）；专家包内实例一律由
+\`scripts/expert-sync.mjs\`（专家包同步脚本）生成，**禁止手改实例**，改真源后重跑脚本即可。
+`;
+}
+
+/** 独立包 README：这席是谁 + 负责什么 + 怎么用 */
+function soloReadme(r) {
+  const prompts = (SOLO_QUICK_PROMPTS[r.id] || []).map((q) => `- ${q.zh}`).join('\n');
+  return `# ${r.displayName.zh} · ${r.profession.zh}
+
+${r.soloDescription}
+
+## 负责什么
+
+${ROLE_DUTY[r.file]}
+
+## 怎么用
+
+在 WorkBuddy 专家中心选择「${r.displayName.zh}」，用下面任意一句开场即可：
+
+${prompts}
+
+## 真源纪律
+
+本席定义的唯一真源是本仓库 \`members/${r.file}\`（成员定义）；专家包内实例一律由
+\`scripts/expert-sync.mjs\`（专家包同步脚本）生成，**禁止手改实例**，改真源后重跑脚本即可。
+`;
 }
 
 function memberEntries() {
@@ -110,7 +198,9 @@ function teamPluginJson() {
     displayName: { en: 'AI-Matrix Delivery Team', zh: 'AI-Matrix 专家团' },
     profession: { en: 'AI-Matrix Delivery Team', zh: 'AI-Matrix 专家团' },
     displayDescription: {
-      zh: '五席交付团：产品设计师 BRD→PRD→设计稿一条链、研发兼架构速断、质检独立审计、运维发布回滚；风控守门并入团长 PC。',
+      // 校验器建议 40–50 字符（实测 48），保留「五席」与「风控守门并入团长 PC」两个关键信息点；
+      // 章程 T4：中文文案不裸用 BRD/PRD，改写为「需求文档→产品文档」（en 版沿用 BRD→PRD）
+      zh: '五席交付团：需求文档→产品文档→设计稿一条链，研发、质检、运维各守一关；风控守门并入团长 PC。',
       en: 'Five-role crew: product designer (BRD→PRD→visual draft), developer with architecture quick-calls, independent QA, release; gatekeeping held by lead PC.',
     },
     avatar: 'avatars/team.png',
@@ -125,11 +215,7 @@ function teamPluginJson() {
       { en: 'Multi-App Delivery', zh: '多 App 交付' },
       { en: 'Human-in-the-loop', zh: '人机决策' },
     ],
-    quickPrompts: [
-      { zh: '我要接入一个新 App，走完整立项到上线流程', en: 'Onboard a new app — run the full pipeline from business case to release' },
-      { zh: '我要改 packages 下的共享模块，帮我走共享面变更流程', en: 'I need to change a shared package — run the shared-surface change workflow' },
-      { zh: '帮我梳理现在有哪些待我拍板的决策项，再跑一次合规巡检', en: 'List decisions waiting for my call, then run a compliance sweep' },
-    ],
+    quickPrompts: TEAM_QUICK_PROMPTS,
     members: memberEntries(),
   };
 }
@@ -154,7 +240,8 @@ function soloPluginJson(r) {
   if (r.id === 'aimatrix-team-team-lead') {
     base.displayDescription = {
       en: 'Delivery director of the AI-Matrix team: opens work orders, dispatches phase by phase with machine gates, and assembles auditable handoffs; gatekeeper for controlled surfaces.',
-      zh: 'AI-Matrix 产研高级总监：开工作单、逐 Phase 派单带机器门禁、可审计交付；兼受控面守门。项目任务可用。',
+      // 校验器建议 40–50 字符：去掉「项目任务可用」冗余后缀
+      zh: 'AI-Matrix 产研高级总监：开工作单、逐阶段派单带机器门禁、可审计交付；兼受控面守门。',
     };
     base.defaultInitPrompt = { zh: '扫一下当前项目的合规状况，给出治理建议', en: 'Audit this project and suggest fixes' };
     base.tags = [
@@ -162,15 +249,12 @@ function soloPluginJson(r) {
       { zh: 'AI-Matrix', en: 'AI-Matrix' },
       { zh: '工作流门禁', en: 'Workflow Gates' },
     ];
-    base.quickPrompts = [
-      { zh: '扫一下当前项目的合规状况，给出治理建议', en: 'Audit this project and suggest fixes' },
-      { zh: '我有个新需求，判面域并开工单推进', en: 'Classify my requirement and open a work order' },
-      { zh: '回顾最近的工单台账，汇总遗留风险', en: 'Review recent work orders and risks' },
-    ];
+    base.quickPrompts = SOLO_QUICK_PROMPTS['aimatrix-team-team-lead'];
   } else {
     base.displayDescription = {
       en: 'One chain: why it matters (BRD) → what & acceptance (PRD) → what it looks like (interactive draft); requirements always carry observable acceptance criteria',
-      zh: '一条链：为什么值得做（BRD）→ 做什么与验收（PRD）→ 长什么样（可交互设计稿）；需求必带可观测验收标准。',
+      // 校验器建议 40–50 字符（实测 50）：「可观测验收标准」缩为「验收」
+      zh: '一条链：为什么值得做（BRD）→ 做什么与验收（PRD）→ 长什么样（可交互设计稿）；需求必带验收。',
     };
     base.defaultInitPrompt = { zh: '我有个产品想法，帮我按 Working Backwards 写 BRD、PRD 和可交互设计稿。', en: 'I have a product idea; write a Working Backwards BRD, PRD and an interactive design draft.' };
     base.tags = [
@@ -178,11 +262,7 @@ function soloPluginJson(r) {
       { zh: 'BRD PRD 设计稿', en: 'BRD PRD Design' },
       { zh: 'AI-Matrix', en: 'AI-Matrix' },
     ];
-    base.quickPrompts = [
-      { zh: '我有个产品想法，帮我按 Working Backwards 写 BRD、PRD 和可交互设计稿。', en: 'Write a Working Backwards BRD, PRD and interactive draft for my idea' },
-      { zh: '评审这份需求清单，把不可验收的条目打回重写', en: 'Review these requirements and flag unverifiable ones' },
-      { zh: '把这段口头需求整理成带验收标准的 PRD 条目', en: 'Turn this verbal requirement into PRD items with acceptance criteria' },
-    ];
+    base.quickPrompts = SOLO_QUICK_PROMPTS['aimatrix-team-product-designer'];
   }
   return base;
 }
@@ -206,14 +286,69 @@ function writeFileSafe(p, content) {
   }
 }
 
+/**
+ * 当前编制的期望产物清单（按包 × 子目录）
+ * 返回 Map<包名, Map<子目录名, Set<应保留文件名>>>——清理逻辑的唯一判定依据。
+ */
+function expectedAssets() {
+  const out = new Map();
+  // 团队包：五席 agent 定义 + 团队头像 team.png + 五席成员头像（与 memberEntries() 同一口径）
+  out.set('ai-matrix-team', new Map([
+    ['agents', new Set(ROLES.map((r) => `${r.id}.md`))],
+    ['avatars', new Set(['team.png', ...ROLES.map((r) => r.avatar)])],
+  ]));
+  // 独立包：本席 agent 定义 + 本席头像
+  for (const r of ROLES.filter((x) => x.standalone)) {
+    out.set(r.id, new Map([
+      ['agents', new Set([`${r.id}.md`])],
+      ['avatars', new Set([r.avatar])],
+    ]));
+  }
+  return out;
+}
+
+// 各子目录允许清理的产物后缀——只认这两类产物，占位文件（如 .gitkeep）与其他杂项永不触碰
+const PRUNABLE_EXT = { agents: ['.md'], avatars: ['.png', '.jpg', '.jpeg', '.webp', '.svg'] };
+
+/**
+ * 清理旧编制残留：删除不属于当前 ROLES 期望产物的旧文件（幂等，跑几次结果一致）。
+ * 三重保险：① 只扫 PLUGINS 下本脚本管辖的三个包 ② 只删 agents/ 与 avatars/ 内的普通文件
+ * ③ 后缀必须在 PRUNABLE_EXT 白名单内。真源 assets/avatars/ 不在此路径下，永不被触碰。
+ */
+function pruneStale() {
+  for (const [pkg, dirs] of expectedAssets()) {
+    for (const [sub, keep] of dirs) {
+      const dir = path.join(PLUGINS, pkg, sub);
+      if (!fs.existsSync(dir)) continue;
+      for (const name of fs.readdirSync(dir).sort()) {
+        if (keep.has(name)) continue;
+        // 后缀不在白名单内（含 .gitkeep 之类无后缀占位文件）→ 跳过
+        if (!PRUNABLE_EXT[sub].includes(path.extname(name))) continue;
+        const p = path.join(dir, name);
+        // 保险：越出管辖目录或非普通文件一律跳过，绝不递归删子目录
+        if (!p.startsWith(dir + path.sep) || !fs.statSync(p).isFile()) continue;
+        drift++;
+        const rel = path.join(pkg, sub, name);
+        if (checkOnly) {
+          console.log(`  ✗ 残留 ${rel}`);
+        } else {
+          fs.rmSync(p);
+          console.log(`  ✓ 清理残留 ${rel}`);
+        }
+      }
+    }
+  }
+}
+
 function copyAvatars() {
   const pairs = [
     ['team.png', 'ai-matrix-team/avatars/team.png'],
     ['team-lead.png', 'aimatrix-team-team-lead/avatars/team-lead.png'],
     ['product-designer.png', 'aimatrix-team-product-designer/avatars/product-designer.png'],
   ];
-  // 团队包成员头像按角色 id 命名
-  for (const r of ROLES) pairs.push([r.avatar, `ai-matrix-team/avatars/${r.id}.png`]);
+  // 团队包成员头像按角色短名（r.avatar）命名——必须与 memberEntries() 里
+  // `avatars/${r.avatar}` 的引用口径一致，否则成员头像会指向不存在的文件
+  for (const r of ROLES) pairs.push([r.avatar, `ai-matrix-team/avatars/${r.avatar}`]);
   for (const [src, dst] of pairs) {
     const s = path.join(AVATARS, src);
     if (!fs.existsSync(s)) { console.error(`❌ 缺头像: ${s}`); process.exit(2); }
@@ -294,6 +429,7 @@ for (const [p, content] of desired) {
   }
 }
 copyAvatars();
+pruneStale(); // 清理旧编制残留（--check 时只报告不删）
 if (checkOnly) {
   console.log(drift === 0 ? 'CHECK OK：全部实例与真源一致' : `CHECK DRIFT：${drift} 处漂移`);
   process.exit(drift === 0 ? 0 : 1);
