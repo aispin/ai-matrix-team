@@ -20,6 +20,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const TEAM_ROOT = path.resolve(__dirname, '..');
 
+/** 引擎版本（单一版本源：团队仓根 VERSION 文件；preflight 与 expert-sync 同源读取） */
+const ENGINE_VERSION = (fs.readFileSync(path.join(TEAM_ROOT, 'VERSION'), 'utf8').trim() || 'unknown');
+
 const argv = process.argv.slice(2);
 const getArg = (name) => {
   const i = argv.indexOf(name);
@@ -104,6 +107,7 @@ function buildProfile() {
   return {
     generatedAt: new Date().toISOString(),
     generator: 'aimatrix-init.mjs v1',
+    engineVersion: ENGINE_VERSION,
     project: {
       name: pkg.name || path.basename(ROOT),
       description: pkg.description || '',
@@ -152,6 +156,13 @@ if (CHECK) {
   const b = JSON.stringify({ w: cur.workspace, d: cur.docs, c: cur.ci?.workflows });
   if (a !== b) {
     console.error('⚠️ config.json 与项目现状漂移（workspace/docs/CI 变化）—— 重跑 init 刷新');
+    process.exit(1);
+  }
+  // 版本闭环：档案由哪个引擎版本生成。不一致（含旧档案缺字段）= 需对齐一次。
+  // 对齐方式二选一：preflight --fix 仅补记版本字段（不重扫）；或重跑 init --force 全量刷新。
+  if ((cur.engineVersion || '') !== ENGINE_VERSION) {
+    console.error(`⚠️ 档案由引擎 ${(cur.engineVersion || '（未记录，旧档案）')} 生成，当前引擎 ${ENGINE_VERSION} —— 需对齐一次`);
+    console.error('   对齐：node <team-repo>/scripts/aimatrix-preflight.mjs --project <root> --fix');
     process.exit(1);
   }
   if (stale && !FORCE) {

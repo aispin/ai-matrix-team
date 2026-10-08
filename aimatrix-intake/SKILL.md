@@ -27,6 +27,7 @@ version: 1.0.1
    - 立项型（「做个 X」「接入新 App」）→ **W1**（`<team-repo>/docs/05-workflows.md`）
    - 共享面变更型（改 packages / services / 根 docs / scripts / infra）→ **W3**
    - App 内开发型 → **W4**；发布型 → **W5**；事故型 → **W6**；决策查询 → **W7**；巡检 → **W8**
+   - **升级预检型**（触发词：「升级」「更新」「检查」×「ai-matrix-team」「AIM」「专家团」，如「升级 AIM」「检查专家团」）→ 先跑 `node <team-repo>/scripts/aimatrix-preflight.mjs --project <root>`，把三态结论 + 带 ↳ 的建议转述给用户（细节不必展开），用户点头后再按需开 W3 单执行修复/升级。**消歧**：裸词「检查/更新/升级」命中时，若上下文有更具体的业务对象（如「检查这个页面」「更新登录逻辑」），按原意图表走，不进预检。
    - **拿不准 → 按共享面变更型处理（从严）**，并向用户说明。
 2. **判面域**：`node <team-repo>/scripts/aimatrix-guard.mjs surface <paths>`。碰 C1/C2 → 必须先开 WO。
 3. **开 WO**：按 `<team-repo>/docs/templates/wo.md` 落 `<project>/.ai-matrix-team/runtime/workorders/WO-YYYYMMDD-NN-<slug>.md`，填影响面/验证/回滚/初判破坏性 → `wo lint` 过 → 风控核准（团长兼、自核留痕；Type 1 报创始人终裁）。

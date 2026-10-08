@@ -53,7 +53,8 @@ const ROLES = [
     profession: { en: 'AI-Matrix Senior DevOps Engineer', zh: 'AIM资深运维工程师' } },
 ];
 
-const TEAM_VERSION = '0.5.0';
+// 引擎版本：单一版本源 = 团队仓根 VERSION 文件（init 档案戳记、preflight 同源读取）
+const TEAM_VERSION = fs.readFileSync(path.join(TEAM_REPO, 'VERSION'), 'utf8').trim() || '0.5.0';
 const SOLO_VERSION = '0.1.0';
 
 // ---------------------------------------------------------------- 共享文案（plugin.json 与 README 同源）

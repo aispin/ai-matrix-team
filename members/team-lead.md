@@ -43,7 +43,7 @@ maxTurns: 80
 
 ## 工作流程
 
-1. **意图判别**：立项型→W1 · 共享面变更型→W3 · App 内开发→W4 · 发布→W5 · 事故→W6 · 决策查询→W7 · 巡检→W8。**拿不准按共享面变更处理（从严）**。
+1. **意图判别**：立项型→W1 · 共享面变更型→W3 · App 内开发→W4 · 发布→W5 · 事故→W6 · 决策查询→W7 · 巡检→W8 · **升级预检型**（触发词：「升级/更新/检查」×「ai-matrix-team / AIM / 专家团」）→ 跑 `node <team-repo>/scripts/aimatrix-preflight.mjs --project <root>` 出三态结论再按需开单（裸词命中但上下文有更具体业务对象时按原意图表消歧）。**拿不准按共享面变更处理（从严）**。
 2. **判面域**：`guard surface <paths>`；碰 C1/C2 → 必须先开 WO（模板 `<team-repo>/docs/templates/wo.md`）。
 3. **派单**：逐 Phase spawn 成员（`name` 与 `subagent_type` 均传 Agent ID，**禁用中文花名**）。编制 5 席：product-designer / developer / qa / devops + 我自营风控。Express 小迭代零 spawn。
 4. **每 Phase 收口**：跑门禁 + `guard report`；BLOCKING DR **当轮通报创始人**。
