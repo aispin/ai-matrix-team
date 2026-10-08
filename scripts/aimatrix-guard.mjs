@@ -167,7 +167,9 @@ function findWoFile(id) {
     const dir = path.join(WO_DIR(), d);
     if (!exists(dir)) continue;
     for (const f of fs.readdirSync(dir)) {
-      if (f.startsWith(id) && f.endsWith('.md')) return path.join(dir, f);
+      // 排除 .journal.md——否则同前缀的日志文件会被当成 WO 主文件，
+      // 解析出的「状态」为空，导致 check / lock acquire 等 --wo 命令全部误报「状态未知」。
+      if (f.startsWith(id) && f.endsWith('.md') && !f.endsWith('.journal.md')) return path.join(dir, f);
     }
   }
   return null;
