@@ -9,7 +9,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 pick_node() {
   if command -v node >/dev/null 2>&1; then command -v node; return; fi
   for c in \
-    "/Users/lv/.workbuddy/binaries/node/versions/22.22.2-3/bin/node" \
+    "$HOME/.workbuddy/binaries/node/versions/22.22.2-3/bin/node" \
     "/opt/homebrew/bin/node" \
     "/usr/local/bin/node"; do
     [ -x "$c" ] && { echo "$c"; return; }

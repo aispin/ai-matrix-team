@@ -244,8 +244,8 @@ git checkout HEAD -- dashboard/server/harness/index.mjs dashboard/server/server.
 > 全部已实跑。`NODE` 固定走 `env -u NODE_OPTIONS`（沙箱 `NODE_OPTIONS` 会拦截）。
 
 ```bash
-TEAM=/Volumes/Pluto/dev/github/aispin/ai-matrix-team
-NODE=/Users/lv/.workbuddy/binaries/node/versions/22.22.2-6/bin/node
+TEAM=~/dev/github/aispin/ai-matrix-team
+NODE=$(command -v node)
 H=$TEAM/dashboard/server/harness/index.mjs
 
 # V1 面域判定 —— 期望：两个路径均报 C2
