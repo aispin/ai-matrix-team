@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * AI-Matrix 专家团指挥台 · 服务端（零依赖）
+ * AI Matrix Team 指挥台 · 服务端（零依赖）
  *
  *   node server.mjs [--port 4780] [--root <repo>] [--no-open]
  *

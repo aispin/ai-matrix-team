@@ -36,26 +36,26 @@ const LEGACY_PLUGIN_NAMES = ['aimatrix-pm', 'hugo'];
 const ROLES = [
   { file: 'team-lead.md', id: 'aimatrix-team-team-lead', avatar: 'team-lead.png', standalone: true,
     displayName: { en: 'PC', zh: 'PC' },
-    profession: { en: 'AI-Matrix Delivery Director', zh: 'AIM产研高级总监' },
-    soloDescription: 'AI-Matrix delivery director PC as a standalone expert: classifies intent into workflows, opens work orders, dispatches with machine gates, owns the DR ledger; also the gatekeeper for controlled surfaces.' },
+    profession: { en: 'AI Matrix Delivery Director', zh: 'AIM产研高级总监' },
+    soloDescription: 'AI Matrix delivery director PC as a standalone expert: classifies intent into workflows, opens work orders, dispatches with machine gates, owns the DR ledger; also the gatekeeper for controlled surfaces.' },
   { file: 'product-designer.md', id: 'aimatrix-team-product-designer', avatar: 'product-designer.png', standalone: true,
     displayName: { en: 'Mao', zh: '毛毛' },
-    profession: { en: 'AI-Matrix Senior Product Designer', zh: 'AIM资深产品设计师' },
-    soloDescription: 'AI-Matrix senior product designer Mao as a standalone expert: BRD then PRD then interactive visual draft in one chain; requirements always carry observable acceptance criteria.' },
+    profession: { en: 'AI Matrix Senior Product Designer', zh: 'AIM资深产品设计师' },
+    soloDescription: 'AI Matrix senior product designer Mao as a standalone expert: BRD then PRD then interactive visual draft in one chain; requirements always carry observable acceptance criteria.' },
   { file: 'developer.md', id: 'aimatrix-team-developer', avatar: 'developer.png', standalone: false,
     displayName: { en: 'Bruce', zh: 'Bruce' },
-    profession: { en: 'AI-Matrix Senior Development Engineer', zh: 'AIM资深研发工程师' } },
+    profession: { en: 'AI Matrix Senior Development Engineer', zh: 'AIM资深研发工程师' } },
   { file: 'qa.md', id: 'aimatrix-team-qa', avatar: 'qa.png', standalone: false,
     displayName: { en: 'Xue', zh: '石头' },
-    profession: { en: 'AI-Matrix Senior QA Engineer', zh: 'AIM资深质检工程师' } },
+    profession: { en: 'AI Matrix Senior QA Engineer', zh: 'AIM资深质检工程师' } },
   { file: 'devops.md', id: 'aimatrix-team-devops', avatar: 'devops.png', standalone: false,
     displayName: { en: 'Bo', zh: '波波' },
-    profession: { en: 'AI-Matrix Senior DevOps Engineer', zh: 'AIM资深运维工程师' } },
+    profession: { en: 'AI Matrix Senior DevOps Engineer', zh: 'AIM资深运维工程师' } },
 ];
 
 // 引擎版本：单一版本源 = 团队仓根 VERSION 文件（init 档案戳记、preflight 同源读取）
 const TEAM_VERSION = fs.readFileSync(path.join(TEAM_REPO, 'VERSION'), 'utf8').trim() || '0.5.0';
-const SOLO_VERSION = '0.1.0';
+const SOLO_VERSION = '0.1.1';
 
 // ---------------------------------------------------------------- 共享文案（plugin.json 与 README 同源）
 
@@ -88,6 +88,20 @@ const ROLE_DUTY = {
   'qa.md': '独立审计：类型检查、测试与验收标准（AC，Acceptance Criteria）逐条核，不给门禁豁免',
   'devops.md': '发布与回滚：流水线、环境与灰度，出事能回滚',
 };
+
+// 五席人设简介（README 专用；真源为 members/*.md 自我介绍段，第三人称口径）
+const ROLE_BIO = {
+  'team-lead.md': '现京东资深总监，兼职产研首脑。老广东人，短发，薄肌，大抵是个真汉子。他极擅交际，常引来女设计师与产品经理送的小吃。风控的门，便由他守着罢。',
+  'product-designer.md': '前京东的美人，黑长直。如今身兼产品、交互、视觉三职。她是极看透了的，喜欢谈恋爱，却不愿踏进婚姻的坟。这大抵是新时代女性的一种清醒罢。',
+  'developer.md': '前美团全栈悍将，广东茂名人。终日与编码纠缠还不够，偏要去徒步，去踢足球。南国的烈日，大约给了他无尽的精力。',
+  'qa.md': '中通资深研发专家。广西容县人，两眼一睁，便能看穿千万BUG。若想吃正宗沙田柚，找他，大抵是错不了的。',
+  'devops.md': '某公司CEO，兼运维工程师。久居西安数十载，80后第一批软件工程师。性格豪爽，极爱饮酒。代码与酒，怕是他生命中唯二的解药。',
+};
+
+// 团队介绍（专家中心团队包 README 专用，与项目根 README 同源）
+const TEAM_INTRO = `我向来是不惮以最坏的恶意来推测甲方与AI的，然而AI Matrix Team，却实在有些特别。这是一个由五席交付团结成的虚拟产研专家阵线，从需求、产品、设计，一路杀到研发、质检与运维，各守一关。风控的守门人，大抵是落在了团长PC的肩上。他们擅长在共享面的泥沼里理出头绪，在多App的交错中交付，在人机决策的边缘试探。
+
+世人总以为排场越大越好，殊不知人一多，不过是白白烧光了词元（Token），活计却还是那些活计；但若人太少，逻辑又要生出混乱，凭空冒出些幻觉来。五人，不多不少，刚刚好。所谓主创者，不过是于深夜的屏幕前，念及十几年走散在各大厂的旧友。虽各奔东西，终是在这虚拟的矩阵里，重聚了。`;
 
 // ---------------------------------------------------------------- 工具
 
@@ -126,9 +140,9 @@ function teamReadme() {
   const rows = ROLES.map((r) =>
     `| ${r.displayName.zh} | ${r.profession.zh} | ${ROLE_DUTY[r.file]} |`).join('\n');
   const prompts = TEAM_QUICK_PROMPTS.map((q) => `- ${q.zh}`).join('\n');
-  return `# AI-Matrix 专家团
+  return `# AI Matrix Team
 
-AI-Matrix 专家团是一支五席软件交付团：从立项到上线全链覆盖，每个阶段带机器门禁与可审计交接单，人来拍板、机器来守门。
+${TEAM_INTRO}
 
 ## 五席分工
 
@@ -138,7 +152,7 @@ ${rows}
 
 ## 怎么用
 
-在 WorkBuddy 专家中心选择「AI-Matrix 专家团」，用下面任意一句开场即可：
+在 WorkBuddy 专家中心选择「AI Matrix Team」，用下面任意一句开场即可：
 
 ${prompts}
 
@@ -155,6 +169,8 @@ function soloReadme(r) {
   return `# ${r.displayName.zh} · ${r.profession.zh}
 
 ${r.soloDescription}
+
+${ROLE_BIO[r.file]}
 
 ## 负责什么
 
@@ -196,8 +212,8 @@ function teamPluginJson() {
       leadAgent: 'aimatrix-team-team-lead',
       memberAgents: ROLES.slice(1).map((r) => r.id),
     },
-    displayName: { en: 'AI-Matrix Delivery Team', zh: 'AI-Matrix 专家团' },
-    profession: { en: 'AI-Matrix Delivery Team', zh: 'AI-Matrix 专家团' },
+    displayName: { en: 'AI Matrix Delivery Team', zh: 'AI Matrix Team' },
+    profession: { en: 'AI Matrix Delivery Team', zh: 'AI Matrix Team' },
     displayDescription: {
       // 校验器建议 40–50 字符（实测 48），保留「五席」与「风控守门并入团长 PC」两个关键信息点；
       // 章程 T4：中文文案不裸用 BRD/PRD，改写为「需求文档→产品文档」（en 版沿用 BRD→PRD）
@@ -240,14 +256,14 @@ function soloPluginJson(r) {
   };
   if (r.id === 'aimatrix-team-team-lead') {
     base.displayDescription = {
-      en: 'Delivery director of the AI-Matrix team: opens work orders, dispatches phase by phase with machine gates, and assembles auditable handoffs; gatekeeper for controlled surfaces.',
+      en: 'Delivery director of the AI Matrix team: opens work orders, dispatches phase by phase with machine gates, and assembles auditable handoffs; gatekeeper for controlled surfaces.',
       // 校验器建议 40–50 字符：去掉「项目任务可用」冗余后缀
-      zh: 'AI-Matrix 产研高级总监：开工作单、逐阶段派单带机器门禁、可审计交付；兼受控面守门。',
+      zh: 'AI Matrix 产研高级总监：开工作单、逐阶段派单带机器门禁、可审计交付；兼受控面守门。',
     };
     base.defaultInitPrompt = { zh: '扫一下当前项目的合规状况，给出治理建议', en: 'Audit this project and suggest fixes' };
     base.tags = [
       { zh: '交付管理', en: 'Delivery' },
-      { zh: 'AI-Matrix', en: 'AI-Matrix' },
+      { zh: 'AI Matrix', en: 'AI Matrix' },
       { zh: '工作流门禁', en: 'Workflow Gates' },
     ];
     base.quickPrompts = SOLO_QUICK_PROMPTS['aimatrix-team-team-lead'];
@@ -261,7 +277,7 @@ function soloPluginJson(r) {
     base.tags = [
       { zh: '产品设计', en: 'Product Design' },
       { zh: 'BRD PRD 设计稿', en: 'BRD PRD Design' },
-      { zh: 'AI-Matrix', en: 'AI-Matrix' },
+      { zh: 'AI Matrix', en: 'AI Matrix' },
     ];
     base.quickPrompts = SOLO_QUICK_PROMPTS['aimatrix-team-product-designer'];
   }

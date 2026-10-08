@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "AI-Matrix 专家团汇报仪表盘（PWA）",
+  "description": "AI Matrix Team 汇报仪表盘（PWA）",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

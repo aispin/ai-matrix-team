@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * install-to-workbuddy.mjs · AI-Matrix 专家团 Skill 软链安装器
+ * install-to-workbuddy.mjs · AI Matrix Team Skill 软链安装器
  *
  * 真源：<team-repo>/aimatrix-<role>/      （团队独立仓，唯一真相源）
  * 激活：<repo>/.workbuddy/skills/aimatrix-<role>/（不入库，软链，WorkBuddy 在此扫描项目级 Skill）
@@ -226,7 +226,7 @@ function main() {
     process.exit(0);
   }
 
-  io.line(`AI-Matrix Skill 软链安装器 · 真源根：${sourceRoot} · 目标项目：${targetProvided}`);
+  io.line(`AI Matrix Skill 软链安装器 · 真源根：${sourceRoot} · 目标项目：${targetProvided}`);
   io.line(`模式：${args.mode}${args.userLevel ? ' · 含用户级' : ''}${args.force ? ' · --force' : ''}`);
   io.line('');
 

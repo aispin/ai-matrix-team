@@ -83,8 +83,8 @@ $G audit --since HEAD~5
     "./agents/aimatrix-team-qa.md",
     "./agents/aimatrix-team-devops.md"
   ],
-  "displayName": { "en": "AI-Matrix Delivery Team", "zh": "AI-Matrix 专家团" },
-  "profession": { "en": "AI-Matrix Delivery Team", "zh": "AI-Matrix 专家团" },
+  "displayName": { "en": "AI Matrix Delivery Team", "zh": "AI Matrix Team" },
+  "profession": { "en": "AI Matrix Delivery Team", "zh": "AI Matrix Team" },
   "categoryId": "02-Engineering",
   "avatar": "avatars/team.png"
 }

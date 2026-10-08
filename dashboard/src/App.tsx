@@ -135,7 +135,7 @@ export default function App() {
         <div className="flex items-center gap-2 px-3 py-2.5 md:flex-col md:items-stretch md:gap-1 md:px-3 md:py-4">
           <div className="flex items-center gap-2.5 md:mb-3 md:px-1.5">
             <div className="min-w-0">
-              <div className="truncate text-[15px] font-bold tracking-[-0.01em]">AI-Matrix 专家团</div>
+              <div className="truncate text-[15px] font-bold tracking-[-0.01em]">AI Matrix Team</div>
               <div className="subtle hidden text-xs md:block">指挥台 · 本地面板</div>
             </div>
           </div>

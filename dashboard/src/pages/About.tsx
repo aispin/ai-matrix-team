@@ -21,7 +21,7 @@ export default function About() {
     <div className="flex flex-col gap-5">
       <Card className="card !p-6">
         <Card.Content className="!p-0">
-          <h2 className="text-xl font-bold">{team?.name ?? 'AI-Matrix 专家团'}</h2>
+          <h2 className="text-xl font-bold">{team?.name ?? 'AI Matrix Team'}</h2>
           <p className="mt-1 text-sm" style={{ color: 'var(--accent)' }}>{team?.tagline}</p>
           <p className="mt-3 text-sm leading-relaxed">{team?.about}</p>
         </Card.Content>
