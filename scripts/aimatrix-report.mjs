@@ -15,6 +15,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { DatabaseSync } from 'node:sqlite';
+import { redact } from './aimatrix-redact.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
@@ -453,8 +454,9 @@ function saveReport(title, bodyMd, svg) {
 
 // ---------- main ----------
 const data = collect();
-const body = compose(data);
-const svg = renderSvg(data);
+// 脱敏：汇报会入库/落盘/分享（public 项目尤其），密钥/本机路径/邮箱出机器前必须洗掉
+const body = redact(compose(data), { root: ROOT });
+const svg = redact(renderSvg(data), { root: ROOT });
 const title = `汇报 · ${data.generatedAt.toLocaleDateString('zh-CN')} · ${cfg.project.name}`;
 const id = saveReport(title, body, svg);
 

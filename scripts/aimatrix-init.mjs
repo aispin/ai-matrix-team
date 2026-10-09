@@ -140,6 +140,26 @@ function buildProfile() {
   };
 }
 
+/* ---------- 薄层 git 管控（DR-20261009-004：台账进库，易失运行态不进） ---------- */
+const GI_MARK = '# ── ai-matrix-team 薄层（init 管理）：审计台账进库，runtime/state 易失运行态不进 ──';
+const GI_BLOCK = [GI_MARK, '.ai-matrix-team/runtime/state/', '# ── ai-matrix-team 薄层结束 ──', ''].join('\n');
+const giText = () => { const p = path.join(ROOT, '.gitignore'); return { p, text: fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '' }; };
+const giOk = (t) => t.includes(GI_MARK);
+const giBlanket = (t) => t.split('\n').some((l) => { const s = l.trim(); return s === '.ai-matrix-team' || s === '.ai-matrix-team/'; });
+
+function ensureGitignore() {
+  const { p, text } = giText();
+  let lines = text.split('\n');
+  if (giBlanket(text)) {
+    lines = lines.filter((l) => { const s = l.trim(); return !(s === '.ai-matrix-team' || s === '.ai-matrix-team/'); });
+    console.log('   已移除 .ai-matrix-team 整目录 ignore —— 改为分层管控（台账进库，state/ 不进）');
+  }
+  let next = lines.join('\n');
+  if (!giOk(next)) next = (next === '' || next.endsWith('\n')) ? next + GI_BLOCK : next + '\n' + GI_BLOCK;
+  if (next !== text) fs.writeFileSync(p, next);
+  console.log('✅ .gitignore 分层管控就绪：WO/DR/交接单/复检随 git 提交（可审计），runtime/state/ 不进库');
+}
+
 /* ---------- 主流程 ---------- */
 const profile = buildProfile();
 const serialized = JSON.stringify(profile, null, 2) + '\n';
@@ -165,6 +185,12 @@ if (CHECK) {
     console.error('   对齐：node <team-repo>/scripts/aimatrix-preflight.mjs --project <root> --fix');
     process.exit(1);
   }
+  // 薄层 git 管控漂移：台账进库策略被破坏（管理块缺失 / 整目录仍被 ignore）
+  const gi = giText();
+  if (!giOk(gi.text) || giBlanket(gi.text)) {
+    console.error('⚠️ .gitignore 未按「台账进库 / state 不进」分层管控 .ai-matrix-team —— 重跑 init 补管理块');
+    process.exit(1);
+  }
   if (stale && !FORCE) {
     console.log('ℹ️ 仅时间戳差异（结构一致），视为新鲜。');
   }
@@ -179,6 +205,7 @@ if (fs.existsSync(CONFIG) && !FORCE) {
 
 fs.mkdirSync(path.dirname(CONFIG), { recursive: true });
 fs.writeFileSync(CONFIG, serialized);
+ensureGitignore();
 console.log(`✅ 项目档案已落盘：${path.relative(ROOT, CONFIG)}`);
 console.log(`   项目：${profile.project.name}（apps: ${profile.workspace.apps.length} · packages: ${profile.workspace.packages.length} · services: ${profile.workspace.services.length}）`);
 console.log(`   规范文档绑定：${Object.entries(profile.docs).filter(([k, v]) => k !== 'all' && v).map(([k, v]) => `${k}=${v}`).join(' · ') || '（未发现约定命名的规范文档，请人工补 profile.docs）'}`);

@@ -6,5 +6,7 @@ dashboard/tsconfig.tsbuildinfo
 **/.DS_Store
 
 # 治理运行态与工作区记忆（不进 git）
-.ai-matrix-team/
+# ── ai-matrix-team 薄层（init 管理）：审计台账进库，runtime/state 易失运行态不进 ──
+.ai-matrix-team/runtime/state/
+# ── ai-matrix-team 薄层结束 ──
 .workbuddy/

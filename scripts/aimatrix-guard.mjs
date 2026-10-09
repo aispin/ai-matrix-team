@@ -27,6 +27,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { redact } from './aimatrix-redact.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEAM_ROOT = path.resolve(__dirname, '..'); // 团队仓根（本脚本位于 <team-repo>/scripts/）
@@ -499,7 +500,9 @@ function cmdWoJournal(args) {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, '0');
   const ts = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-  const row = '| ' + ts + ' | ' + who + ' | ' + what.replace(/\|/g, '\\|') + ' |\n';
+  // 脱敏：journal 随台账进库，动作描述里不得带密钥/本机路径/邮箱
+  const whatSafe = redact(String(what), { root: PROJECT() }).replace(/\|/g, '\\|');
+  const row = '| ' + ts + ' | ' + who + ' | ' + whatSafe + ' |\n';
   fs.appendFileSync(journal, row);
   log('journal ' + path.basename(journal) + ' ← ' + who);
   console.log(G('✓ 已追加：') + rel(journal));

@@ -10,6 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { redact } from './aimatrix-redact.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // ---------- 项目根解析（--project / AIM_PROJECT_ROOT / 含 .ai-matrix-team 的 cwd） ----------
@@ -140,6 +141,7 @@ ${title}？
 
 if (dry) { console.log(`[dry-run] ${id} -> ${file}`); console.log(content); process.exit(0); }
 fs.mkdirSync(DR_OPEN, { recursive: true });
-fs.writeFileSync(file, content);
+// 脱敏：DR 正文含业务上下文且随台账进库（public 项目必须），落盘前洗密钥/路径/邮箱
+fs.writeFileSync(file, redact(content, { root: REPO_ROOT }));
 console.log(`✅ ${id} 已落盘：${path.relative(REPO_ROOT, file)}`);
 console.log(`下一步：① 补全 §2–§5 → ② guard wo lint 校验 → ③ ledger-sync.mjs 同步台账 → ④ BLOCKING 当轮通报创始人。`);

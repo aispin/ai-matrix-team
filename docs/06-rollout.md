@@ -63,7 +63,60 @@ $G audit --since HEAD~5
 
 ---
 
-## 4. 专家包规格（五席 · 由 expert-sync.mjs 生成）
+## 4. 薄层与 git：台账进库白名单 + 脱敏红线（DR-20261009-004）
+
+`.ai-matrix-team/` 的核心价值是**可审计**，而审计的前提是台账活在版本历史里，不是活在一台机器上。因此薄层默认**分层进 git**，由 `aimatrix-init.mjs` 自动写入并维护 `.gitignore` 管理块：
+
+| 内容 | 进 git？ | 理由 |
+|---|---|---|
+| `project.json` 项目档案、`surfaces.json` 面域规则 | ✅ | 稳定配置，派单与门禁依据 |
+| `runtime/decisions/`（DR 台账） | ✅ | 结论性审计资产，评审即 PR review |
+| `runtime/workorders/`（WO 单 + journal） | ✅ | 谁在哪个单改了什么，blame 可查 |
+| `runtime/handoffs/`（交接单） | ✅ | 「随时回查审计」的载体 |
+| `runtime/reviews/`（QA 复检 / 巡检） | ✅ | 放行依据，必须留痕 |
+| `runtime/state/`（lock.json、guard.log、instances.json） | ❌ | 易失运行态：本机路径、会话 id、高频刷新 |
+
+管理块长这样（init 幂等维护，勿手工删）：
+
+```gitignore
+# ── ai-matrix-team 薄层（init 管理）：审计台账进库，runtime/state 易失运行态不进 ──
+.ai-matrix-team/runtime/state/
+# ── ai-matrix-team 薄层结束 ──
+```
+
+若项目 `.gitignore` 里存在对 `.ai-matrix-team` 的**整目录 ignore**，init 会移除它并替换为上述分层块；`init --check` 会把「管理块缺失 / 整目录仍被 ignore」判为漂移（退出码 1）。
+
+### 4.1 脱敏红线（public 项目必须，private 项目建议）
+
+台账随 git 进库 = 会随仓库公开。因此台账里**不得出现**：
+
+1. **本机绝对路径**（`/Users/*`、`/Volumes/*`）→ 项目内路径写相对路径；
+2. **密钥 / 令牌**（API key、token、password 等任何形态）；
+3. **真实邮箱**（`@users.noreply.github.com` 除外）；
+4. **内网地址 / 私有网段 IP**。
+
+### 4.2 两道防线
+
+**① 写入点强制脱敏（机器 choke point）**——以下脚本落盘前自动过 `aimatrix-redact.mjs` 的 `redact()`：
+
+- `aimatrix-report.mjs`（汇报，文字版 + 图形版）
+- `new-dr.mjs`（DR 正文）
+- `aimatrix-guard.mjs wo journal`（执行日志追加行）
+
+**② 扫描兜底（覆盖 agent 手写的 WO 正文 / 复检 / 巡检）**：
+
+```bash
+node <team-repo>/scripts/aimatrix-redact.mjs --project <root> --scan         # 退出码 1 = 有泄漏
+node <team-repo>/scripts/aimatrix-redact.mjs --project <root> --scan --fix   # 自动修复安全类别（密钥/路径/邮箱）
+```
+
+`--fix` 只自动修「可安全修复」的类别（路径、键值密钥、知名令牌前缀、邮箱）；**内网 IP 只报不改**（示例文档可能是刻意写的），交人工确认。
+
+**巡检排程**：月度合规体检（W8）固定跑一次 `--scan`；public 项目在每次交接单归档后追加跑一次。发现泄漏即开 C2 整改单。
+
+---
+
+## 5. 专家包规格（五席 · 由 expert-sync.mjs 生成）
 
 **团队包**（`expertType: "team"`，入口主理人）：
 
@@ -110,7 +163,7 @@ maxTurns: 80
 
 ---
 
-## 5. 风险与对策
+## 6. 风险与对策
 
 | 风险 | 表现 | 对策 |
 |---|---|---|
