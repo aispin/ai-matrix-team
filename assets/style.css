@@ -532,3 +532,12 @@ footer .sep { opacity: 0.45; }
   color: var(--brand);
   letter-spacing: .02em;
 }
+
+/* ── 指挥台截图（section: console）────────────────────────────────── */
+.console-shot {
+  display: block; width: 100%; height: auto;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 60px -24px rgba(2, 6, 23, .35);
+}
+.console-cmd { max-width: 720px; margin: 18px auto 0; }
