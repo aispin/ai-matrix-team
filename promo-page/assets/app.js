@@ -486,6 +486,9 @@
     [qs("#hero-copy"), qs("#cta-copy")].forEach(function (n) {
       if (n) n.setAttribute("data-copy", text);
     });
+    var d = P.lang && P.lang[lang] ? P.lang[lang].console : null;
+    var cc = qs("#console-copy");
+    if (d && d.prompt && cc) cc.setAttribute("data-copy", d.prompt);
   }
 
   /* ── 平台兼容性标签（Hero 标题上方，「AI 技能」右边那枚）─────────────────

@@ -54,6 +54,7 @@
     </a>
     <nav class="nav">
       <a href="#features" data-i18n="nav.features">能力</a>
+      <a href="#console" data-i18n="nav.console">指挥台</a>
       <a href="#members" data-i18n="nav.members">成员</a>
       <a href="#install" data-i18n="nav.install">安装</a>
       <a href="#how" data-i18n="nav.how">上手</a>
@@ -98,7 +99,7 @@
           <a class="btn" id="hero-repo" href="#" target="_blank" rel="noopener noreferrer">
             <span data-i18n="hero.ctaSecondary">看源码</span>
           </a>
-                    <!-- promo-sponsor:btn -->
+                              <!-- promo-sponsor:btn -->
           <button class="btn" type="button" id="hero-sponsor" data-sponsor-open>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 8.6c0 4.2-5.4 8-8.8 10.4C8.6 16.6 3.2 12.8 3.2 8.6A4.6 4.6 0 0 1 12 6.4a4.6 4.6 0 0 1 8.8 2.2Z"/></svg>
             <span data-i18n="hero.ctaSponsor">赞助</span>
@@ -155,6 +156,24 @@
         <p class="sec-sub" data-i18n="features.sub"></p>
       </div>
       <div class="grid"></div>
+    </div>
+  </section>
+
+  <!-- ══ 指挥台 ════════════════════════════════════════════════════ -->
+  <section class="features" id="console">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow" data-i18n="console.eyebrow">指挥台</span>
+        <h2 class="sec-title" data-i18n="console.title">交付现场，一块屏全看见</h2>
+        <p class="sec-sub" data-i18n="console.sub"></p>
+      </div>
+      <div class="reveal">
+        <img class="console-shot" src="assets/console.png" alt="AI Matrix Team 指挥台界面 · Console UI" loading="lazy" />
+        <div class="code code-prompt console-cmd">
+          <div class="code-head"><span class="name">prompt</span><button type="button" class="code-copy" id="console-copy" data-copy=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.6" y="8.6" width="11.4" height="11.4" rx="2.4"/><path d="M15.4 5.4A2.4 2.4 0 0013 3H6.4A3.4 3.4 0 003 6.4V13a2.4 2.4 0 002.4 2.4"/></svg><span data-i18n="console.copy">复制提示词</span></button></div>
+          <pre data-i18n="console.prompt">把这句话粘给 agent</pre>
+        </div>
+      </div>
     </div>
   </section>
 
