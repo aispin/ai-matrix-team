@@ -227,9 +227,10 @@ function teamPluginJson() {
     },
     plugin: 'ai-matrix-team',
     tags: [
+      // 校验器硬限恰好 3 个：5 项擅长领域合并为 3（项目管理+产品研发、Agent+人机协作）
       { en: 'Shared Surface Governance', zh: '共享面治理' },
-      { en: 'Multi-App Delivery', zh: '多 App 交付' },
-      { en: 'Human-in-the-loop', zh: '人机决策' },
+      { en: 'PM & Product Engineering', zh: '项目管理 · 产品研发' },
+      { en: 'Agent & Human Collaboration', zh: 'Agent · 人机协作' },
     ],
     quickPrompts: TEAM_QUICK_PROMPTS,
     members: memberEntries(),
