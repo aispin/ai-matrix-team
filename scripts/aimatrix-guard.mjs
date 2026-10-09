@@ -81,7 +81,9 @@ function die(code, msg) {
 
 function git(args, { allowFail = false } = {}) {
   try {
-    return execFileSync('git', args, { cwd: PROJECT(), encoding: 'utf8' }).trim();
+    // core.quotePath=false：不要对非 ASCII 路径做八进制转义。否则带中文名的台账文件
+    // （如 DR-*-三项决策-*.md）解析不出真实路径 → 掉进 defaultTier(C2) → audit 误报无单写入。
+    return execFileSync('git', ['-c', 'core.quotePath=false', ...args], { cwd: PROJECT(), encoding: 'utf8' }).trim();
   } catch (e) {
     if (allowFail) return '';
     die(EXIT.USAGE, `git ${args.join(' ')} 失败：${e.message}`);
@@ -840,24 +842,29 @@ function cmdAudit(args) {
   const since = args.get('--since');
   if (!since) die(EXIT.USAGE, '用法：audit --since <sha|HEAD~N>');
   // 收集 since..HEAD 的提交（含 WO 引用则视为有单） + 未提交改动
-  const commits = git(['log', '--pretty=%H%x09%s%x09%b', '--name-only', `${since}..HEAD`], { allowFail: true });
+  // 提交块以 \x1e 起、字段以 \x1f 分隔（%H / %s / %b），文件清单紧随正文、由一个空行分隔。
+  // 陷阱：正文自身可能含空行，且 git 在清单尾部还会补换行——所以先去掉尾部换行，
+  // 再取「最后一个空行」作分隔。否则正文行会被当成改动文件，落 defaultTier(C2) → 无单写入误报。
+  const commits = git(['log', '--pretty=format:%x1e%H%x1f%s%x1f%b', '--name-only', `${since}..HEAD`], { allowFail: true });
   const violations = [];
   const coveredSeen = [];
-  // 重组：log 输出为 header 行 + 文件行交替块
   const blocks = [];
-  let block = null;
-  for (const line of commits.split('\n')) {
-    if (/^[0-9a-f]{7,40}\t/.test(line) || /^[0-9a-f]{7,40}\s/.test(line)) {
-      if (block) blocks.push(block);
-      block = { msg: line.split('\t').slice(1).join('\t'), files: [] };
-    } else if (block && line.trim()) {
-      block.files.push(line.trim());
-    }
+  for (const chunk of commits.split('\x1e')) {
+    if (!chunk) continue;
+    const parts = chunk.split('\x1f');
+    const subject = parts[1] || '';
+    const rest = parts.slice(2).join('\x1f').replace(/\n+$/, '');
+    const sep = rest.lastIndexOf('\n\n');
+    let body = '';
+    let tail = '';
+    if (sep >= 0) { body = rest.slice(0, sep); tail = rest.slice(sep + 2); }
+    else if (rest.startsWith('\n')) { tail = rest.slice(1); }
+    else { body = rest; }
+    blocks.push({ msg: `${subject}\t${body}`, files: tail.split('\n').map((s) => s.trim()).filter(Boolean) });
   }
-  if (block) blocks.push(block);
 
   const allWoFiles = [];
-  for (const d of ['.', 'closed']) {
+  for (const d of ['.', 'open', 'closed']) {
     const dir = path.join(WO_DIR(), d);
     if (!exists(dir)) continue;
     for (const f of fs.readdirSync(dir)) {
