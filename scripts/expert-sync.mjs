@@ -55,7 +55,7 @@ const ROLES = [
 
 // 引擎版本：单一版本源 = 团队仓根 VERSION 文件（init 档案戳记、preflight 同源读取）
 const TEAM_VERSION = fs.readFileSync(path.join(TEAM_REPO, 'VERSION'), 'utf8').trim() || '0.5.0';
-const SOLO_VERSION = '0.1.2';
+const SOLO_VERSION = '0.1.3';
 
 // ---------------------------------------------------------------- 共享文案（plugin.json 与 README 同源）
 
@@ -215,10 +215,9 @@ function teamPluginJson() {
     displayName: { en: 'AI Matrix Delivery Team', zh: 'AI Matrix Team' },
     profession: { en: 'AI Matrix Delivery Team', zh: 'AI Matrix Team' },
     displayDescription: {
-      // 校验器建议 40–50 字符（实测 48），保留「五席」与「风控守门并入团长 PC」两个关键信息点；
-      // 章程 T4：中文文案不裸用 BRD/PRD，改写为「需求文档→产品文档」（en 版沿用 BRD→PRD）
-      zh: '五席交付团：需求文档→产品文档→设计稿一条链，研发、质检、运维各守一关；风控守门并入团长 PC。',
-      en: 'Five-role crew: product designer (BRD→PRD→visual draft), developer with architecture quick-calls, independent QA, release; gatekeeping held by lead PC.',
+      // 能力介绍卡（专家中心）一行展示；鲁迅风全文由包 README（TEAM_INTRO）承载
+      zh: '五席交付团各守一关，从需求杀到运维；风控的门，大抵落在团长PC肩上。五人不多不少，刚刚好。',
+      en: 'Five seats, one gate each — from requirements to ops; the gatekeeping, in all likelihood, falls to PC. Five: not one more, not one less.',
     },
     avatar: 'avatars/team.png',
     categoryId: '02-Engineering',
@@ -256,9 +255,8 @@ function soloPluginJson(r) {
   };
   if (r.id === 'aimatrix-team-team-lead') {
     base.displayDescription = {
-      en: 'Delivery director of the AI Matrix team: opens work orders, dispatches phase by phase with machine gates, and assembles auditable handoffs; gatekeeper for controlled surfaces.',
-      // 校验器建议 40–50 字符：去掉「项目任务可用」冗余后缀
-      zh: 'AI Matrix 产研高级总监：开工作单、逐阶段派单带机器门禁、可审计交付；兼受控面守门。',
+      en: 'Delivery director and gatekeeper: scopes surfaces, opens work orders with machine gates, holds the risk-control door — a real one, by all accounts.',
+      zh: '产研首脑，老广东人，大抵是个真汉子；判面域、开工单——风控的门，便由他守着罢。',
     };
     base.defaultInitPrompt = { zh: '扫一下当前项目的合规状况，给出治理建议', en: 'Audit this project and suggest fixes' };
     base.tags = [
@@ -269,9 +267,8 @@ function soloPluginJson(r) {
     base.quickPrompts = SOLO_QUICK_PROMPTS['aimatrix-team-team-lead'];
   } else {
     base.displayDescription = {
-      en: 'One chain: why it matters (BRD) → what & acceptance (PRD) → what it looks like (interactive draft); requirements always carry observable acceptance criteria',
-      // 校验器建议 40–50 字符（实测 50）：「可观测验收标准」缩为「验收」
-      zh: '一条链：为什么值得做（BRD）→ 做什么与验收（PRD）→ 长什么样（可交互设计稿）；需求必带验收。',
+      en: 'One chain — why it matters (BRD) → what & acceptance (PRD) → what it looks like (interactive draft); product, interaction and visual in one seat. Clear-eyed, as befits the new era.',
+      zh: '前京东美人，身兼产品、交互、视觉三职；一条链从需求走到设计稿——她大抵是看透了的。',
     };
     base.defaultInitPrompt = { zh: '我有个产品想法，帮我按 Working Backwards 写 BRD、PRD 和可交互设计稿。', en: 'I have a product idea; write a Working Backwards BRD, PRD and an interactive design draft.' };
     base.tags = [
