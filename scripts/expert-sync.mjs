@@ -215,9 +215,9 @@ function teamPluginJson() {
     displayName: { en: 'AI Matrix Delivery Team', zh: 'AI Matrix Team' },
     profession: { en: 'AI Matrix Delivery Team', zh: 'AI Matrix Team' },
     displayDescription: {
-      // 能力介绍卡（专家中心）一行展示；鲁迅风全文由包 README（TEAM_INTRO）承载
-      zh: '五席交付团各守一关，从需求杀到运维；风控的门，大抵落在团长PC肩上。五人不多不少，刚刚好。',
-      en: 'Five seats, one gate each — from requirements to ops; the gatekeeping, in all likelihood, falls to PC. Five: not one more, not one less.',
+      // 能力介绍卡（专家中心）；用户定稿鲁迅风全文版
+      zh: '我向来是不惮以最坏的恶意来推测甲方与AI的，然而AI Matrix Team，却实在有些特别。这是一个由五席交付团结成的虚拟产研专家阵线，从需求、产品、设计，一路杀到研发、质检与运维，各守一关。擅长在复杂研发项目的泥沼里理出头绪，在多应用多子项目的交错中交付确定性，在人机决策的边缘试探。',
+      en: 'I have never shied away from assuming the worst of clients and AI alike — yet AI Matrix Team is truly something else. A virtual product-engineering task force of five seats, each holding one gate from requirements, product and design all the way to dev, QA and ops. They excel at untangling the swamp of complex engineering projects, delivering certainty across intertwined apps and sub-projects, and walking the edge of human-machine decisions.',
     },
     avatar: 'avatars/team.png',
     categoryId: '02-Engineering',
