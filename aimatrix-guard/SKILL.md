@@ -1,7 +1,4 @@
 ---
-
-> 📌 **v1.5（WO-20261007-01）**：新增 `--quiet`（check 单行结论，Agent 消费）与 `stats` 子命令（token 注入面基线）；日常风控由团长兼任后本 SKILL 为团长的机器门禁手册。
-
 name: aimatrix-guard
 description: "ai-matrix 机器门禁：面域判定（surface）、写入前校验（check）、串行锁（lock）、DR 扫描（dr scan）、台账格式校验（wo lint）、规范同步提示（sync-check）、无单写入审计（audit）、状态总览（report）。所有角色写受控面前必读必跑。"
 version: 1.0.1

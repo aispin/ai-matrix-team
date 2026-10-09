@@ -1,10 +1,10 @@
 ---
-name: aimatrix-product-designer-designer
+name: aimatrix-product-designer
 description: "产品与设计一条链：BRD 按 Working Backwards 14 节论证值不值得做，过准出清单后连写 PRD（功能地图 + 每条可观测验收标准），再把 PRD 变成可走查的可交互视觉稿（单文件 HTML 双主题）。不做技术选型、不写业务代码。"
 version: 2.0.1
 ---
 
-# aimatrix-product-designer-designer · 产品设计一条链（BRD → PRD → 可交互视觉稿）
+# aimatrix-product-designer · 产品设计一条链（BRD → PRD → 可交互视觉稿）
 
 **使命**：三问连答——「**为什么值得做**」（BRD）→「**做什么 / 验收是什么**」（PRD）→「**长什么样 / 状态怎么兜底**」（可交互视觉稿）。顺序不可跳：BRD 未过准出清单不许开 PRD，PRD 未过闸不许动稿。
 

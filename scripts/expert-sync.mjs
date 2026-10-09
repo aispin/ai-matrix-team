@@ -431,9 +431,41 @@ function syncInstalled() {
   }
 }
 
+// ---------------------------------------------------------------- 岗位 SKILL.md frontmatter 校验
+
+// 护栏：frontmatter 被引言横幅等破坏会导致技能不被注册（2026-10-09 实锤回归）。
+// 校验所有 aimatrix-*/SKILL.md：frontmatter 可提取、name/description 非空、name 与目录名一致。
+function validateSkillFrontmatter() {
+  const dirs = fs.readdirSync(TEAM_REPO, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && /^aimatrix-/.test(d.name));
+  const errors = [];
+  for (const d of dirs) {
+    const p = path.join(TEAM_REPO, d.name, 'SKILL.md');
+    if (!fs.existsSync(p)) { errors.push(`${d.name}: 缺 SKILL.md`); continue; }
+    const raw = fs.readFileSync(p, 'utf8');
+    const fmMatch = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
+    if (!fmMatch) { errors.push(`${d.name}: frontmatter 缺失或格式错误`); continue; }
+    const fm = {};
+    for (const line of fmMatch[1].split(/\r?\n/)) {
+      const kv = /^(\w[\w-]*):\s*(.*)$/.exec(line);
+      if (kv) fm[kv[1]] = kv[2].replace(/^["']|["']$/g, '').trim();
+    }
+    if (!fm.name) errors.push(`${d.name}: frontmatter 缺 name`);
+    else if (fm.name !== d.name) errors.push(`${d.name}: name「${fm.name}」与目录名不一致`);
+    if (!fm.description) errors.push(`${d.name}: frontmatter 缺 description`);
+  }
+  if (errors.length) {
+    console.error('✗ SKILL.md frontmatter 校验失败：');
+    for (const e of errors) console.error('  - ' + e);
+    process.exit(1);
+  }
+  console.log(`✓ SKILL.md frontmatter 校验通过（${dirs.length} 个岗位技能）`);
+}
+
 // ---------------------------------------------------------------- main
 
 console.log(checkOnly ? '== expert-sync CHECK ==' : '== expert-sync SYNC ==');
+validateSkillFrontmatter();
 const desired = desiredFiles();
 writeFileSafe;
 for (const [p, content] of desired) {

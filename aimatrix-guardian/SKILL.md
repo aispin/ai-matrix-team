@@ -1,7 +1,4 @@
 ---
-
-> 📌 **v1.5（WO-20261007-01）**：v1.5 D2：日常风控并入团长（charter §4A.3）；本角色保留例外清单席位——扩白名单 / 破坏性 / 新契约 / Type 1 / 多单锁冲突 / 利益相关回避。
-
 name: aimatrix-guardian
 description: "共享资产守门：受控面（C1/C2）写入核准、串行锁管理、shared-contracts.md 契约登记、冲突检测、回归范围裁定、违规发现与通报。无权批准 Type 1 决策。"
 version: 1.1.1
