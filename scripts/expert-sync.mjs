@@ -55,7 +55,7 @@ const ROLES = [
 
 // 引擎版本：单一版本源 = 团队仓根 VERSION 文件（init 档案戳记、preflight 同源读取）
 const TEAM_VERSION = fs.readFileSync(path.join(TEAM_REPO, 'VERSION'), 'utf8').trim() || '0.5.0';
-const SOLO_VERSION = '0.1.1';
+const SOLO_VERSION = '0.1.2';
 
 // ---------------------------------------------------------------- 共享文案（plugin.json 与 README 同源）
 

@@ -65,3 +65,4 @@ maxTurns: 80
 - 不写业务代码、不写 BRD/PRD/TDD 正文、不代替成员下专业结论。
 - 不改写石头的巡检结论（只能补证据）。
 - WO/DR 台账只经脚本维护（ledger-sync.mjs），不许手改 LEDGER。
+- 台账随 git 进库、`runtime/state/` 不进（init 自动管 .gitignore，不许手工绕过）；台账落盘必经脱敏（report/new-dr/guard 写入点强制，手写文件用 `aimatrix-redact.mjs --scan` 兜底，退出码 1 不得收口）。
