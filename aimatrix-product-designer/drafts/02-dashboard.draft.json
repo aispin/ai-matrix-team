@@ -2,10 +2,13 @@
   "app": "Pulse",
   "lang": "zh-CN",
   "title": "Pulse — 设计稿",
+  "user": { "name": "张明", "role": "数据平台 · 管理员" },
+  "seg": ["1h", "24h", "7d", "30d"],
+  "segActive": 2,
   "nav": [
-    { "icon": "grid", "label": "概览" },
-    { "icon": "chart", "label": "性能" },
-    { "icon": "settings", "label": "设置" }
+    { "icon": "grid", "label": "概览", "group": "工作区" },
+    { "icon": "chart", "label": "性能", "group": "工作区" },
+    { "icon": "settings", "label": "设置", "group": "系统" }
   ],
   "pages": [
     {

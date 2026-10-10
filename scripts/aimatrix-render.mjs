@@ -78,37 +78,76 @@ const TOKENS = `:root{
 
 const CSS = `
 *{box-sizing:border-box}
+*,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--n-50);color:var(--n-900);font:14px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:var(--n-50);color:var(--n-800);line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;font-size:14px;transition:background-color .18s,color .18s}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+button{font:inherit;cursor:pointer;color:inherit}
 a{color:var(--brand);text-decoration:none}
-.layout{display:flex;min-height:100vh}
-.side{width:224px;flex:0 0 224px;background:var(--n-0);border-right:1px solid var(--n-200);padding:14px 10px;transition:width .18s ease}
-[data-side="1"] .side{width:64px;flex-basis:64px}
-[data-side="1"] .side .label,[data-side="1"] .brand-name{display:none}
-[data-side="2"] .side{display:none}
-.side-head{display:flex;align-items:center;gap:9px;padding:4px 6px 14px}
-.logo{width:28px;height:28px;border-radius:8px;background:var(--brand);flex:0 0 28px}
-.brand-name{font-weight:600;letter-spacing:.01em}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;color:var(--n-600);cursor:pointer;margin-bottom:2px}
-.nav-item:hover{background:var(--n-100)}
-.nav-item.active{background:var(--brand-bg);color:var(--brand);font-weight:600}
-.nav-item svg{flex:0 0 18px}
-.icon-btn.side-restore{display:none;position:fixed;left:12px;top:12px;z-index:30}
-[data-side="2"] .icon-btn.side-restore{display:inline-flex}
-.main{flex:1;min-width:0;display:flex;flex-direction:column}
-.topbar{display:flex;align-items:center;gap:12px;padding:10px 20px;background:var(--topbar-bg);backdrop-filter:blur(8px);border-bottom:1px solid var(--n-200);position:sticky;top:0;z-index:20}
-.topbar h1{font-size:15px;margin:0;flex:1;font-weight:600}
-.icon-btn{border:1px solid var(--n-200);background:var(--n-0);color:var(--n-600);border-radius:9px;padding:7px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:12.5px}
-.icon-btn:hover{border-color:var(--n-300);color:var(--n-800)}
-.content{padding:20px;max-width:1180px;width:100%}
+.app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+html[data-side="1"] .app{grid-template-columns:64px 1fr}
+html[data-side="2"] .app{grid-template-columns:1fr}
+.side{background:var(--n-0);border-right:1px solid var(--n-200);padding:20px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;transition:background-color .18s,border-color .18s}
+html[data-side="1"] .side{padding:20px 10px}
+html[data-side="2"] .side{display:none}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;color:var(--n-900);padding:8px 12px;margin-bottom:16px}
+.brand svg{color:var(--brand);flex-shrink:0}
+html[data-side="1"] .brand{justify-content:center;padding:8px 0}
+html[data-side="1"] .brand .txt,html[data-side="1"] .nav-label,html[data-side="1"] .nav-item .txt,html[data-side="1"] .user-meta{display:none}
+.nav-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--n-400);padding:12px 12px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;height:36px;padding:0 12px;border-radius:8px;color:var(--n-600);font-size:13.5px;transition:background .12s,color .12s;cursor:pointer}
+.nav-item svg{flex-shrink:0;opacity:.75}
+.nav-item:hover{background:var(--n-100);color:var(--n-900)}
+.nav-item.active{background:var(--brand-bg);color:var(--brand);font-weight:500}
+.nav-item.active svg{opacity:1}
+html[data-side="1"] .nav-item{justify-content:center;padding:0}
+.side-foot{margin-top:auto;padding-top:16px;border-top:1px solid var(--n-200)}
+html[data-side="1"] .side-foot{border-top:0}
+.user{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px}
+html[data-side="1"] .user{justify-content:center;padding:8px 0}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--brand);color:var(--n-50);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+[data-theme="dark"] .avatar{color:#0f1319}
+.user-meta{font-size:12.5px;line-height:1.3;overflow:hidden}
+.user-meta b{display:block;font-weight:500;color:var(--n-800)}
+.user-meta span{color:var(--n-400);font-size:11.5px}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:5;background:var(--topbar-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--n-200);padding:0 28px;height:60px;display:flex;align-items:center;gap:16px;transition:background-color .18s,border-color .18s}
+.topbar h1{font-size:16px;font-weight:600;margin:0;color:var(--n-900);letter-spacing:-.01em}
+.seg{display:flex;background:var(--n-100);border-radius:8px;padding:2px;margin-left:auto}
+.seg button{border:0;background:transparent;padding:6px 14px;border-radius:6px;font-size:13px;color:var(--n-500);transition:all .15s}
+.seg button.on{background:var(--n-0);color:var(--n-900);box-shadow:var(--sh-sm);font-weight:500}
+.seg button:hover:not(.on){color:var(--n-800)}
+.theme-toggle,.side-toggle{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--n-500);border:1px solid var(--n-200);background:var(--n-0);cursor:pointer;transition:all .15s;flex-shrink:0}
+.theme-toggle:hover,.side-toggle:hover{color:var(--n-900);border-color:var(--n-300)}
+.side-toggle svg{transition:transform .18s}
+html[data-side="1"] .side-toggle svg,html[data-side="2"] .side-toggle svg{transform:rotate(180deg)}
+html[data-side="1"] .side-toggle{color:var(--brand);border-color:var(--brand)}
+.theme-toggle .sun{display:none}
+[data-theme="dark"] .theme-toggle .sun{display:block}
+[data-theme="dark"] .theme-toggle .moon{display:none}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .theme-toggle .sun{display:block}
+  :root:not([data-theme="light"]) .theme-toggle .moon{display:none}
+}
+.side-restore{display:none;position:fixed;left:12px;top:14px;z-index:30;width:32px;height:32px;border-radius:8px;border:1px solid var(--n-200);background:var(--n-0);color:var(--n-500);cursor:pointer;align-items:center;justify-content:center}
+html[data-side="2"] .side-restore{display:flex}
+.content{padding:24px 28px 48px;display:flex;flex-direction:column;gap:20px;width:100%}
 .page{display:none}
-.page.active{display:block}
-.states{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
-.chip{border:1px solid var(--n-200);background:var(--n-0);border-radius:999px;padding:4px 11px;font-size:12.5px;color:var(--n-600);cursor:pointer}
-.chip.active{background:var(--brand);border-color:var(--brand);color:#fff}
-.panel{background:var(--n-0);border:1px solid var(--n-200);border-radius:14px;box-shadow:var(--sh-sm);margin-bottom:16px;overflow:hidden}
-.panel-head{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--n-200)}
-.panel-head h2{font-size:14px;margin:0;flex:1;font-weight:600}
+.page.active{display:flex;flex-direction:column;gap:20px}
+/* 状态走查：设计稿专用控件，悬浮右下，不占页面框架（与 examples 框架保持一致） */
+.walk{position:fixed;right:18px;bottom:18px;z-index:40}
+.walk-btn{border:1px solid var(--n-200);background:var(--n-0);color:var(--n-600);border-radius:999px;padding:7px 14px;box-shadow:var(--sh-md);cursor:pointer;font:inherit;font-size:12.5px;display:inline-flex;align-items:center;gap:7px}
+.walk-btn:hover{color:var(--n-900);border-color:var(--n-300)}
+.walk-panel{display:none;position:absolute;right:0;bottom:44px;background:var(--n-0);border:1px solid var(--n-200);border-radius:12px;box-shadow:var(--sh-md);padding:10px;width:220px}
+.walk.open .walk-panel{display:block}
+.walk-panel .walk-label{display:block;font-size:11px;color:var(--n-400);padding:2px 6px 8px}
+.walk-panel button{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:12.5px;color:var(--n-600);padding:7px 9px;border-radius:7px;cursor:pointer}
+.walk-panel button:hover{background:var(--n-100);color:var(--n-900)}
+.walk-panel button.active{background:var(--brand-bg);color:var(--brand);font-weight:600}
+.panel{background:var(--n-0);border:1px solid var(--n-200);border-radius:12px;overflow:hidden}
+.panel-head{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--n-200)}
+.panel-head h2{font-size:14px;margin:0;flex:1;font-weight:600;letter-spacing:-.01em}
 .hint{color:var(--n-400);font-size:12.5px}
 .panel-body{padding:16px}
 .grid{display:grid;gap:14px}
@@ -170,9 +209,10 @@ tbody tr:last-child td{border-bottom:0}
 @keyframes sk{0%{background-position:100% 50%}100%{background-position:0 50%}}
 .state-note{font-size:12.5px;color:var(--n-400);padding:2px}
 /* ---- 营销版式（landing 场景 · layout:"marketing"） ---- */
+[data-layout="marketing"] .app{grid-template-columns:1fr}
 [data-layout="marketing"] .side{display:none}
 [data-layout="marketing"] .side-toggle,[data-layout="marketing"] .side-restore{display:none !important}
-[data-layout="marketing"] .content{max-width:1080px;margin:0 auto;padding:0 20px 56px}
+[data-layout="marketing"] .content{padding:0 28px 56px;max-width:1080px;margin:0 auto}
 .hero{text-align:center;padding:72px 0 48px}
 .hero .eyebrow{display:inline-block;border:1px solid var(--n-200);background:var(--n-0);color:var(--n-600);border-radius:999px;padding:4px 12px;font-size:12.5px;margin-bottom:18px}
 .hero h1{margin:0 0 14px;font-size:40px;line-height:1.22;letter-spacing:-.02em;font-weight:680}
@@ -229,11 +269,14 @@ const ICONS = {
   inbox: '<path d="M4 13l2-8h12l2 8v6H4z"/><path d="M4 13h5l1 2h4l1-2h5"/>',
   file: '<path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5"/>',
   moon: '<path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/>',
   side: '<rect x="3.5" y="4" width="17" height="16" rx="2.6"/><path d="M9.5 4v16"/>',
 };
 
 const svg = (name, size = 18) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ICONS.grid}</svg>`;
+// 需要按类名切换显隐的图标（主题 sun/moon）
+const svg2 = (name, size = 18) => svg(name, size).replace('<svg ', `<svg class="${name}" `);
 
 // ---------------------------------------------------------------- 组件渲染
 
@@ -369,11 +412,17 @@ function sectionHtml(s, draft) {
 }
 
 function pageHtml(p, i, draft) {
-  return { body: `<div class="page${i === 0 ? ' active' : ''}" data-page="${i}"><div class="states">${STATES.map(([k, label]) => `<button class="chip${k === 'default' ? ' active' : ''}" data-state="${k}">${label}</button>`).join('')}</div>${(p.sections || []).map((s) => sectionHtml(s, draft)).join('')}</div>`, title: p.title || draft.app };
+  return { body: `<div class="page${i === 0 ? ' active' : ''}" data-page="${i}">${(p.sections || []).map((s) => sectionHtml(s, draft)).join('')}</div>`, title: p.title || draft.app };
 }
 
 function navHtml(draft) {
-  return (draft.nav || []).map((n, j) => `<a class="nav-item${j === 0 ? ' active' : ''}" data-page="${j}">${svg(n.icon || 'grid')}<span class="label">${esc(n.label)}</span></a>`).join('');
+  let out = '';
+  let group = null;
+  (draft.nav || []).forEach((n, j) => {
+    if (n.group && n.group !== group) { group = n.group; out += `<div class="nav-label">${esc(n.group)}</div>`; }
+    out += `<a class="nav-item${j === 0 ? ' active' : ''}" data-page="${j}">${svg(n.icon || 'grid', 18)}<span class="txt">${esc(n.label)}</span></a>`;
+  });
+  return out;
 }
 
 function render() {
@@ -389,21 +438,30 @@ function render() {
 <style>${TOKENS}${CSS}</style>
 </head>
 <body>
-<button class="icon-btn side-restore" id="side-restore">${svg('side', 16)} 展开侧栏</button>
-<div class="layout">
+<button class="side-restore" id="side-restore" title="展开侧栏" aria-label="展开侧栏">${svg('side', 15)}</button>
+<div class="app">
   <aside class="side">
-    <div class="side-head"><span class="logo"></span><span class="brand-name">${esc(draft.app)}</span></div>
+    <div class="brand">${svg('grid', 18)}<span class="txt">${esc(draft.app)}</span></div>
     <nav>${navHtml(draft)}</nav>
+    ${draft.user ? `<div class="side-foot"><div class="user"><span class="avatar">${esc((draft.user.name || '?').slice(0, 1))}</span><span class="user-meta"><b>${esc(draft.user.name)}</b><span>${esc(draft.user.role || '')}</span></span></div></div>` : ''}
   </aside>
   <div class="main">
     <header class="topbar">
+      <button class="side-toggle" id="side-toggle" title="收起侧栏" aria-label="收起侧栏">${svg('side', 15)}</button>
       <h1 id="page-title">${esc(pages[0].title)}</h1>
-      <button class="icon-btn side-toggle" id="side-toggle">${svg('side', 16)} 收起侧栏</button>
-      <button class="icon-btn" id="theme-toggle">${svg('moon', 16)} 深色</button>
+      ${draft.seg?.length ? `<div class="seg" id="top-seg">${draft.seg.map((s, i) => `<button${i === (draft.segActive ?? draft.seg.length - 1) ? ' class="on"' : ''}>${esc(s)}</button>`).join('')}</div>` : ''}
+      <button class="theme-toggle" id="theme-toggle" title="切换主题" aria-label="切换主题"${draft.seg?.length ? '' : ' style="margin-left:auto"'}>${svg2('moon', 15)}${svg2('sun', 15)}</button>
     </header>
     <main class="content" data-state="default">
       ${pages.map((p) => p.body).join('')}
     </main>
+  </div>
+</div>
+<div class="walk" id="walk">
+  <button class="walk-btn" id="walk-btn">${svg('chart', 14)} 状态走查</button>
+  <div class="walk-panel">
+    <span class="walk-label">逐态走查（设计稿专用）</span>
+    ${STATES.map(([k, label]) => `<button data-state="${k}"${k === 'default' ? ' class="active"' : ''}>${label}</button>`).join('')}
   </div>
 </div>
 <script>
@@ -411,23 +469,28 @@ function render() {
   var r=document.documentElement;
   var content=document.querySelector('.content');
   var title=document.getElementById('page-title');
+  var walk=document.getElementById('walk');
+  function setState(k){
+    content.dataset.state=k;
+    walk.querySelectorAll('.walk-panel button').forEach(function(b){b.classList.toggle('active',b.dataset.state===k)});
+  }
+  document.getElementById('walk-btn').addEventListener('click',function(){walk.classList.toggle('open')});
   document.querySelectorAll('.nav-item').forEach(function(a){
     a.addEventListener('click',function(){
       var i=a.dataset.page;
       document.querySelectorAll('.nav-item').forEach(function(x){x.classList.toggle('active',x===a)});
       document.querySelectorAll('.page').forEach(function(p){p.classList.toggle('active',p.dataset.page===i)});
-      var t=document.querySelector('.page.active').querySelector('.states');
-      title.textContent=document.querySelectorAll('.nav-item')[i].textContent.trim();
-      content.dataset.state='default';
-      document.querySelectorAll('.chip').forEach(function(c){c.classList.toggle('active',c.dataset.state==='default')});
+      var lb=a.querySelector('.txt');
+      title.textContent=lb?lb.textContent:a.textContent.trim();
+      setState('default');
     });
   });
-  document.querySelectorAll('.chip').forEach(function(c){
-    c.addEventListener('click',function(){
-      var page=c.closest('.page');
-      page.querySelectorAll('.chip').forEach(function(x){x.classList.toggle('active',x===c)});
-      content.dataset.state=c.dataset.state;
-    });
+  walk.querySelectorAll('.walk-panel button').forEach(function(b){
+    b.addEventListener('click',function(){setState(b.dataset.state);walk.classList.remove('open')});
+  });
+  var topSeg=document.getElementById('top-seg');
+  if(topSeg) topSeg.querySelectorAll('button').forEach(function(b){
+    b.addEventListener('click',function(){topSeg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b)})});
   });
   document.querySelectorAll('[data-tabs]').forEach(function(w){
     w.querySelectorAll('.tab').forEach(function(b){
@@ -443,7 +506,6 @@ function render() {
     var cur=r.dataset.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
     var next=cur==='dark'?'light':'dark';
     r.dataset.theme=next;try{localStorage.setItem('theme',next)}catch(e){}
-    tb.lastChild.textContent=next==='dark'?'浅色':'深色';
   });
   var side=parseInt(r.dataset.side||'0',10)||0;
   var st=document.getElementById('side-toggle'), rs=document.getElementById('side-restore');
@@ -451,7 +513,7 @@ function render() {
     r.dataset.side=String(side);
     try{localStorage.setItem('side-stage-${esc(draft.app)}',String(side))}catch(e){}
     var lbl=side===0?'收起侧栏':(side===1?'再点一次完全隐藏侧栏':'展开侧栏');
-    st.lastChild.textContent=' '+lbl;
+    st.title=lbl;st.setAttribute('aria-label',lbl);
   }
   st.addEventListener('click',function(){side=side>=2?0:side+1;applySide()});
   rs.addEventListener('click',function(){side=0;applySide()});

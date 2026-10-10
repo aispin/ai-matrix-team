@@ -21,7 +21,9 @@ node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --stats   # 只�
 | `pages` | ✅ | 页面数组，至少一页 |
 | `title` | | `<title>` |
 | `lang` | | 默认 `zh-CN` |
-| `nav` | | 导航项 `[{icon,label}]`，与 `pages` 顺序一一对应 |
+| `nav` | | 导航项 `[{icon,label,group?}]`，与 `pages` 顺序一一对应；`group` 变化处渲染分组小标题 |
+| `user` | | 侧栏底部用户块 `{name,role}`（品牌区与用户块对齐 examples 惯例） |
+| `seg` / `segActive` | | 顶栏分段控件（如时间范围 `["1h","24h","7d","30d"]`）+ 默认选中下标 |
 | `layout` | | 默认应用版式（左侧栏）；`"marketing"` = 落地页版式（隐藏侧栏与收起钮、内容居中 1080px） |
 | `youLabel` / `agentLabel` | | 对话气泡署名，默认「你 / Agent」 |
 | `stateCopy` | | 全局状态文案覆盖，如 `{"empty":"还没有订单"}` |
@@ -53,8 +55,9 @@ node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --stats   # 只�
 
 ## 状态（八态，自动生成）
 
-默认/加载中/空态/错误/无权限/离线/部分失败/超长内容——页内 chips 点击切换，走查用。
+默认/加载中/空态/错误/无权限/离线/部分失败/超长内容——**右下悬浮「状态走查」控件**点选切换（不占页面框架，保持与 examples 一致的版式）。
 
+- 外壳（232px 侧栏 / 60px 顶栏 / 触发钮在最左 / 分段控件 / 品牌与用户块 / 分组标签 / 两段式收起）与 `examples/02-dashboard.html` 同款实现与数值。
 - 通用状态均有默认文案；按业务覆盖写该 section（或全局）的 `stateCopy`。
 - 空态、错误态自动带行动出口（新建 / 重试）——不写也合规。
 - `stats/cards/table/chat/list` 自动给加载骨架；其余类型在该状态下显示同一套通知条。
