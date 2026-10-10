@@ -35,7 +35,7 @@
 
 > harness = Agent 运行环境（成员实际干活的工具，如 WorkBuddy / codex / claude code）。
 > 样板实现：`dashboard/server/harness/codex.mjs` 与 `claude-code.mjs`。
-> 改动面上限：**1 个新增文件 + 1 行登记**（越出此面需回资深风控师核准扩单）。
+> 改动面上限：**1 个新增文件 + 1 行登记**（越出此面需回团长（风控）核准扩单）。
 
 | 步骤 | 动作 | 口径（四处必须一致） |
 |---|---|---|

@@ -12,11 +12,11 @@
 
 | 级别 | 面 | 路径 | 写入要求 |
 |---|---|---|---|
-| **C1** | 共享核心 | `packages/shared-types/**`、`packages/llm/**`、`packages/config/**`、`packages/utils/**`、`services/**`（auth/payment/llm/boss/telemetry）、`matrix.config.schema.json`、`pnpm-workspace.yaml`、`tsconfig.base.json`、`package.json`、`.github/**`、`.env.example` | **WO + 资深风控师核准 + 共享锁**；破坏性 → 事前 **INTENT** + 兼容证明；改后当日登记；**全矩阵 typecheck/test/build 必绿** |
-| **C2** | 共享外围 | 其余 `packages/**`（如 `telemetry`、`ui`、`sdk-client`）、`scripts/**`、`infra/**`（含 `cloudbase/migrations`）、**根 `docs/**`（全部）**<br/>其中 ★ 契约类：`docs/architecture.md`、`docs/shared-contracts.md`、`docs/brd-standard.md`、`docs/app-onboarding.md`、`docs/deploy*.md`、`docs/llm-service.md`、`docs/cloudbase-integration.md` | **WO（轻单）+ 资深风控师核准 + 共享锁**；改后当日登记；回归范围由守卫裁定（纯文档通常免跑全矩阵）<br/>★ 额外要求：**同一次提交必须同步对应 Role Skill 的 `references/`**（`guard check` 会提示；见下文 1.1） |
+| **C1** | 共享核心 | `packages/shared-types/**`、`packages/llm/**`、`packages/config/**`、`packages/utils/**`、`services/**`（auth/payment/llm/boss/telemetry）、`matrix.config.schema.json`、`pnpm-workspace.yaml`、`tsconfig.base.json`、`package.json`、`.github/**`、`.env.example` | **WO + 团长（风控）核准 + 共享锁**；破坏性 → 事前 **INTENT** + 兼容证明；改后当日登记；**全矩阵 typecheck/test/build 必绿** |
+| **C2** | 共享外围 | 其余 `packages/**`（如 `telemetry`、`ui`、`sdk-client`）、`scripts/**`、`infra/**`（含 `cloudbase/migrations`）、**根 `docs/**`（全部）**<br/>其中 ★ 契约类：`docs/architecture.md`、`docs/shared-contracts.md`、`docs/brd-standard.md`、`docs/app-onboarding.md`、`docs/deploy*.md`、`docs/llm-service.md`、`docs/cloudbase-integration.md` | **WO（轻单）+ 团长（风控）核准 + 共享锁**；改后当日登记；回归范围由守卫裁定（纯文档通常免跑全矩阵）<br/>★ 额外要求：**同一次提交必须同步对应 Role Skill 的 `references/`**（`guard check` 会提示；见下文 1.1） |
 | **C3** | App 私有受控 | `apps/<app>/matrix.config.json`、`apps/<app>/.env.example`、`apps/<app>/docs/<App>_{BRD,PRD,TDD}_*.md` | App 责任角色可写；**跨 App 影响时必须开 WO**；PRD/TDD 重大修订需主理人知会 |
 | **F** | 自由面 | `apps/<app>/src/**`、`apps/<app>/packages/**`、`apps/<app>/scripts/**`、`apps/<app>/public/**` | 直接改，无需 WO；仍需通过 QA 门禁（typecheck/test/build） |
-| **C2** | **专家团资产**（改 Agent 行为 = 影响全矩阵） | `<team-repo>/aimatrix-*/**`（角色 Skill 正文与 references）、`<team-repo>/members/**`（成员真源）、`<team-repo>/scripts/**`（guard / inspect / expert-sync / DR 生成器）、`<team-repo>/docs/**`（治理规范与模板） | **WO + 资深风控师核准 + 共享锁**；改后当日登记；回归范围由守卫裁定（改 Skill 正文 ≥ 至少跑一次受影响角色的示例任务；改 `scripts/` 必须跑脚本自测） |
+| **C2** | **专家团资产**（改 Agent 行为 = 影响全矩阵） | `<team-repo>/aimatrix-*/**`（角色 Skill 正文与 references）、`<team-repo>/members/**`（成员真源）、`<team-repo>/scripts/**`（guard / inspect / expert-sync / DR 生成器）、`<team-repo>/docs/**`（治理规范与模板） | **WO + 团长（风控）核准 + 共享锁**；改后当日登记；回归范围由守卫裁定（改 Skill 正文 ≥ 至少跑一次受影响角色的示例任务；改 `scripts/` 必须跑脚本自测） |
 | **T** | 台账面 | `<project>/.ai-matrix-team/runtime/**`（WO / DR / 台账 / 交接单 / 巡检报告） | 任何角色可写，**格式必须套模板**；由 `guard` 校验字段完整性；`runtime/state/` 为机器写（锁、日志），**不入库** |
 | **—** | 软链（非源码） | `<project>/.workbuddy/skills/aimatrix-*` → `<team-repo>/aimatrix-*` | **不入库、禁止手改**；由 `<team-repo>/scripts/install-to-workbuddy.mjs` 生成与校验（`--check`） |
 
@@ -29,9 +29,9 @@
 
 | 项 | 决定 |
 |---|---|
-| 根 `docs/**` **全部**归入 **C2**（轻单） | 不开单仍需批准；但**不再强制**全矩阵 typecheck/test/build，回归范围由资深风控师按实际影响裁定（纯 Markdown 通常免跑） |
-| ★ 契约类文档（见上表）加一道**软门禁** | 改这些文档时，同一次提交里必须更新**对应 Role Skill 的 `references/` 或正文**（映射见 [`02-roles.md`](02-roles.md) §9）；`guard check` 发现「改了 ★ 文档但没动任何 Skill」→ 退出码 6 提示（**不阻塞**，交由资深风控师在核准时判定是否放行） |
-| 降级不等于放开 | C2 仍然：**必须开 WO + 资深风控师核准 + 持共享锁 + 当日登记**。脱管的只是「要不要跑全矩阵构建」，不是「能不能写」 |
+| 根 `docs/**` **全部**归入 **C2**（轻单） | 不开单仍需批准；但**不再强制**全矩阵 typecheck/test/build，回归范围由团长（风控）按实际影响裁定（纯 Markdown 通常免跑） |
+| ★ 契约类文档（见上表）加一道**软门禁** | 改这些文档时，同一次提交里必须更新**对应 Role Skill 的 `references/` 或正文**（映射见 [`02-roles.md`](02-roles.md) §9）；`guard check` 发现「改了 ★ 文档但没动任何 Skill」→ 退出码 6 提示（**不阻塞**，交由团长（风控）在核准时判定是否放行） |
+| 降级不等于放开 | C2 仍然：**必须开 WO + 团长（风控）核准 + 持共享锁 + 当日登记**。脱管的只是「要不要跑全矩阵构建」，不是「能不能写」 |
 
 > **一句话**：C1 管的是「改了会炸」的东西（代码/契约/配置）；文档放进 C2，管的是「可见 + 留痕 + 规范同步」。
 
@@ -39,7 +39,7 @@
 
 ## 2. 权限矩阵（角色 × 面域）
 
-图例：✅ 可在 WO 授权内写 · 🅦 需 WO + 资深风控师逐次核准 · 👁 只读 · ⛔ 禁止
+图例：✅ 可在 WO 授权内写 · 🅦 需 WO + 团长（风控）逐次核准 · 👁 只读 · ⛔ 禁止
 
 | 角色 | C1 | C2 | C3 | F | T |
 |---|---|---|---|---|---|
@@ -68,7 +68,7 @@
 | 字段 | 说明 |
 |---|---|
 | `id` | `WO-YYYYMMDD-<seq>-<slug>`（当日序号两位数） |
-| 申请人 / 执行角色 / 资深风控师 | 三个签名位 |
+| 申请人 / 执行角色 / 团长（风控） | 三个签名位 |
 | 目的与背景 | 一句话 + 关联 BRD/PRD/TDD/ADR 章节 |
 | **面域与路径白名单** | 逐条列出允许写入的路径（glob）；白名单外改动 = 违规 |
 | **变更类型** | additive（只增）/ 非破坏 / **破坏性** / 新增契约 |
@@ -83,7 +83,7 @@
 ```mermaid
 stateDiagram-v2
   [*] --> DRAFT: 主理人开单
-  DRAFT --> APPROVED: 资深风控师核准(C1/C2)
+  DRAFT --> APPROVED: 团长（风控）核准(C1/C2)
   DRAFT --> REJECTED: 缺影响面/验证/回滚
   APPROVED --> LOCKED: 抢到共享锁
   LOCKED --> IMPLEMENTING: Bruce开工

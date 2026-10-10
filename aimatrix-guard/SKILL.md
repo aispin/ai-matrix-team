@@ -34,25 +34,15 @@ version: 1.0.1
 | 5 | 台账格式不合规 | 按模板补字段 |
 | 6 | ★ 契约文档改了但未见 Skill 同步 | 提示级；交风控（团长兼）裁决 |
 
-## 3. 面域速记（规则源 `<team-repo>/scripts/surfaces.json`）
-
-- **C1**（共享核心，重单）：`packages/shared-types|llm|config|utils`、`services/**`、根 `package.json`/`pnpm-workspace.yaml`/`tsconfig.base.json`/`matrix.config.schema.json`、`.github/**`、根 `.env.example`
-- **C2**（轻单）：其余 `packages/**`、根 `scripts/**`、`infra/**`、根 `docs/**`、`<team-repo>/**`（专家团资产，团队仓自管）
-- **C3**（App 私有受控）：`apps/*/matrix.config.json`、`apps/*/.env.example`、`apps/*/docs/**` —— 跨 App 影响才开单
-- **F**（自由）：`apps/*/src|packages|scripts|public/**` —— 不开单，QA 门禁照跑
-- **T**（台账）：`<project>/.ai-matrix-team/runtime/**` —— 任何角色可写，格式套模板
-- **S**（跳过）：`.workbuddy/**`、`node_modules`、`dist`
-- 拿不准 → `surface` 查；仍拿不准 → 按 C2 处理（从严）。
-
-## 4. 共享锁规则（按面域分片）
-
-共享锁**按面域分片**：面域不相交的多个 WO 可同时持锁，**同面域（冲突面相交）仍互斥**。holder 的冲突面 = 其白名单在 **C1/C2** 面域的子集（**T/F/S 不计入**）。TTL 默认 240min，过期自动释放（写 `guard.log`）；**面域相交才排队**、不硬抢；紧急热修走 W6 例外（24h 内补单 + 交接单标 `EXCEPTION`）。
-
 ## 5. 红线
 
 1. **不许绕过 check 直接改 C1/C2**——绕得过脚本，绕不过 CI `audit` 与月度巡检；每次被 audit 抓到 = 一次流程事故。
 2. **不许改 `.workbuddy/skills/` 激活点**（软链，机器生成）。
 3. commit message 里带 WO 单号（`WO-YYYYMMDD-NN-slug`）——audit 靠它溯源。
+
+## 按需读：面域速记（规则源 `<team-repo>/scripts/surfaces.json`） / 共享锁规则（按面域分片）
+
+已外移至 [`references/rules.md`](references/rules.md)（保持 SKILL 精简；需要细则时读那一份）。
 
 ## 6. References
 

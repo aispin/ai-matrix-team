@@ -23,7 +23,7 @@
     },
     {
       "tier": "C1",
-      "note": "共享核心：WO + 资深风控师核准 + 共享锁；破坏性需事前 INTENT + 兼容证明；改后当日登记；全矩阵 typecheck/test/build 必绿",
+      "note": "共享核心：WO + 团长（风控）核准 + 共享锁；破坏性需事前 INTENT + 兼容证明；改后当日登记；全矩阵 typecheck/test/build 必绿",
       "patterns": [
         "packages/shared-types/**",
         "packages/llm/**",
@@ -59,7 +59,7 @@
     },
     {
       "tier": "C2",
-      "note": "专家团资产 + 共享外围（轻单）：WO + 资深风控师核准 + 共享锁；改后当日登记；回归范围由守卫裁定",
+      "note": "专家团资产 + 共享外围（轻单）：WO + 团长（风控）核准 + 共享锁；改后当日登记；回归范围由守卫裁定",
       "patterns": [
         ".ai-matrix-team/**",
         "packages/**",

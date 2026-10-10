@@ -54,22 +54,11 @@ typecheck / test 任一红 → 不得进入 QA 阶段 · `guard check --staged` 
 
 风控（团长兼）随时可打回越权写入；质检 typecheck/test/AC 逐条验收；我没有任何门禁豁免权。
 
-## 8. 本项目坑位
+## 按需读：本项目坑位 / UI 框架铁律
 
-| 症状 | 根因 | 修法 |
-|---|---|---|
-| 三端行为不一致 | 逻辑散在 UI 层 | 纯逻辑进私有包/core 层；UI 只做壳 |
-| 前端变量带秘密 | env 打包口径不清 | 只用非秘密变量；`pnpm env:check-ignore` 必绿 |
-| CORS 手改导致线上挂 | 绕过同步脚本 | `ALLOWED_ORIGINS` 只经 `scripts/sync-origins.mjs`，禁止手改 |
+已外移至 [`references/pitfalls.md`](references/pitfalls.md)（保持 SKILL 精简；需要细则时读那一份）。
 
 ## 9. References
 
 - `docs/app-onboarding.md` §〇点二（统一栈纪律）· `tsconfig.base.json`
 - `<team-repo>/docs/03-shared-surface-control.md` §7（违规处置）
-
-## UI 框架铁律
-
-1. **必须使用项目技术栈所引入的 UI 框架（如 HeroUI）提供的内置组件**：在组件基础上叠加样式微调还原设计效果，或**组合内置组件**形成符合业务功能要求的新组件。**避免重复造轮子**——框架已有的 Button/Table/Modal/Dropdown 等禁止手写同功能组件。
-2. 页面没有引入任何 UI 框架时：**React 栈默认引入 HeroUI，Vue 栈默认引入 Ant Design**（选型变动属 Type 2，先落 DR）。
-3. 用户明确要求不引入 UI 框架时，才完全手写组件代码（并在 WO 执行记录注明依据）。
-4. **与设计稿对账**：设计稿的 `data-ui"<框架>:<组件名>"` 标注是组件清单——实现时逐个对账，缺组件先查框架文档与组合方案，确无内置组件才允许自定义，并在交接单说明。
