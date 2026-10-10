@@ -551,6 +551,9 @@ if (stats) {
   console.log(`  渲染产物（工具写）${htmlBytes} B`);
   console.log(`  手写基线（examples 均值）${avg} B`);
   if (avg) console.log(`  模型侧输出降幅   ${(100 - (draftBytes / avg) * 100).toFixed(1)}%（草稿/手写 = ${(draftBytes / avg * 100).toFixed(1)}%）`);
+  // raw 用量：组件词汇覆盖度的真实信号（同类 raw 连续 ≥3 次 → 该组件化）
+  const totalSec = (draft.pages || []).reduce((a, p) => a + (p.sections || []).length, 0);
+  console.log(`  raw 局部手写     ${rawCount.n} 处 / ${totalSec} 个区块${totalSec ? ` = ${((rawCount.n / totalSec) * 100).toFixed(0)}%` : ''}${rawCount.n ? '（同类反复出现 3 次即升级为组件）' : '（本稿全部走组件词汇）'}`);
   process.exit(0);
 }
 
