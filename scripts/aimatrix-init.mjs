@@ -160,6 +160,14 @@ function ensureGitignore() {
 
 /* ---------- 主流程 ---------- */
 const profile = buildProfile();
+// 人工项保留：terms（术语大字话）与 team 段允许项目自定义 —— init 重跑不得覆盖（此前每次全量重写会冲掉）
+try {
+  if (fs.existsSync(CONFIG)) {
+    const prev = JSON.parse(fs.readFileSync(CONFIG, 'utf8'));
+    if (prev.terms) profile.terms = prev.terms;
+    if (prev.team) profile.team = { ...profile.team, ...prev.team };
+  }
+} catch { /* 旧档案损坏 → 按新档案生成 */ }
 const serialized = JSON.stringify(profile, null, 2) + '\n';
 
 if (CHECK) {
@@ -173,7 +181,7 @@ if (CHECK) {
   const a = JSON.stringify({ w: profile.workspace, d: profile.docs, c: profile.ci.workflows });
   const b = JSON.stringify({ w: cur.workspace, d: cur.docs, c: cur.ci?.workflows });
   if (a !== b) {
-    console.error('⚠️ config.json 与项目现状漂移（workspace/docs/CI 变化）—— 重跑 init 刷新');
+    console.error('⚠️ project.json 与项目现状漂移（workspace/docs/CI 变化）—— 重跑 init 刷新');
     process.exit(1);
   }
   // 版本闭环：档案由哪个引擎版本生成。不一致（含旧档案缺字段）= 需对齐一次。
@@ -192,7 +200,7 @@ if (CHECK) {
   if (stale && !FORCE) {
     console.log('ℹ️ 仅时间戳差异（结构一致），视为新鲜。');
   }
-  console.log('✅ config.json 与项目现状一致');
+  console.log('✅ project.json 与项目现状一致');
   process.exit(0);
 }
 

@@ -20,14 +20,31 @@ import { redact } from './aimatrix-redact.mjs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
 const getArg = (n) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : undefined; };
-const ROOT = path.resolve(getArg('--root') || path.resolve(__dirname, '..', '..'));
+const ROOT = (() => {
+  const given = getArg('--root') || getArg('--project');
+  if (given) return path.resolve(given);
+  // 从脚本位置向上找最近的 .ai-matrix-team（含 config.json 或 project.json）——兼容两种布局：
+  // 目标项目 <project>/.ai-matrix-team/scripts/ 与团队仓 <repo>/scripts/
+  let d = __dirname;
+  for (let i = 0; i < 6; i++) {
+    const m = path.join(d, '.ai-matrix-team');
+    if (fs.existsSync(path.join(m, 'config.json')) || fs.existsSync(path.join(m, 'project.json'))) return d;
+    const up = path.dirname(d);
+    if (up === d) break;
+    d = up;
+  }
+  return path.resolve(__dirname, '..');
+})();
 
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const exists = (p) => fs.existsSync(path.join(ROOT, p));
 const rel = (p) => path.relative(ROOT, p);
 
 // ---------- 项目档案 ----------
-const CONFIG_PATH = path.join(ROOT, '.ai-matrix-team', 'config.json');
+// config.json（aimatrix-init 生成）优先；团队仓自身只有 project.json（字段为其超集）→ 回退
+const CONFIG_PATH = exists('.ai-matrix-team/config.json')
+  ? path.join(ROOT, '.ai-matrix-team', 'config.json')
+  : path.join(ROOT, '.ai-matrix-team', 'project.json');
 const cfg = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
 const T = cfg.terms || {};
 const lbl = (k, fallback) => T[k]?.label || fallback;
@@ -424,8 +441,19 @@ function renderSvg(d) {
 }
 
 // ---------- SQLite ----------
-const DB_DIR = path.join(ROOT, path.resolve(__dirname, '..'), 'dashboard', 'data'.split(',').pop());
-const DB_PATH = path.join(DB_DIR, 'dashboard.db');
+// 汇报库按项目分文件：<团队仓>/dashboard/data/db/<project-slug>.db
+// （此前是全局单例 dashboard/data/dashboard.db，多项目会互相覆盖；且旧实现把绝对路径拼进 path.join，写到了歪目录）
+const TEAM_ROOT = path.resolve(__dirname, '..');
+const DB_DIR = path.join(TEAM_ROOT, 'dashboard', 'data', 'db');
+const slug = String(cfg.project?.name || 'project').replace(/[^\w.-]+/g, '-');
+const DB_PATH = path.join(DB_DIR, `${slug}.db`);
+const LEGACY_DB = path.join(TEAM_ROOT, 'dashboard', 'data', 'dashboard.db');
+// 一次性迁移：本项目的分库不存在但旧单例库在 → 拷贝过来（保留历史汇报）
+if (!fs.existsSync(DB_PATH) && fs.existsSync(LEGACY_DB)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+  fs.copyFileSync(LEGACY_DB, DB_PATH);
+  console.log(`（已从旧单例库迁移历史汇报 → ${path.relative(TEAM_ROOT, DB_PATH)}）`);
+}
 
 function getLastReportTime() {
   if (!fs.existsSync(DB_PATH)) return null;

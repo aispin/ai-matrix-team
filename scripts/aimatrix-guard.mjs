@@ -103,7 +103,7 @@ function surfaces() {
       die(EXIT.USAGE, `surfaces.json 解析失败：${e.message}`);
     }
   } else if (exists(CONFIG_FILE())) {
-    // 可移植回退：新项目只有 config.json（aimatrix-init 生成）时，从其 surfaces 段构造规则
+    // 可移植回退：新项目只有 project.json（aimatrix-init 生成；v2.0 前名为 config.json）时，从其 surfaces 段构造规则
     try {
       const cfg = JSON.parse(read(CONFIG_FILE()));
       const reqFor = { S: 'special', C1: 'wo+lock', C2: 'wo+lock', C3: 'wo-cross-app', F: 'free', T: 'template' };
@@ -118,10 +118,10 @@ function surfaces() {
         contractDocs: { rules: [{ patterns: ['docs/shared-contracts.md'] }] },
       };
     } catch (e) {
-      die(EXIT.USAGE, `config.json 回退构造失败：${e.message}`);
+      die(EXIT.USAGE, `project.json 回退构造失败：${e.message}`);
     }
   } else {
-    die(EXIT.USAGE, '规则源缺失：无 surfaces.json 且无 config.json —— 先跑 aimatrix-init.mjs 引导生成');
+    die(EXIT.USAGE, '规则源缺失：无 surfaces.json 且无 project.json —— 先跑 aimatrix-init.mjs 引导生成');
   }
   // 启动自检：面域关键 key 齐全
   const tiers = new Set(['S', 'T', 'C1', 'C2', 'C3', 'F']);

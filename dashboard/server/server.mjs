@@ -31,8 +31,19 @@ const ROOT = path.resolve(getArg('--project') || getArg('--root') || process.env
 const PORT = Number(getArg('--port', 4780));
 const DIST = path.join(__dirname, '..', 'dist');
 const ABOUT = JSON.parse(fs.readFileSync(path.join(__dirname, 'about.json'), 'utf8'));
-const CONFIG = JSON.parse(fs.readFileSync(path.join(ROOT, '.ai-matrix-team', 'project.json'), 'utf8'));
-const DB = path.join(TEAM_ROOT, 'dashboard', 'data', 'dashboard.db');
+// 项目档案：正式名 project.json（v2.0 起）；旧名 config.json 兜底（老项目不崩，提示对齐）
+const CFG_PATH = ['project.json', 'config.json'].map((f) => path.join(ROOT, '.ai-matrix-team', f)).find((p) => fs.existsSync(p));
+if (!CFG_PATH) {
+  console.error(`✗ 缺项目档案：${path.join(ROOT, '.ai-matrix-team', 'project.json')}`);
+  console.error(`   先跑：node <team-repo>/scripts/aimatrix-init.mjs --project ${ROOT}`);
+  process.exit(1);
+}
+if (CFG_PATH.endsWith('config.json')) console.error('⚠ 读到旧名 config.json（v2.0 起更名为 project.json）——建议重跑 init 对齐');
+const CONFIG = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
+// 汇报库按项目分文件（与 aimatrix-report.mjs 同源）：<团队仓>/dashboard/data/db/<slug>.db；旧单例库兜底
+const _dbSlug = String(CONFIG.project?.name || 'project').replace(/[^\w.-]+/g, '-');
+const _dbPerProject = path.join(TEAM_ROOT, 'dashboard', 'data', 'db', `${_dbSlug}.db`);
+const DB = fs.existsSync(_dbPerProject) ? _dbPerProject : path.join(TEAM_ROOT, 'dashboard', 'data', 'dashboard.db');
 
 // harness 适配层（DR-20261005-003）：实例/会话数据经适配器取得，WorkBuddy 细节不进主逻辑。
 // 先注入项目根（修登记表路径偏移：登记表实际落在 <项目根>/.ai-matrix-team/runtime/state/instances.json）
@@ -471,8 +482,24 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, '127.0.0.1', () => {
-  const url = `http://127.0.0.1:${PORT}`;
+// 端口占用自动避让：默认 4780，被占则 +1 重试（最多 20 次）——多项目并行开控制台无需手工指定端口
+let port = PORT;
+let announced = false;
+const onListening = () => {
+  if (announced) return; // 幂等：重试路径可能让 listening 回调重复触发
+  announced = true;
+  const url = `http://127.0.0.1:${port}`;
   console.log(`OK ${url}`);
-  console.log(`   项目：${CONFIG.project.name} · 台账：<project>/.ai-matrix-team/runtime · 汇报库：${path.relative(ROOT, DB)}`);
+  console.log(`   项目：${CONFIG.project.name} · 台账：${ROOT}/.ai-matrix-team/runtime · 汇报库：${path.relative(ROOT, DB)}`);
+};
+server.on('error', (e) => {
+  if (e.code === 'EADDRINUSE' && port < PORT + 20) {
+    console.log(`⚠ 端口 ${port} 被占用 → 改用 ${port + 1}`);
+    port += 1;
+    server.listen(port, '127.0.0.1', onListening);
+    return;
+  }
+  console.error(`✗ 启动失败：${e.message}`);
+  process.exit(1);
 });
+server.listen(port, '127.0.0.1', onListening);
