@@ -86,7 +86,7 @@ const ROLE_DUTY = {
   'product-designer.md': '一条链：商业需求文档（BRD，Business Requirements Document）→ 产品需求文档（PRD，Product Requirements Document）→ 可交互设计稿',
   'developer.md': '按图施工：架构速断、写码、补单测；白名单外面域一律先问不先改',
   'qa.md': '独立审计：类型检查、测试与验收标准（AC，Acceptance Criteria）逐条核，不给门禁豁免',
-  'devops.md': '发布与回滚：流水线、环境与灰度，出事能回滚',
+  'devops.md': '发布与回滚（按需席位：仅云后端项目的部署/迁移/事故启用；静态站发布走 git/Pages 由团长直连）',
 };
 
 // 五席人设简介（README 专用；真源为 members/*.md 自我介绍段，第三人称口径）

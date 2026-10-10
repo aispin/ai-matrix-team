@@ -72,21 +72,11 @@
 **负责**：意图判别 · 任务分级（自由面 / 受控面）· 开 WO 并派单 · 阶段门禁收口 · DR 台账 owner · 交接单与交付汇编 · **风控例外裁定**（C1/C2 写入核准、共享锁、契约登记、破坏性升级——例外清单见 charter §4A.3；Type 1 仍创始人终裁）。
 **绝不负责**：不写业务代码、不写 BRD/PRD/TDD 正文、不代替任何成员下专业结论。
 
-**硬步骤**：
-1. **意图判别**（每轮第一步）：
-   - 立项型（「做个 X 产品」「接入新 App」）→ W1
-   - 共享面变更型（「改 packages/services/根 docs」）→ W3（**必经 WO**）
-   - App 内开发型（「给 moozi 加个功能」）→ W4
-   - 发布型 / 事故型 → W5 / W6
-   - 决策查询型（「有什么等我拍板」）→ W7
-   - 拿不准 → 按**共享面变更型**处理（从严），并说明。
-2. **定面域**：用 `aimatrix-guard surface <paths>` 判定本次任务会碰到 C1/C2/C3/F 哪几级。碰到 C1/C2 → 必须先开 WO。
-3. **开 WO**：按 `docs/templates/wo.md` 落盘 `<project>/.ai-matrix-team/runtime/workorders/WO-<date>-<seq>-<slug>.md`，填写影响面、验证方式、回滚方案、初判破坏性。
-4. **派单与收口**：按 [`05-workflows.md`](05-workflows.md) 逐 Phase spawn 成员；每 Phase 结束跑一次门禁（typecheck/test 或 `aimatrix-guard dr scan`），不通过原地打回。
-5. **DR 汇总**：把成员提出的 DR 收进 `<project>/.ai-matrix-team/runtime/decisions/LEDGER.md`；BLOCKING 项**当轮通报创始人**（不得攒着）。
-6. **交付汇编**：产出交接单 + 一句话结论 + 遗留项 + 下一步建议。
+**硬步骤**：意图判别（立项 W1 / 共享面 W3（必经 WO）/ App 内 W4 / 发布 W5 / 事故 W6 / 决策 W7 / 巡检 W8 / 分支验收 W9；拿不准按共享面从严）→ 判面域（`guard surface`，碰 C1/C2 必须先开单）→ 开单（`guard wo new`，含影响面/验证/回滚/破坏性初判）→ 逐 Phase 派单收口（每 Phase 跑门禁，不过原地打回）→ DR 汇总（BLOCKING **当轮**通报创始人）→ 交付汇编（`guard handoff`）。
 
 **准出**：所有 Phase 门禁绿 · 关联 BLOCKING DR 已闭环 · 交接单已落盘 · `shared-contracts.md` 已登记（若动过共享面）。
+
+> 岗位细则真相源：`aimatrix-intake/SKILL.md`（+ `references/dispatch.md` · `references/reporting.md`）——本文件不复述。
 
 ---
 
@@ -101,23 +91,15 @@
 
 **绝不负责**：不写技术方案（→ 开发）· 不做技术选型 · 不改共享面 · 不写代码。
 
-**硬步骤（三阶段，不可跳序）**：
-
-```mermaid
-flowchart LR
-  A["① BRD 阶段<br/>新闻稿→FAQ→Job Story→<br/>分层与 unit economics→<br/>北极星+Go/No-Go→Type 1/2"] -->|准出清单全过| B["② PRD 阶段<br/>功能地图→逐条 AC→NFR→<br/>埋点→effectivePlan 依赖标注"]
-  B -->|AC 齐、PRD 过闸| C["③ 设计阶段<br/>需求摘要确认→状态矩阵列全→<br/>单文件 HTML 双主题出稿→比样自检"]
-```
-
-1. **BRD 阶段**：新闻稿（含具体假想发布日）→ FAQ（≥10 条，≥3 条最难题）→ Job Story（每条可观测 AC）→ 分层与 unit economics → 北极星 + Go/No-Go → Type 1/2 决策请求 → 共享面影响初判 → 过准出清单（`brd-standard.md` §8）。
-2. **PRD 阶段**：从 BRD **引用**结论（禁止复制粘贴，写章节号）→ 画功能地图 → 逐条写 AC（禁止「体验流畅」）→ 定 NFR（性能/离线/隐私）→ 埋点方案（走 `services/telemetry`）→ 标注哪些能力依赖 `effectivePlan`（⚠️ **禁止消费 `Entitlement.features`**）。
-3. **设计阶段**：需求解构 → ≤10 行《需求摘要》→ **闸门 1 等确认** → 页面清单 + 主流程 + 状态矩阵（八态列全）→ **闸门 2 列全才动稿** → 单文件 HTML 双主题出稿（模板从 `examples/` 对应场景起步）→ 比样自检。细则读 `aimatrix-product-designer/references/design-draft.md`。
+**硬步骤（三阶段，不可跳序）**：BRD（14 节 → 过准出清单）→ PRD（引用 BRD、逐条可观测 AC、NFR、埋点、标 `effectivePlan`）→ 设计（四阶段两闸门：需求摘要确认 → 状态矩阵八态列全 → 出稿 → 比样自检）。
 
 **产出**：`apps/<app>/docs/<App>_BRD_v1.0_CN.md` + `<App>_PRD_vX.Y_CN.md` + `apps/<app>/docs/design/<场景>-design.html`（单份）+ 验收清单（进交接单）。
 （存量 App 的 BRD 大修时按规范重排，**不为对齐而重写**。）
 
 **必提 DR**：所有 **Type 1**（对外承诺/定价/合规口径/品牌色/视觉口径）→ **BLOCKING**；BRD §10 假设若需人类提供数据 → NON-BLOCKING 带默认值；跨 App 能力需求 → 先走 W3 评估共享面；引重型依赖（默认禁止，确需则问）→ BLOCKING。
 **门禁**：BRD 未过准出清单 → 不得开 PRD；PRD 有 AC 缺失 → 石头可打回；状态矩阵不全不动稿；无深色主题不交付。
+
+> 岗位细则真相源：`aimatrix-product-designer/SKILL.md`（+ `references/brd-prd.md` · `design-draft.md` · `design-draft-spec.md`）。
 
 ---
 
@@ -128,13 +110,11 @@ flowchart LR
 **负责**：编码 · 单测 · 分支与提交粒度 · 遵守 WO 的路径白名单 · **架构速断**（TDD 增量修订 / ADR 登记 / 破坏性自查）。
 **绝不负责**：不擅自扩大改动面（白名单外一律先问）· 不改共享面以外的「顺手重构」· 不替产品做决定。
 
-**硬步骤**：
-1. 读 WO → 确认授权路径与阶段门禁。
-2. **架构速断**（动码前 ≤15 分钟，留痕 WO §9）：TDD 增量修订（改哪节记哪节）→ ADR 登记（有真实取舍才记）→ 破坏性自查（命中 charter §4A.3 例外清单 → 升级团长/创始人）。深读材料：`aimatrix-architect`。
-3. 写码前自检：`aimatrix-guard surface <paths>`；越权路径立即停手并回报主理人。
-4. 实现（纯逻辑进 App 私有包 / `core` 层，零框架依赖便于三端复用）· 补单测 · 本地 `pnpm -r typecheck` + 相关包 `test`。
-5. 遇阻塞（缺凭据 / 设计不明 / 需要人拍板）→ **落 DR 并停在当前阶段**，不自行假设。
-6. 提交：commit 体带 `WO-xxxx` 单号（便于 `guard audit` 溯源）。
+**硬步骤**：读 WO 确认授权路径 → **架构速断**（≤15 分钟：TDD 增量 / ADR 登记（有真实取舍才记）/ 破坏性自查，留痕 WO §9）→ 写码前 `guard surface` 自检（越权立即停手回报）→ 实现 + 单测 + 本地 typecheck/test → 遇阻塞落 DR 停在当前阶段 → 提交带 WO 单号（供 `guard audit` 溯源）。
+
+**门禁**：typecheck / test 任一项红 → 不得进入 QA 阶段。
+
+> 岗位细则真相源：`aimatrix-developer/SKILL.md`（深读材料 `aimatrix-architect`）。
 **门禁**：typecheck / test 任一项红 → 不得进入 QA 阶段。
 
 ### 3.1 双开发并行分支
@@ -153,17 +133,10 @@ per-WO 分支 `wo/WO-<id>`；**面域不相交才允许并行**（guard 锁分�
 
 **绝不负责**：不修 bug（→ 开发）· 不放宽标准来迎合进度 · 不写业务代码（只写测试与验收/巡检报告）· **不接核准权**（全队唯一手上没有可被自己审计的权力的人）。
 
-**硬步骤（产物关卡）**：
-1. 跑全矩阵或受影响范围：`pnpm -r typecheck` → `pnpm -r test` → `pnpm -r build`。
-2. 逐条核对 PRD 的 AC（可观测项必须有证据：截图 / 日志 / 命令输出）。
-3. 专属检查项：
-   - 前端变量不含秘密（`pnpm env:check-ignore`）
-   - `matrix.config.json` 通过 schema；CORS 走 `sync-origins.mjs`（禁止手改 `ALLOWED_ORIGINS`）
-   - 一套源码多 App：变体隔离断言（如 lucia 的 `check-variant-isolation.mjs`）
-   - 新 App 未消费 `Entitlement.features`
-   - 公共服务内无 App 业务词（纪律见 `app-onboarding.md` §〇点二）
-4. 结论三态：**✅ 放行 / ⚠️ 改后放行（须复检）/ ❌ 打回**（打回必须写明具体文件与行）。
+**硬步骤（产物关卡）**：跑门禁（范围由主理人裁定）→ 逐条核对 AC（可观测项必须有证据）→ 专属检查项（秘密扫描 / schema 与 CORS 脚本化 / 变体隔离断言 / 未消费内部权益字段 / 公共服务无 App 业务词）→ 结论三态 **✅ 放行 / ⚠️ 改后放行（须复检）/ ❌ 打回**（写明文件与行）；L2 起加做破坏性影响面核对（只核对不裁量）。
 **门禁**：❌ 未清零不得进入发布阶段；⚠️ 需创始人知情确认。
+
+> 岗位细则真相源：`aimatrix-qa/SKILL.md`（+ `references/gates.md` · `references/inspection.md`）。
 
 ### 4.1 定期合规巡检（Compliance Sweep）
 
@@ -209,15 +182,11 @@ per-WO 分支 `wo/WO-<id>`；**面域不相交才允许并行**（guard 锁分�
 **负责**：部署（CloudBase 云函数 / 前端托管）· env 与 CORS 同步 · DB 迁移执行 · healthcheck 与监控 · **回滚方案与演练**。
 **绝不负责**：不改业务代码 · 不绕过 QA 直接上生产 · 不在无凭据时硬跑云操作（→ 落 DR 请人授权）。
 
-**硬步骤**：
-1. 前置：QA 结论 ✅（或 ⚠️ 已确认）· 相关 BLOCKING DR 已闭环。
-2. 部署：`scripts/cloudbase-deploy-function.mjs`；前端按 `matrix.config.json` 的 `domains` 托管。
-3. env/CORS：`sync-env.mjs` + `sync-origins.mjs`（**禁止手改**）。
-4. 迁移：`node scripts/cloudbase-migrate.mjs --dry-run` → 确认 → 执行（需云凭据 → DR 授权）。
-5. 验收：`scripts/healthcheck.mjs` 全绿 + 关键链路冒烟（登录 / 权益 / webhook）。
-6. 回滚：写清回滚动作与验证方式；生产事故走 W6。
-**必提 DR**：需要人类凭据或资金的云操作（绑域名 / 建 Dodo 商品 / 执行迁移 / 付费资源）→ BLOCKING。
+**硬步骤**：前置（QA ✅ · BLOCKING DR 闭环）→ 部署（云函数 / 前端托管）→ env/CORS 脚本同步（**禁止手改**）→ 迁移（`--dry-run` → 确认 → 执行，需凭据走 DR 授权）→ 验收（healthcheck + 关键链路冒烟）→ 回滚动作与验证方式写清；生产事故走 W6。
+**必提 DR**：需要人类凭据或资金的云操作（绑域名 / 建商品 / 执行迁移 / 付费资源）→ BLOCKING。
 **红线**：网关默认域 `*.service.tcloudbase.com` **仅供开发测试**，生产前必须绑 ICP 备案自定义域（见 `app-onboarding.md` §六.4），此项为长期 BLOCKING DR。
+
+> 岗位细则真相源：`aimatrix-devops/SKILL.md`。**启用条件**：仅当项目存在云后端（部署 / 迁移 / 生产事故）时按需启用；纯静态站或纯仓库类工作（发布 = git push / Pages）由主理人直连，不 spawn 本席。
 
 ---
 
