@@ -3,7 +3,7 @@
  * aimatrix-report.mjs — 产研高级总监「汇报模式」生成器（文字版 + 图形版）
  *
  * 汇总门禁状态 / 活跃工单 / 待拍板 / 最近巡检 / git 近况，
- * 用大白话（config.json.terms 术语表）生成一份汇报：
+ * 用大白话（project.json 的 terms 术语表）生成一份汇报：
  * ① 文字版（Markdown，四段式）→ SQLite reports.body_md
  * ② 图形版（SVG 信息图，四区块 + 金句）→ SQLite reports.svg + data/reports/report-<id>.svg
  *

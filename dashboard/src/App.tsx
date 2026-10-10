@@ -7,7 +7,7 @@ import Artifacts from './pages/Artifacts';
 import Pipeline from './pages/Pipeline';
 import Reports from './pages/Reports';
 import Tokens from './pages/Tokens';
-import type { ReportDetail, ReportListItem } from './types';
+import type { EnvInfo, ReportDetail, ReportListItem } from './types';
 
 type Tab = 'pipeline' | 'reports' | 'artifacts' | 'tokens' | 'about';
 type ThemeMode = 'system' | 'light' | 'dark';
@@ -61,6 +61,9 @@ export default function App() {
   // 汇报历史清单：状态上提到 App，供侧栏子菜单区渲染
   const [reports, setReports] = useState<ReportListItem[] | null>(null);
   const [selectedReport, setSelectedReport] = useState<number | null>(null);
+  // 运行环境：侧栏底部展示「当前项目目录」（点击复制完整路径）
+  const [env, setEnv] = useState<EnvInfo | null>(null);
+  const [copiedPath, setCopiedPath] = useState(false);
 
   // 汇报查看状态（B-2：上提到 App，图/文切换与全屏控件随之进入页头）
   const [detail, setDetail] = useState<ReportDetail | null>(null);
@@ -70,6 +73,17 @@ export default function App() {
   const [reportNonce, setReportNonce] = useState(0);
 
   useEffect(() => { window.location.hash = tab; }, [tab]);
+
+  useEffect(() => { api.env().then(setEnv).catch(() => setEnv(null)); }, []);
+
+  const copyProjectPath = async () => {
+    if (!env?.root) return;
+    try {
+      await navigator.clipboard.writeText(env.root);
+      setCopiedPath(true);
+      window.setTimeout(() => setCopiedPath(false), 1200);
+    } catch { /* 剪贴板不可用时静默 */ }
+  };
 
   // 主题落地（HeroUI v3 对接）：HeroUI 变体走 .dark class（v3 styles
   // 同时支持 data-theme="dark"，两者同步挂摘互为冗余），项目自有令牌继续走
@@ -200,8 +214,23 @@ export default function App() {
           </div>
         )}
 
-        {/* 底部：外观三态切换（窄屏侧栏折成顶栏后此区仍在，主题切换始终可达） */}
+        {/* 底部：当前项目目录 + 外观三态切换（窄屏侧栏折成顶栏后此区仍在，主题切换始终可达） */}
         <div className="side-foot">
+          {env?.root && (
+            <button
+              type="button"
+              className="project-path"
+              title={`${env.root}（点击复制）`}
+              onClick={copyProjectPath}
+              aria-label={`当前项目目录 ${env.root}，点击复制`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              </svg>
+              <span className="min-w-0 flex-1 truncate">{env.root}</span>
+              <span className="project-path-act">{copiedPath ? '已复制' : '复制'}</span>
+            </button>
+          )}
           <div className="theme-row">
             <span>外观</span>
             <div className="theme-seg" role="group" aria-label="外观主题">
@@ -220,7 +249,7 @@ export default function App() {
             </div>
           </div>
           <p className="subtle hidden text-[11px] leading-relaxed md:block">
-            数据来源：.skills/runtime 台账（唯一真相源）· 汇报库 dashboard.db
+            数据来源：.ai-matrix-team/runtime 台账（唯一真相源）· 汇报库 dashboard/data/db
           </p>
         </div>
       </aside>

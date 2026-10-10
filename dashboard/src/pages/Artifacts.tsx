@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api';
-import { Card, Chip, Skeleton } from '@heroui/react';
-import type { ArtifactsPayload, ArtifactItem } from '../types';
+import { Button, Card, Chip, Skeleton } from '@heroui/react';
+import { Icon } from '../icon';
+import { Markdown } from '../markdown';
+import type { ArtifactsPayload, ArtifactItem, ArtifactDoc } from '../types';
 
 const TYPE_COLORS: Record<string, string> = {
   BRD: '#8b5cf6', PRD: '#f59e0b', TDD: '#06b6d4', DESIGN: '#ec4899',
@@ -12,28 +14,39 @@ const STAT_TYPES = ['BRD', 'PRD', 'TDD', 'DESIGN', 'ADR'];
 
 const fmtSize = (n: number) => (n >= 1024 * 1024 ? (n / 1024 / 1024).toFixed(1) + ' MB' : n >= 1024 ? (n / 1024).toFixed(0) + ' KB' : n + ' B');
 
-function ItemRow({ it }: { it: ArtifactItem }) {
+const isHtmlPath = (p: string) => /\.x?html?$/i.test(p);
+
+function ItemRow({ it, onOpen }: { it: ArtifactItem; onOpen: (it: ArtifactItem) => void }) {
+  const html = isHtmlPath(it.path);
   return (
-    <li className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[13px]" style={{ background: 'var(--surface-2)' }}>
-      <Chip
-        size="sm"
-        variant="soft"
-        className="h-5 shrink-0 !rounded !px-1.5 !text-[10px] font-bold !text-white"
-        style={{ background: TYPE_COLORS[it.type] ?? '#9ca3af' }}
-        title={it.label}
+    <li>
+      <button
+        type="button"
+        className="artifact-row"
+        onClick={() => onOpen(it)}
+        title={html ? `${it.path}（新窗口打开）` : `${it.path}（点开预览）`}
       >
-        {it.type}
-      </Chip>
-      <span className="min-w-0 flex-1 truncate font-medium" title={it.path}>{it.file}</span>
-      <span className="subtle shrink-0 text-[11px]">{fmtSize(it.size)}</span>
-      <span className="subtle hidden shrink-0 text-[11px] sm:inline">
-        {new Date(it.mtime).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
-      </span>
+        <Chip
+          size="sm"
+          variant="soft"
+          className="h-5 shrink-0 !rounded !px-1.5 !text-[10px] font-bold !text-white"
+          style={{ background: TYPE_COLORS[it.type] ?? '#9ca3af' }}
+          title={it.label}
+        >
+          {it.type}
+        </Chip>
+        <span className="min-w-0 flex-1 truncate text-left font-medium">{it.file}</span>
+        {html && <Icon name="expand" size={12} className="subtle shrink-0" />}
+        <span className="subtle shrink-0 text-[11px]">{fmtSize(it.size)}</span>
+        <span className="subtle hidden shrink-0 text-[11px] sm:inline">
+          {new Date(it.mtime).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
+        </span>
+      </button>
     </li>
   );
 }
 
-function Group({ title, items }: { title: string; items: ArtifactItem[] }) {
+function Group({ title, items, onOpen }: { title: string; items: ArtifactItem[]; onOpen: (it: ArtifactItem) => void }) {
   if (items.length === 0) return null;
   return (
     <Card className="card !p-4">
@@ -43,7 +56,7 @@ function Group({ title, items }: { title: string; items: ArtifactItem[] }) {
           <span className="subtle text-xs">{items.length} 件</span>
         </div>
         <ul className="flex flex-col gap-1">
-          {items.map((it) => <ItemRow key={it.path} it={it} />)}
+          {items.map((it) => <ItemRow key={it.path} it={it} onOpen={onOpen} />)}
         </ul>
       </Card.Content>
     </Card>
@@ -53,10 +66,11 @@ function Group({ title, items }: { title: string; items: ArtifactItem[] }) {
 /**
  * 产物清单页（WO-06 第④条；WO-13 HeroUI 化；WO-18 统计卡类型筛选）：
  * 底部悬浮毛玻璃胶囊 dock 按模块筛选（全部 / 各 App / 共享）；
- * 顶部类型统计卡可点击 = 按类型筛选（再点取消），与 dock 双向联动：
- * - 选类型 → dock 各 tab 计数按该类型重算、0 件模块隐藏，当前模块无该类型则回退「全部」；
- * - 选模块 → 统计卡数字 = 该模块内各类型数（0 件的类型卡禁用）。
- * 切换模块后回滚到内容顶部。
+ * 顶部类型统计卡可点击 = 按类型筛选（再点取消），与 dock 双向联动。
+ *
+ * 点击行为（对齐 WO 单打开交互）：
+ * - md / 图片 → 右侧抽屉弹层预览（md 走 Markdown 渲染，图片直出）；
+ * - html → 新窗口打开（整页产物无法在抽屉里表达）。
  */
 export default function Artifacts() {
   const [data, setData] = useState<ArtifactsPayload | null>(null);
@@ -65,7 +79,48 @@ export default function Artifacts() {
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
+  // 产物预览抽屉（与 Pipeline 的 WO/DR 抽屉同款交互）
+  const [doc, setDoc] = useState<ArtifactDoc | null>(null);
+  const [docErr, setDocErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [target, setTarget] = useState<ArtifactItem | null>(null);
+  const [copied, setCopied] = useState(false);
+
   useEffect(() => { api.artifacts().then(setData).catch((e) => setErr(e.message)); }, []);
+
+  const closeDoc = () => { setTarget(null); setDoc(null); setDocErr(null); };
+
+  const openArtifact = async (it: ArtifactItem) => {
+    if (isHtmlPath(it.path)) {
+      window.open(`/api/artifact?path=${encodeURIComponent(it.path)}&raw=1`, '_blank', 'noopener');
+      return;
+    }
+    setTarget(it); setDoc(null); setDocErr(null); setLoading(true);
+    try {
+      setDoc(await api.artifact(it.path));
+    } catch (e) {
+      setDocErr((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Esc 关闭
+  useEffect(() => {
+    if (!target) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeDoc(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [target]);
+
+  const copyPath = async () => {
+    if (!target) return;
+    try {
+      await navigator.clipboard.writeText(target.path);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1200);
+    } catch { /* 忽略 */ }
+  };
 
   if (err) return <Card className="card !p-6 text-sm">产物清单加载失败：{err}</Card>;
   if (!data) {
@@ -139,9 +194,9 @@ export default function Artifacts() {
       {visible.length === 0 && <p className="subtle text-sm">当前筛选下暂无产物。</p>}
 
       {visibleApps.map((g) => (
-        <Group key={g.app} title={(g.title || g.app) + ' · 产物'} items={g.items} />
+        <Group key={g.app} title={(g.title || g.app) + ' · 产物'} items={g.items} onOpen={openArtifact} />
       ))}
-      <Group title="矩阵级共享产物（ADR / 规范）" items={visibleShared} />
+      <Group title="矩阵级共享产物（ADR / 规范）" items={visibleShared} onOpen={openArtifact} />
 
       <p className="subtle text-xs">
         扫描范围：apps/*/docs（BRD·PRD·TDD·设计稿·概览）、docs/product/（矩阵级产品模块·规范）与 docs/（ADR·规范）。生成于 {new Date(data.generatedAt).toLocaleString('zh-CN', { hour12: false })}。
@@ -168,6 +223,51 @@ export default function Artifacts() {
           ))}
         </nav>
       </div>
+
+      {/* 产物预览抽屉：md / 图片（交互对齐 WO 单） */}
+      {target && (
+        <>
+          <div className="drawer-mask" onClick={closeDoc} />
+          <aside className="drawer" role="dialog" aria-label={`${target.file} 预览`}>
+            <header className="flex shrink-0 items-center justify-between gap-3 border-b border-hairline px-5 py-3.5">
+              <div className="flex min-w-0 items-center gap-2">
+                <h3 className="truncate text-sm font-bold">{target.file}</h3>
+                <Chip size="sm" variant="tertiary" className="shrink-0">{doc?.kind === 'image' ? '图片' : '文档'}</Chip>
+                <Button variant="ghost" size="sm" className="shrink-0 !min-w-0 !px-2 !text-[11px]" onPress={copyPath} aria-label="复制产物路径">
+                  <Icon name={copied ? 'check' : 'copy'} size={13} className="ic-inline" />
+                  {copied ? '已复制' : '路径'}
+                </Button>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="!min-w-0 !px-2 !text-[11px]"
+                  onPress={() => doc && window.open(doc.rawUrl, '_blank', 'noopener')}
+                  aria-label="在新窗口打开"
+                >
+                  <Icon name="expand" size={13} className="ic-inline" />
+                  新窗口
+                </Button>
+                <Button variant="ghost" size="sm" className="!min-w-0 !px-2" onPress={closeDoc} aria-label="关闭">
+                  <Icon name="close" size={16} />
+                </Button>
+              </div>
+            </header>
+            <div className="drawer-body">
+              {docErr && <p className="text-sm" style={{ color: 'var(--danger)' }}>加载失败：{docErr}</p>}
+              {loading && <p className="subtle text-sm">加载中…</p>}
+              {doc?.kind === 'image' && <img className="artifact-img" src={doc.rawUrl} alt={doc.file} />}
+              {doc?.kind === 'text' && doc.text != null && <Markdown text={doc.text} />}
+              {doc && (
+                <p className="subtle mt-4 pb-6 text-[11px]">
+                  {doc.path} · {fmtSize(doc.size)} · 更新于 {new Date(doc.mtime).toLocaleString('zh-CN', { hour12: false })}
+                </p>
+              )}
+            </div>
+          </aside>
+        </>
+      )}
     </div>
   );
 }

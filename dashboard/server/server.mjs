@@ -4,7 +4,7 @@
  *
  * node server.mjs [--port 4780] [--root <repo>] [--no-open]
  *
- * API（全部大白话，术语由 config.json.terms 提供）：
+ * API（全部大白话，术语由 project.json 的 terms 段提供）：
  * GET /api/profile 项目与团队档案
  * GET /api/pipeline 成员管线：谁在干什么 + 当前工单 + 待拍板
  * GET /api/artifacts 产物清单：BRD/PRD/TDD/设计稿/ADR 按 App 分组
@@ -40,10 +40,10 @@ if (!CFG_PATH) {
 }
 if (CFG_PATH.endsWith('config.json')) console.error('⚠ 读到旧名 config.json（v2.0 起更名为 project.json）——建议重跑 init 对齐');
 const CONFIG = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
-// 汇报库按项目分文件（与 aimatrix-report.mjs 同源）：<团队仓>/dashboard/data/db/<slug>.db；旧单例库兜底
+// 汇报库按项目分文件（与 aimatrix-report.mjs 同源）：<团队仓>/dashboard/data/db/<slug>.db
+// 注意：新项目首次跑 report 前该文件不存在 → 汇报页为空（不再回退到别人的库，避免张冠李戴）
 const _dbSlug = String(CONFIG.project?.name || 'project').replace(/[^\w.-]+/g, '-');
-const _dbPerProject = path.join(TEAM_ROOT, 'dashboard', 'data', 'db', `${_dbSlug}.db`);
-const DB = fs.existsSync(_dbPerProject) ? _dbPerProject : path.join(TEAM_ROOT, 'dashboard', 'data', 'dashboard.db');
+const DB = path.join(TEAM_ROOT, 'dashboard', 'data', 'db', `${_dbSlug}.db`);
 
 // harness 适配层（DR-20261005-003）：实例/会话数据经适配器取得，WorkBuddy 细节不进主逻辑。
 // 先注入项目根（修登记表路径偏移：登记表实际落在 <项目根>/.ai-matrix-team/runtime/state/instances.json）
@@ -97,6 +97,7 @@ function classifyAppDocs(abs, relBase) {
     const hit = EXACT_TYPES[e.name] || DOC_TYPES.find((t) => t.re.test(e.name));
     if (hit) items.push({ type: hit.type, label: hit.label, file: e.name, path: relBase + '/' + e.name, ...stat(a) });
     else if (/\.(md|html?)$/i.test(e.name)) items.push({ type: 'DOC', label: '文档', file: e.name, path: relBase + '/' + e.name, ...stat(a) });
+    else if (/\.(png|jpe?g|gif|webp|svg)$/i.test(e.name)) items.push({ type: 'IMG', label: '图片', file: e.name, path: relBase + '/' + e.name, ...stat(a) });
   }
   return items.sort((x, y) => x.type.localeCompare(y.type) || x.file.localeCompare(y.file));
 }
@@ -365,6 +366,31 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://127.0.0.1:${PORT}`);
   try {
     if (url.pathname === '/api/profile') return json(res, { team: ABOUT.team, members: ABOUT.members, project: CONFIG.project, terms: CONFIG.terms });
+    // 运行环境：侧栏展示「当前项目目录」用（root = 项目根，repo = 团队仓）
+    if (url.pathname === '/api/env') return json(res, { root: ROOT, repo: TEAM_ROOT, project: CONFIG.project?.name || null });
+    // 产物内容：只服务产物清单里出现过的文件（白名单，防路径穿越）；?raw=1 直出文件（html/图片），否则 JSON 返回文本
+    if (url.pathname === '/api/artifact') {
+      const rel = url.searchParams.get('path') || '';
+      const a = artifacts();
+      const hit = [...a.apps.flatMap((g) => g.items), ...a.shared].find((x) => x.path === rel);
+      if (!hit) return send(res, 404, JSON.stringify({ error: '不是产物清单里的文件' }));
+      const abs = path.join(ROOT, rel);
+      if (!fs.existsSync(abs) || fs.statSync(abs).isDirectory()) return send(res, 404, JSON.stringify({ error: '文件不存在' }));
+      const ext = path.extname(abs).toLowerCase();
+      const IMG = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp', '.svg': 'image/svg+xml' };
+      const isHtml = ext === '.html' || ext === '.htm';
+      if (url.searchParams.has('raw')) {
+        const mime = IMG[ext] || (isHtml ? 'text/html; charset=utf-8' : 'application/octet-stream');
+        res.writeHead(200, { 'Content-Type': mime, 'Cache-Control': 'no-store' });
+        return fs.createReadStream(abs).pipe(res);
+      }
+      const kind = IMG[ext] ? 'image' : isHtml ? 'html' : 'text';
+      return json(res, {
+        path: rel, file: hit.file, kind, size: hit.size, mtime: hit.mtime,
+        rawUrl: `/api/artifact?path=${encodeURIComponent(rel)}&raw=1`,
+        text: kind === 'text' ? fs.readFileSync(abs, 'utf8') : null,
+      });
+    }
     if (url.pathname === '/api/pipeline') return json(res, pipeline());
     if (url.pathname === '/api/artifacts') return json(res, artifacts());
     if (url.pathname === '/api/tokens') return json(res, tokenStats());

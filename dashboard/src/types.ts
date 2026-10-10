@@ -73,6 +73,13 @@ export interface LedgerDoc { id: string; content_md: string; }
 
 export interface ArtifactItem { type: string; label: string; file: string; path: string; size: number; mtime: string; }
 export interface ArtifactsPayload { apps: { app: string; title?: string; items: ArtifactItem[] }[]; shared: ArtifactItem[]; generatedAt: string; }
+/** 侧栏展示的运行环境：root = 当前项目根目录，repo = 团队仓 */
+export interface EnvInfo { root: string; repo: string; project: string | null; }
+/** 产物内容（md/图片 → 弹层；html → 新窗口） */
+export interface ArtifactDoc {
+  path: string; file: string; kind: 'text' | 'image' | 'html'; size: number; mtime: string;
+  rawUrl: string; text: string | null;
+}
 
 /* ---------------- 词元（token）消费估算 ---------------- */
 export interface TokenFile {

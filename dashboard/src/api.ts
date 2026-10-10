@@ -1,4 +1,4 @@
-import type { Pipeline, ReportDetail, ReportListItem, TeamInfo, Member, LedgerDoc, ArtifactsPayload, TokensPayload } from './types';
+import type { Pipeline, ReportDetail, ReportListItem, TeamInfo, Member, LedgerDoc, ArtifactsPayload, TokensPayload, EnvInfo, ArtifactDoc } from './types';
 
 async function get<T>(url: string): Promise<T> {
   const res = await fetch(url);
@@ -24,6 +24,8 @@ async function del<T>(url: string): Promise<T> {
 
 export const api = {
   team: () => get<{ team: TeamInfo; members: Member[] }>('/api/profile'),
+  env: () => get<EnvInfo>('/api/env'),
+  artifact: (path: string) => get<ArtifactDoc>(`/api/artifact?path=${encodeURIComponent(path)}`),
   pipeline: () => get<Pipeline>('/api/pipeline'),
   artifacts: () => get<ArtifactsPayload>('/api/artifacts'),
   reports: () => get<ReportListItem[]>('/api/reports'),
