@@ -545,6 +545,25 @@ function cmdStats() {
     ['instances 登记', String(readInstances().length) + ' 条'],
     ['锁在持', liveLocks().length + ' 单'],
     ['今日日志', kb(size(path.join(PROJECT(), '.workbuddy/memory', today + '.md')))],
+    ['spawn 期望载荷', (() => {
+      // 单次 spawn 的模型侧读取面：角色 md + 岗位 SKILL + 索引卡 + 项目档案
+      // 上界 = 全读；按需 = 相关索引卡 1 张 + 档案相关字段（charter §4A.5 按需读纪律）
+      const members = ls(path.join(TEAM_ROOT, 'members')).filter((f) => f.endsWith('.md'));
+      const memSizes = members.map((f) => size(path.join(TEAM_ROOT, 'members', f)));
+      const idx = sum(idxSizes);
+      const idxOne = idxSizes.length ? Math.round(idx / idxSizes.length) : 0;
+      const skillAvg = skillSizes.length ? Math.round(sum(skillSizes) / skillSizes.length) : 0;
+      const memAvg = memSizes.length ? Math.round(sum(memSizes) / memSizes.length) : 0;
+      const profilePath = path.join(PROJECT(), '.ai-matrix-team', 'project.json');
+      let profileRel = 0;
+      try {
+        const pj = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
+        profileRel = Buffer.byteLength(JSON.stringify({ surfaces: pj.surfaces, team: pj.team, docs: pj.docs }));
+      } catch {}
+      const worst = memAvg + skillAvg + idx + size(profilePath);
+      const need = memAvg + skillAvg + idxOne + (profileRel || size(profilePath));
+      return `最坏 ${kb(worst)} / 按需 ≈ ${kb(need)}（角色均 ${kb(memAvg)} + SKILL 均 ${kb(skillAvg)} + ${kb(idxOne)}/张索引卡 + 档案相关字段 ${kb(profileRel)}）`;
+    })()],
     ['设计稿产物', (() => {
       // 产物面：草稿 JSON（模型写）vs 渲染 HTML（工具写）——出稿默认走 aimatrix-render
       const dirs = [];
