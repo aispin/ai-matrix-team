@@ -4,24 +4,24 @@
  *
  * 规则源：<project>/.ai-matrix-team/surfaces.json（缺省回退 <team-repo>/scripts/surfaces-default.json；与 docs/03-shared-surface-control.md §1 同源）
  * 退出码：0 通过 · 1 用法/环境错误 · 2 越权/无单写入 · 3 缺 WO 或缺锁/锁冲突
- *         4 存在未闭环 BLOCKING DR · 5 台账格式不合规 · 6 sync-check 提示（不阻塞）
+ * 4 存在未闭环 BLOCKING DR · 5 台账格式不合规 · 6 sync-check 提示（不阻塞）
  *
  * 子命令：
- *   surface <paths...>                       打印每个路径的面域级别与写入要求
- *   check [--wo <id>] (--paths <p...> | --staged)   写入前校验（白名单 / 状态 / 锁）
- *   lock <status|acquire|renew|release> --wo <id> [--surfaces s1,s2] [--ttl N]
- *         —— 共享锁按**面域分片**：lock.json 持多持有者（schema 2, holders[]），
- *            面域不相交的多个 WO 可同时持锁，仅面域相交者互斥（DR-20261006-012 裁定 A）。
- *   dr scan [--wo <id>] [--blocking]         扫描未闭环 DR
- *   wo lint <files...>                       WO / DR / 交接单字段完整性（WO 主文件 >6KB 出警示）
- *   wo journal --wo <id> --who <角色#呼号> --what "<text>"
- *                                            执行日志机器追加：写 <WO文件>.journal.md（append-only，
- *                                            charter §4A.8）；LLM 只发增量条目，禁整读旧文
- *   instances                                实例呼号检查（撞号 / 未登记，DR-20261005-003）
- *   sync-check [--since <sha>]               ★ 契约类文档改动是否同步了对应 Skill
- *   audit --since <sha>                      受控面变更 × WO 覆盖 → 无单写入清单
- *   report                                   当前在办 WO / 锁 / DR 摘要
- *   agents                                   专家包体检：真源→实例 sync --check + 包散件完整性（settings.json 等）
+ * surface <paths...> 打印每个路径的面域级别与写入要求
+ * check [--wo <id>] (--paths <p...> | --staged) 写入前校验（白名单 / 状态 / 锁）
+ * lock <status|acquire|renew|release> --wo <id> [--surfaces s1,s2] [--ttl N]
+ * —— 共享锁按**面域分片**：lock.json 持多持有者（schema 2, holders[]），
+ * 面域不相交的多个 WO 可同时持锁，仅面域相交者互斥（DR-20261006-012 裁定 A）。
+ * dr scan [--wo <id>] [--blocking] 扫描未闭环 DR
+ * wo lint <files...> WO / DR / 交接单字段完整性（WO 主文件 >6KB 出警示）
+ * wo journal --wo <id> --who <角色#呼号> --what "<text>"
+ * 执行日志机器追加：写 <WO文件>.journal.md（append-only，
+ * charter §4A.8）；LLM 只发增量条目，禁整读旧文
+ * instances 实例呼号检查（撞号 / 未登记，DR-20261005-003）
+ * sync-check [--since <sha>] ★ 契约类文档改动是否同步了对应 Skill
+ * audit --since <sha> 受控面变更 × WO 覆盖 → 无单写入清单
+ * report 当前在办 WO / 锁 / DR 摘要
+ * agents 专家包体检：真源→实例 sync --check + 包散件完整性（settings.json 等）
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -132,7 +132,7 @@ function surfaces() {
   return SURFACES;
 }
 
-/** glob → 锚定正则（支持 ** 、 * 、 ?） */
+/** glob → 锚定正则（支持 **、 *、 ?） */
 function globToRe(glob) {
   let re = '';
   for (let i = 0; i < glob.length; i++) {
@@ -271,11 +271,11 @@ function woDRs(woId) {
 
 // ---------- 锁（面域分片多持有者 · schema 2）----------
 // lock.json 结构（schema 2）：
-//   { schema:2, holders:[{wo,surfaces,acquiredAt,ttlMinutes,renewable}],
-//     holder, surfaces, acquiredAt, ttlMinutes, renewable }
+// { schema:2, holders:[{wo,surfaces,acquiredAt,ttlMinutes,renewable}],
+// holder, surfaces, acquiredAt, ttlMinutes, renewable }
 // 顶层 holder/surfaces/... 是**主 holder（holders[0]）的 legacy 镜像**：
-//   §6 回滚硬前提（无它则回滚旧 guard 会把已持锁误判为空闲）+ 白名单外历史消费者（aimatrix-report /
-//   dashboard/server）保底。写侧恒保留镜像；读侧兼容 holders[] 与 legacy 单 holder 两种残留。
+// §6 回滚硬前提（无它则回滚旧 guard 会把已持锁误判为空闲）+ 白名单外历史消费者（aimatrix-report /
+// dashboard/server）保底。写侧恒保留镜像；读侧兼容 holders[] 与 legacy 单 holder 两种残留。
 
 /** 归一化读取：任何残留结构 → { holders: [...] }（逐项补 wo，兼容 h.holder 别名） */
 function readLockDoc() {
@@ -359,7 +359,7 @@ function holderLeftMin(h) {
 
 // —— 面域推导（H1：冲突面只取白名单在 C1/C2 的子集，排除 T/F/S 路径）——
 /** 逐条判面域，只保留 C1/C2（受控面）并去重；T/F/S 路径不计入冲突面
- *  （否则 WO-14/WO-15 白名单均含 `.skills/runtime/**`(T) → 恒相交，分片裁定落空）。 */
+ * （否则 WO-14/WO-15 白名单均含 `.skills/runtime/**`(T) → 恒相交，分片裁定落空）。 */
 function controlledGlobs(globs) {
   const out = new Set();
   for (const g of globs || []) {
@@ -512,7 +512,7 @@ function cmdWoJournal(args) {
   process.exit(EXIT.OK);
 }
 
-/** v1.5 T6：token 注入面基线表——度量先行，防盲优化 */
+/** T6：token 注入面基线表——度量先行，防盲优化 */
 function cmdStats() {
   const size = (p) => { try { return fs.statSync(p).size; } catch { return 0; } };
   const sum = (a) => a.reduce((x, y) => x + y, 0);
@@ -529,7 +529,7 @@ function cmdStats() {
   const rows = [
     ['角色 SKILL.md', skillSizes.length + ' 个 / ' + kb(sum(skillSizes))],
     ['治理文档 01-08', docSizes.length + ' 篇 / ' + kb(sum(docSizes))],
-    ['索引卡（v1.5）', idxSizes.length + ' 张 / ' + kb(sum(idxSizes))],
+    ['索引卡', idxSizes.length + ' 张 / ' + kb(sum(idxSizes))],
     ['WO open / closed', count(path.join(RUNTIME(), 'workorders', 'open'), /^WO-.*\.md$/) + ' / ' + count(path.join(RUNTIME(), 'workorders', 'closed'), /^WO-.*\.md$/) + ' 张'],
     ['DR open', count(path.join(RUNTIME(), 'decisions', 'open'), /^DR-.*\.md$/) + ' 张'],
     ['WO journal', (() => {
@@ -585,7 +585,7 @@ function cmdStats() {
       return `草稿 ${kb(db)} / 产物 ${kb(hb)}（${drafts.length} : ${htmls.length}）`;
     })()],
   ];
-  console.log(T('== token 注入面基线（v1.5 stats · 度量先行） =='));
+  console.log(T('== token 注入面基线 =='));
   for (const [k, v] of rows) console.log('  ' + k.padEnd(18) + v);
   console.log(G('  纪律：Read 带 offset/limit；治理文档先读 index/ 索引卡（charter §4A.5）。'));
   process.exit(EXIT.OK);
@@ -624,7 +624,7 @@ function cmdSurface(paths) {
 }
 
 function cmdCheck(args) {
-  const q = args.has('--quiet'); // v1.5：--quiet 单行结论（Agent 消费），人看详尽模式不变
+  const q = args.has('--quiet'); // --quiet 单行结论（Agent 消费），人看详尽模式不变
   const woId = args.get('--wo');
   let paths = [...(args.get('--paths') || [])];
   if (args.has('--staged')) {
@@ -782,7 +782,7 @@ function lintOne(file) {
   const base = path.basename(file);
   const missing = [];
   const has = (re) => re.test(text);
-  if (/-handoff\.md$/i.test(base)) { // v1.5 修正：交接单以 -handoff.md 结尾才算；WO slug 内含 handoff 字样的仍是 WO（WO-10 误判回归修复）
+  if (/-handoff\.md$/i.test(base)) { // 修正：交接单以 -handoff.md 结尾才算；WO slug 内含 handoff 字样的仍是 WO（WO-10 误判回归修复）
     if (!has(/\|\s*WO\s*\|/)) missing.push('字段表 WO');
     if (!has(/^##\s*1\.\s*一句话结论/m)) missing.push('§1 一句话结论');
     if (!has(/^##\s*2\.\s*改动清单/m)) missing.push('§2 改动清单');
@@ -949,9 +949,9 @@ function cmdAudit(args) {
 
 /**
  * guard agents — 专家包一致性体检（DR-20261006：真源纪律 + 包散件完整性）
- *  ① 五真源 × 七实例 sync --check（漂移 = 手改实例或漏同步）
- *  ② 团队包 settings.json 存在性（历史 5 次丢失）
- *  退出码：0 全绿 · 2 有漂移/缺件（阻塞）
+ * ① 五真源 × 七实例 sync --check（漂移 = 手改实例或漏同步）
+ * ② 团队包 settings.json 存在性（历史 5 次丢失）
+ * 退出码：0 全绿 · 2 有漂移/缺件（阻塞）
  */
 function cmdAgents() {
   const home = process.env.HOME;
@@ -980,7 +980,7 @@ function cmdAgents() {
       const meta = JSON.parse(read(pluginJson));
       console.log(`   ✓ ${p.name} v${meta.version}`);
       if (p.needsSettings && !exists(path.join(dir, 'settings.json'))) {
-        // WO-20261007-20：源包新建的 settings.json 会被 WorkBuddy 后台 watcher 在数秒内清掉
+        // 源包新建的 settings.json 会被 WorkBuddy 后台 watcher 在数秒内清掉
         // （实测 t+2s 存活、t+5s 消失；修改已有文件不受影响）。运行时真正加载的是 cache
         // 安装快照——源包缺失时降级查 cache 最新版本快照，快照在即 ⚠ 不计失败。
         let cacheHit = null;
@@ -1030,7 +1030,7 @@ function cmdReport() {
 }
 
 // ---------- 参数解析 ----------
-// --project <root> 全局参数：先摘除再分发（PROJECT() 也会直接读 process.argv）
+// --project <root> 全局参数：先摘除再分发（PROJECT 也会直接读 process.argv）
 const rawArgv = process.argv.slice(2);
 const pi = rawArgv.indexOf("--project");
 if (pi >= 0) rawArgv.splice(pi, 2);

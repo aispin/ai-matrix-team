@@ -181,7 +181,7 @@ flowchart LR
 
 | 步骤 | 谁 | 动作 | 门禁 |
 |---|---|---|---|
-| ① 开分支 | Bruce | `git checkout -b feat/<WO号>-<短名>`（例 `feat/WO-20261007-01-export-csv`），分支名必带 WO 号 | WO 已准、路径白名单已划、级别已判 |
+| ① 开分支 | Bruce | `git checkout -b feat/<WO号>-<短名>`（例 `feat/WO-YYYYMMDD-NN-<短名>`），分支名必带 WO 号 | WO 已准、路径白名单已划、级别已判 |
 | ② 开发+评审+测试 | Bruce | 全部 commit 落在特性分支；**石头在分支上做门禁 + 代码评审**（兼代 Review：符合 PRD/契约、无越权路径、单测覆盖主路径） | typecheck/test/build 绿（分支工作树）+ 评审意见闭环 |
 | ③ 提请验收 | PC | 门禁与评审全绿后**明确向创始人报告**：分支名 / 改动摘要 / 测试与评审结论 / 预览方式（如可本地起服务给地址），请求验收 | **不得静默合并**；超 7 天 PC 提醒一次，仍不自动放行 |
 | ④ 合并 | Bruce | **仅在创始人明确答复「验收通过」后**：打 tag `wo/<WO号>` → `git checkout main && git merge --squash <分支> && git commit`（message 带 WO 号）→ push → 删分支 | squash 后 main 历史一线一特性，可经 tag 回溯完整分支 |

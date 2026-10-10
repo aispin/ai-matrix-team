@@ -2,7 +2,7 @@
 /**
  * ledger-sync — 扫描 decisions/open 与 closed，重建 LEDGER.md（唯一机读真相源）。
  * 用法：node <team-repo>/scripts/ledger-sync.mjs [--check]
- *   --check：只校验 LEDGER 是否与 DR 文件一致（CI 用），不一致退出码 5。
+ * --check：只校验 LEDGER 是否与 DR 文件一致（CI 用），不一致退出码 5。
  */
 import fs from 'node:fs';
 import path from 'node:path';

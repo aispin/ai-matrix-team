@@ -2,7 +2,7 @@
 /**
  * render-open-items — 从 DR 台账渲染 apps/<app>/docs/OPEN-ITEMS.md 的骨架（人类阅读视图）。
  * 用法：node <team-repo>/scripts/render-open-items.mjs --app <app> [--write]
- *   默认打印到 stdout；--write 落盘（保留标记外的既有叙述内容）。
+ * 默认打印到 stdout；--write 落盘（保留标记外的既有叙述内容）。
  * 分节映射（04 §7）：A=D1(BLOCKING Type1) · B=D2(凭据) · C=D3(选型) · 其余 BLOCKING 进 A/B/C，NON-BLOCKING 进 C 后附注。
  */
 import fs from 'node:fs';

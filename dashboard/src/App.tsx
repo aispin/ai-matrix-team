@@ -71,7 +71,7 @@ export default function App() {
 
   useEffect(() => { window.location.hash = tab; }, [tab]);
 
-  // 主题落地（WO-20261007-13 HeroUI v3 对接）：HeroUI 变体走 .dark class（v3 styles
+  // 主题落地（HeroUI v3 对接）：HeroUI 变体走 .dark class（v3 styles
   // 同时支持 data-theme="dark"，两者同步挂摘互为冗余），项目自有令牌继续走
   // data-theme/@media；system 态监听系统变化同步（HeroUI 组件不响应 @media）。
   useEffect(() => {
@@ -131,7 +131,7 @@ export default function App() {
         className="flex shrink-0 flex-col border-b border-hairline md:w-60 md:border-b-0 md:border-r"
         style={{ background: 'var(--surface)' }}
       >
-        {/* 常驻区：品牌 + 主菜单（HeroUI v3 ListBox，WO-20261007-13） */}
+        {/* 常驻区：品牌 + 主菜单（HeroUI v3 ListBox） */}
         <div className="flex items-center gap-2 px-3 py-2.5 md:flex-col md:items-stretch md:gap-1 md:px-3 md:py-4">
           <div className="flex items-center gap-2.5 md:mb-3 md:px-1.5">
             <div className="min-w-0">

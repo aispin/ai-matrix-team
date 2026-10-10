@@ -1,7 +1,7 @@
 import type { ReactNode, SVGProps } from 'react';
 
 /**
- * 自绘 SVG 图标集（WO-20261006-03 Phase B）
+ * 自绘 SVG 图标集 
  * · 全套 24×24 网格 · stroke-width 1.5 · stroke="currentColor" · 圆头圆角 · aria-hidden
  * · path 逐条照抄 docs/design/console-visual.html（唯一规格来源）；色彩/尺寸走令牌，零 emoji 当图标
  * · 成员身份色（--id-N）与主题令牌见 src/styles.css
@@ -108,7 +108,7 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M8 20h8M12 16v4" />
     </>
   ),
-  // 词元页（WO-20261007-17）：叠币造型
+  // 词元页：叠币造型
   token: (
     <>
       <circle cx="9" cy="9" r="6" />
@@ -116,7 +116,7 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M9 6.5v5M6.8 9h4.4" />
     </>
   ),
-  // 单据 ID 复制（WO-20261007-11）
+  // 单据 ID 复制
   copy: (
     <>
       <rect x="9" y="9" width="12" height="12" rx="2" />

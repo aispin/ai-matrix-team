@@ -3,8 +3,8 @@
 // 令牌与主题机制与 aimatrix-product-designer/examples/ 同源（设计系统真相源）。
 //
 // 用法：
-//   node aimatrix-render.mjs --in <draft.json> --out <page.html>   # 渲染
-//   node aimatrix-render.mjs --in <draft.json> --stats             # 只度量（草稿 vs 产物 vs 手写基线）
+// node aimatrix-render.mjs --in <draft.json> --out <page.html> # 渲染
+// node aimatrix-render.mjs --in <draft.json> --stats # 只度量（草稿 vs 产物 vs 手写基线）
 //
 // 草稿 schema（全部字段除 app/pages 外可省）见 references/design-draft-spec.md
 

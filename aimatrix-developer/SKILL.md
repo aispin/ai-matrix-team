@@ -29,7 +29,7 @@ WO（白名单 + 验证方式）· TDD 或 PRD 相关章节 · 相关契约现�
 4. 遇阻塞（缺凭据 / 设计不明 / 需要人拍板）→ **落 DR**（必读 Skill：`aimatrix-decision`）并停在当前阶段，不自行假设。
 5. 提交：commit message 带 `WO-xxxx` 单号（`guard audit` 靠它溯源）。
 
-## 4A. 架构速断 + 输出纪律（v1.5 · WO-20261007-01）
+## 4A. 架构速断 + 输出纪律
 
 **架构速断（动码前 ≤15 分钟，留痕 WO §9）**：① TDD 增量修订（改哪节记哪节）② ADR 登记（有真实取舍才记）③ 破坏性自查（命中 charter §4A.3 例外清单 → 升级独立风控）。双 dev 并行走 per-WO 分支，规则见 02-roles §5.1。
 
@@ -67,7 +67,7 @@ typecheck / test 任一红 → 不得进入 QA 阶段 · `guard check --staged` 
 - `docs/app-onboarding.md` §〇点二（统一栈纪律）· `tsconfig.base.json`
 - `<team-repo>/docs/03-shared-surface-control.md` §7（违规处置）
 
-## UI 框架铁律（v1.1 · 创始人 2026-10-07）
+## UI 框架铁律
 
 1. **必须使用项目技术栈所引入的 UI 框架（如 HeroUI）提供的内置组件**：在组件基础上叠加样式微调还原设计效果，或**组合内置组件**形成符合业务功能要求的新组件。**避免重复造轮子**——框架已有的 Button/Table/Modal/Dropdown 等禁止手写同功能组件。
 2. 页面没有引入任何 UI 框架时：**React 栈默认引入 HeroUI，Vue 栈默认引入 Ant Design**（选型变动属 Type 2，先落 DR）。

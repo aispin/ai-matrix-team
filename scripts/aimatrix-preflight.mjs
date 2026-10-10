@@ -3,20 +3,20 @@
  * aimatrix-preflight.mjs — 升级预检（一键，用户无需知道细节）
  *
  * 聚合六项检查，输出三态结论：
- *   ✅ 可以升级 / ⚠️ 可升级但建议先收口 / ❌ 需先对齐
+ * ✅ 可以升级 / ⚠️ 可升级但建议先收口 / ❌ 需先对齐
  *
  * 检查项：① 版本闭环（引擎 VERSION vs 项目档案 engineVersion）
- *         ② 项目档案漂移（init --check）
- *         ③ 专家包漂移（expert-sync --check）
- *         ④ Skill 软链健康（install-to-workbuddy --check）
- *         ⑤ 工作区干净度（git status）
- *         ⑥ 在途工单与未闭环决策单（WO / DR）
+ * ② 项目档案漂移（init --check）
+ * ③ 专家包漂移（expert-sync --check）
+ * ④ Skill 软链健康（install-to-workbuddy --check）
+ * ⑤ 工作区干净度（git status）
+ * ⑥ 在途工单与未闭环决策单（WO / DR）
  *
  * 用法：
- *   node <team-repo>/scripts/aimatrix-preflight.mjs --project <项目根> [--fix]
+ * node <team-repo>/scripts/aimatrix-preflight.mjs --project <项目根> [--fix]
  *
- *   --fix：仅把当前引擎版本号补写进项目档案（单字段合并，不重扫项目结构，
- *          不覆盖人工校正内容）。其余任何写操作都不存在。
+ * --fix：仅把当前引擎版本号补写进项目档案（单字段合并，不重扫项目结构，
+ * 不覆盖人工校正内容）。其余任何写操作都不存在。
  *
  * 退出码：0 = 可以升级（含 ⚠️ 档） / 1 = ❌ 有阻断项需先处理
  */

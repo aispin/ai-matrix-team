@@ -115,7 +115,7 @@ function Lightbox({ svg, onClose }: { svg: string; onClose: () => void }) {
             setScale(1);
             setOffset({ x: 0, y: 0 });
           }}
-         
+
           aria-label="重置"
         >
           <Icon name="reset" size={18} />

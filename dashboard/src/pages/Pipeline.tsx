@@ -7,7 +7,7 @@ import type { Pipeline as PipelineData } from '../types';
 
 type DrawerTarget = { kind: 'wo' | 'dr'; id: string } | null;
 
-/** 批复推荐选项（创始人 2026-10-07）：渲染为可勾选 chips；「其他」口径走补充说明输入框。 */
+/** 批复推荐选项：渲染为可勾选 chips；「其他」口径走补充说明输入框。 */
 const VERDICT_OPTIONS = ['同意 · 按推荐方案推进', '按默认方案', '打回重议'];
 
 /** 锁摘要文案（schema 2 面域分片 / legacy 单持 / 空闲三态，消费方须形状判别）。 */
@@ -68,7 +68,7 @@ export default function Pipeline() {
     return () => window.removeEventListener('keydown', onKey);
   }, [drawer]);
 
-  // 单据 ID 快捷复制（创始人 2026-10-07）
+  // 单据 ID 快捷复制
   const copyId = async () => {
     if (!drawer) return;
     try {
@@ -78,7 +78,7 @@ export default function Pipeline() {
     } catch { /* 剪贴板不可达时静默 */ }
   };
 
-  // DR 批复回填：勾选推荐选项 + 补充说明 → 回写单据「答复」字段（创始人 2026-10-07）
+  // DR 批复回填：勾选推荐选项 + 补充说明 → 回写单据「答复」字段
   const submitVerdict = async () => {
     if (!drawer || drawer.kind !== 'dr') return;
     if (!verdict.choices.length && !verdict.note.trim()) {
@@ -352,7 +352,7 @@ export default function Pipeline() {
         </>
       )}
 
-      {/* 删除确认弹层（HeroUI v3 Modal 复合件，WO-20261007-13） */}
+      {/* 删除确认弹层（HeroUI v3 Modal 复合件） */}
       <Modal state={confirmState}>
         <Modal.Backdrop isDismissable={!deleting} />
         <Modal.Container>

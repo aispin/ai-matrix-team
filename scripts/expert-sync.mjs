@@ -2,12 +2,12 @@
 /**
  * expert-sync.mjs — 成员真源（类）→ 专家包 全链同步工具
  *
- * 真源:  <team-repo>/members/<role>.md（五席，唯一允许修改的成员定义）
- * 实例:  专家团包 ai-matrix-team + 独立专家包 aimatrix-team-team-lead / aimatrix-team-product-designer
+ * 真源: <team-repo>/members/<role>.md（五席，唯一允许修改的成员定义）
+ * 实例: 专家团包 ai-matrix-team + 独立专家包 aimatrix-team-team-lead / aimatrix-team-product-designer
  *
  * 用法:
- *   node scripts/expert-sync.mjs            # 写入实例 + 官方 validate→register→package + cache 落位 + installed_plugins 对齐
- *   node scripts/expert-sync.mjs --check    # 只报告漂移不写入（退出码 1 = 有漂移）
+ * node scripts/expert-sync.mjs # 写入实例 + 官方 validate→register→package + cache 落位 + installed_plugins 对齐
+ * node scripts/expert-sync.mjs --check # 只报告漂移不写入（退出码 1 = 有漂移）
  *
  * 纪律: 永远只改 members/ 真源 → 跑本脚本；禁止手改任何包内实例文件。
  */
@@ -307,7 +307,7 @@ function writeFileSafe(p, content) {
  */
 function expectedAssets() {
   const out = new Map();
-  // 团队包：五席 agent 定义 + 团队头像 team.png + 五席成员头像（与 memberEntries() 同一口径）
+  // 团队包：五席 agent 定义 + 团队头像 team.png + 五席成员头像（与 memberEntries 同一口径）
   out.set('ai-matrix-team', new Map([
     ['agents', new Set(ROLES.map((r) => `${r.id}.md`))],
     ['avatars', new Set(['team.png', ...ROLES.map((r) => r.avatar)])],
@@ -361,7 +361,7 @@ function copyAvatars() {
     ['team-lead.png', 'aimatrix-team-team-lead/avatars/team-lead.png'],
     ['product-designer.png', 'aimatrix-team-product-designer/avatars/product-designer.png'],
   ];
-  // 团队包成员头像按角色短名（r.avatar）命名——必须与 memberEntries() 里
+  // 团队包成员头像按角色短名（r.avatar）命名——必须与 memberEntries 里
   // `avatars/${r.avatar}` 的引用口径一致，否则成员头像会指向不存在的文件
   for (const r of ROLES) pairs.push([r.avatar, `ai-matrix-team/avatars/${r.avatar}`]);
   for (const [src, dst] of pairs) {
@@ -433,7 +433,7 @@ function syncInstalled() {
 
 // ---------------------------------------------------------------- 岗位 SKILL.md frontmatter 校验
 
-// 护栏：frontmatter 被引言横幅等破坏会导致技能不被注册（2026-10-09 实锤回归）。
+// 护栏：frontmatter 被引言横幅等破坏会导致技能不被注册。
 // 校验所有 aimatrix-*/SKILL.md：frontmatter 可提取、name/description 非空、name 与目录名一致。
 function validateSkillFrontmatter() {
   const dirs = fs.readdirSync(TEAM_REPO, { withFileTypes: true })

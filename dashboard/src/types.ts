@@ -74,7 +74,7 @@ export interface LedgerDoc { id: string; content_md: string; }
 export interface ArtifactItem { type: string; label: string; file: string; path: string; size: number; mtime: string; }
 export interface ArtifactsPayload { apps: { app: string; title?: string; items: ArtifactItem[] }[]; shared: ArtifactItem[]; generatedAt: string; }
 
-/* ---------------- 词元（token）消费估算（WO-20261007-17） ---------------- */
+/* ---------------- 词元（token）消费估算 ---------------- */
 export interface TokenFile {
   kind: string;
   label: string;

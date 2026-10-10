@@ -2,7 +2,7 @@
 /**
  * install-to-workbuddy.mjs · AI Matrix Team Skill 软链安装器
  *
- * 真源：<team-repo>/aimatrix-<role>/      （团队独立仓，唯一真相源）
+ * 真源：<team-repo>/aimatrix-<role>/ （团队独立仓，唯一真相源）
  * 激活：<repo>/.workbuddy/skills/aimatrix-<role>/（不入库，软链，WorkBuddy 在此扫描项目级 Skill）
  *
  * 为什么必须软链而不是复制：真相源要跟着 git 走（可 review / 可回滚 / 可被 CI 读）；
@@ -10,14 +10,14 @@
  * 复制 = 两份副本漂移（本项目 Charter P2 明令禁止）。
  *
  * 用法：
- *   node <team-repo>/scripts/install-to-workbuddy.mjs              # 建链（幂等，重复跑安全）
- *   node <team-repo>/scripts/install-to-workbuddy.mjs --check      # 只校验不改动（CI / 巡检用）
- *   node <team-repo>/scripts/install-to-workbuddy.mjs --status     # 打印当前链接状态
- *   node <team-repo>/scripts/install-to-workbuddy.mjs --uninstall  # 只删自己建的链（不碰别的东西）
- *   node <team-repo>/scripts/install-to-workbuddy.mjs --user-level # 额外链到 ~/.workbuddy/skills/（谨慎）
- *   node <team-repo>/scripts/install-to-workbuddy.mjs --force      # 冲突时把旧物改名为 .bak-<ts> 后重建
- *   node <team-repo>/scripts/install-to-workbuddy.mjs --json       # 机器可读输出
- *   node <team-repo>/scripts/install-to-workbuddy.mjs --project <dir> # 指定目标项目根
+ * node <team-repo>/scripts/install-to-workbuddy.mjs # 建链（幂等，重复跑安全）
+ * node <team-repo>/scripts/install-to-workbuddy.mjs --check # 只校验不改动（CI / 巡检用）
+ * node <team-repo>/scripts/install-to-workbuddy.mjs --status # 打印当前链接状态
+ * node <team-repo>/scripts/install-to-workbuddy.mjs --uninstall # 只删自己建的链（不碰别的东西）
+ * node <team-repo>/scripts/install-to-workbuddy.mjs --user-level # 额外链到 ~/.workbuddy/skills/（谨慎）
+ * node <team-repo>/scripts/install-to-workbuddy.mjs --force # 冲突时把旧物改名为 .bak-<ts> 后重建
+ * node <team-repo>/scripts/install-to-workbuddy.mjs --json # 机器可读输出
+ * node <team-repo>/scripts/install-to-workbuddy.mjs --project <dir> # 指定目标项目根
  *
  * 退出码：0 全部就绪 · 1 有缺失/漂移 · 2 有冲突且未处理 · 3 用法错误
  */

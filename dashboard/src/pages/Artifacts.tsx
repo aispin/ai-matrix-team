@@ -147,7 +147,7 @@ export default function Artifacts() {
         扫描范围：apps/*/docs（BRD·PRD·TDD·设计稿·概览）、docs/product/（矩阵级产品模块·规范）与 docs/（ADR·规范）。生成于 {new Date(data.generatedAt).toLocaleString('zh-CN', { hour12: false })}。
       </p>
 
-      {/* 底部悬浮：毛玻璃胶囊模块筛选 dock（毛毛设计稿 2026-10-07，设计面保留自绘） */}
+      {/* 底部悬浮：毛玻璃胶囊模块筛选 dock */}
       <div className="artifacts-dock-zone">
         <nav className="artifacts-dock" aria-label="按模块筛选产物">
           <span className="artifacts-dock-label">

@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
-
-/* HeroUI v3（WO-20261007-13）：组件样式整包挂载（自带 Tailwind v4 layer 架构：
+/* HeroUI v3：组件样式整包挂载（自带 Tailwind v4 layer 架构：
  * theme/base/components/utilities/variants，dark 约定 .dark class + data-theme="dark"
  * 双支持——App 侧主题 effect 两者同步，与项目自身令牌机制并存）。 */
 @import "@heroui/styles";
@@ -16,9 +15,9 @@
 }
 
 /*
- * 设计令牌 —— 冷静灰（创始人 2026-10-06 定案 · 候选 B）
+ * 设计令牌 —— 冷静灰
  * 浅色底座 #F3F5F9 → #E4E8F0 · 深色底座 #0F1218 → #161A21（中性冷灰底座）
- * 品牌点（创始人 2026-10-07 裁定）：暖橙与冷静灰不搭，改用 aimatrix-product-designer/examples/
+ * 品牌点：暖橙与冷静灰不搭，改用 aimatrix-product-designer/examples/
  * 默认配色 —— 蓝品牌：浅色 #3B5BFD（hover #2F4CE0 · soft #EEF1FF）、深色 #6B85FF（hover #8499FF · soft rgba(107,133,255,.14)）
  * 双主题：<head> 内联防闪脚本设 [data-theme] + localStorage 记忆 + prefers-color-scheme 跟随系统
  * 令牌命名与 docs/design/README.md §5 映射表逐值 1:1（accent 已随本次裁定偏离原映射表的橙值）
@@ -67,7 +66,7 @@
   --danger: #DC2626;
   --ok: #047857;
 
-  /* —— 本轮新增语义（§5.2） —— */
+  /* —— 语义（§5.2） —— */
   --warn: #B45309;
   --warn-soft: #FEF3C7;
   --ok-soft: #ECFDF5;
@@ -232,7 +231,7 @@ body {
 .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
 /* 桌面应用式侧边栏导航
-   WO-20261007-16：导航项已 HeroUI v3 化（RAC ListBoxItem），选中标记是
+   导航项已 HeroUI v3 化（RAC ListBoxItem），选中标记是
    data-selected="true"、悬停是 data-hovered="true"（旧 data-on 已不存在）。
    注意：状态底色/文字色必须留在本文件（未分层）——Tailwind v4 的 utility 在
    @layer utilities 里，未分层规则恒赢分层，选中态写 utility 会被 .nav-item
@@ -363,14 +362,14 @@ body {
 }
 @keyframes drawer-in { to { transform: translateX(0); } }
 /* 桌面端面板左缘紧贴侧栏（md:w-60 = 15rem），遮罩同步让位、侧栏保持可见可交互；
-   窄屏（<768px）侧栏已折顶栏，面板仍全屏（WO-20261007-12） */
+   窄屏（<768px）侧栏已折顶栏，面板仍全屏（） */
 @media (min-width: 768px) {
   .drawer-mask, .drawer { left: 15rem; }
 }
 .drawer-body { flex: 1; min-height: 0; overflow-y: auto; padding: 18px 22px 0; }
 /* 全屏详情面板：正文限宽居中，保长文可读性；
    底部留白 26px 挂在 .md 上（挂 drawer-body 会被 sticky 表单的反向 margin 吃不掉，
-   导致滚到底时表单下露 26px 空隙——WO-20261007-12 实测修正） */
+   导致滚到底时表单下露 26px 空隙 实测修正） */
 .drawer-body > .md { max-width: 980px; margin: 0 auto; padding-bottom: 26px; }
 .btn-primary {
   padding: 6px 14px; border-radius: var(--r-1); font-size: 13px; font-weight: 600;
@@ -378,8 +377,8 @@ body {
 }
 .btn-primary:hover { opacity: .92; }
 .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
-/* DR 批复回填表单（WO-20261007-11） */
-/* 回填表单 sticky 吸底（WO-20261007-12）：随滚动悬浮在正文之上；
+/* DR 批复回填表单 */
+/* 回填表单 sticky 吸底：随滚动悬浮在正文之上；
    负 margin 反吃 drawer-body 的 22/26px padding 使全宽贴底，滚到底与吸附位无缝衔接 */
 .verdict-form {
   position: sticky; bottom: 0; z-index: 2;
@@ -525,7 +524,7 @@ body {
   .lightbox-mask { background: rgb(10 12 16 / 0.95); }
 }
 
-/* WO-20261007-06 第⑤条：右侧主内容区 sticky 头部（毛玻璃，双主题走 --bg-top 令牌） */
+/* 第⑤条：右侧主内容区 sticky 头部（毛玻璃，双主题走 --bg-top 令牌） */
 .page-header {
   background: color-mix(in srgb, var(--bg-top) 82%, transparent);
   backdrop-filter: blur(14px) saturate(1.3);
@@ -533,7 +532,7 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-/* WO-20261007-06 第④条：产物页底部悬浮毛玻璃胶囊 dock（按毛毛设计稿落地，色板对齐现有 accent 令牌） */
+/* 第④条：产物页底部悬浮毛玻璃胶囊 dock（按毛毛设计稿落地，色板对齐现有 accent 令牌） */
 /* 2026-10-07 创始人裁定：改 fixed 恒贴视口底——sticky 挂在内容流末尾，内容高度变化（加载/筛选）会在流位置与贴底位之间跳动 */
 .artifacts-dock-zone {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 15;
@@ -578,9 +577,9 @@ body {
   .page-header { backdrop-filter: blur(14px) saturate(1.3); }
   .artifacts-dock { backdrop-filter: blur(18px) saturate(1.5); }
 }
-/* WO-20261007-18：产物页类型统计卡可点击筛选（与模块 dock 双向联动）。
+/* 产物页类型统计卡可点击筛选（与模块 dock 双向联动）。
    状态视觉必须留在未分层规则——Tailwind v4 utility 在 @layer utilities，
-   会被 .card 的未分层基础规则盖掉（WO-20261007-16 层叠事故同款根因）。 */
+   会被 .card 的未分层基础规则盖掉（ 层叠事故同款根因）。 */
 .stat-card {
   color: inherit; font: inherit; cursor: pointer;
   transition: border-color .15s, background .15s, transform .1s;
@@ -590,7 +589,7 @@ body {
 .stat-card:active:not(:disabled) { transform: scale(.97); }
 .stat-card:disabled { opacity: .45; cursor: default; }
 
-/* ---- 词元页 / 汇报页统计段（WO-20261007-17）---- */
+/* ---- 词元页 / 汇报页统计段---- */
 .tok-strip {
   border: 1px solid var(--hairline);
   border-radius: var(--r-2, 14px);

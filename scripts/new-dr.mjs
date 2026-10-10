@@ -2,9 +2,9 @@
 /**
  * new-dr — 生成 DR（决策请求）骨架，自动取当日序号。
  * 用法示例：
- *   node <team-repo>/scripts/new-dr.mjs --title "是否永久免费" --type 1 --blocking \
- *     --wo WO-20261005-01-guard-bootstrap --trigger D1 --by "毛毛·product-manager" \
- *     --default "不承诺永久免费，首年免费"
+ * node <team-repo>/scripts/new-dr.mjs --title "是否永久免费" --type 1 --blocking \
+ * --wo-guard-bootstrap --trigger D1 --by "毛毛·product-manager" \
+ * --default "不承诺永久免费，首年免费"
  * 退出码：0 成功 · 1 参数错误
  */
 import fs from 'node:fs';

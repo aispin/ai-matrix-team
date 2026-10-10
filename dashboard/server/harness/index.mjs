@@ -1,35 +1,35 @@
 /**
- * Agent harness 适配层（DR-20261005-003 / WO-20261005-13）
+ * Agent harness 适配层（DR-20261005-003 /）
  *
  * 目的：把「实例 ↔ 会话归属」这类与具体 agent 运行环境（harness）相关的代码隔离在此，
- *       将来接入 codex（代码代理命令行工具）等只需新增适配器，dashboard 与 guard 不改。
+ * 将来接入 codex（代码代理命令行工具）等只需新增适配器，dashboard 与 guard 不改。
  *
  * 适配器契约（每个 harness 一个 ./<id>.mjs，export default）：
- *   {
- *     id: 'workbuddy',                    // harness 标识（instances.json 条目的 harness 字段匹配；缺省视为 workbuddy）
- *     label: 'WorkBuddy',                 // 展示名
- *     instances(): [                      // 同步、fail-soft、绝不抛错
- *       { callsign, session, wo, startedAt, harness }
- *     ]
- *   }
+ * {
+ * id: 'workbuddy', // harness 标识（instances.json 条目的 harness 字段匹配；缺省视为 workbuddy）
+ * label: 'WorkBuddy', // 展示名
+ * instances: [ // 同步、fail-soft、绝不抛错
+ * { callsign, session, wo, startedAt, harness }
+ * ]
+ * }
  *
  * 「约定即注册」：harness 目录下有 <id>.mjs 即视为该环境已注册，无需改动任何清单文件；
- *   删掉该文件，再次启动就自动落回兜底视图，无需改代码。
+ * 删掉该文件，再次启动就自动落回兜底视图，无需改代码。
  *
  * 环境标识（harness id）命名规则：必须匹配正则 /^[a-z0-9][a-z0-9-]{0,31}$/
- *   —— 只认小写字母、数字与连字符，首位不得为连字符，总长 1–32 字符。
- *   与文件名 `<id>.mjs`、登记表条目的 harness 字段、控制台选择项三者同名，一条 id 贯穿到底。
+ * —— 只认小写字母、数字与连字符，首位不得为连字符，总长 1–32 字符。
+ * 与文件名 `<id>.mjs`、登记表条目的 harness 字段、控制台选择项三者同名，一条 id 贯穿到底。
  *
  * 铁律（创始人裁定：不能堵塞正常使用）：
- *   1. 适配器只做「读」，主路径同步返回登记数据；
- *   2. 任何探测类扩展（后台服务接口 / 本机进程间通信 / 数据库内省）必须 async + 超时（≤500ms）+ TTL 负缓存，
- *      失败时静默降级为登记数据——禁止让 dashboard 端点因此变慢或报错；
- *   3. 新接入 harness：登记表条目写 `harness: '<id>'`，并新增 ./<id>.mjs 实现同契约。
+ * 1. 适配器只做「读」，主路径同步返回登记数据；
+ * 2. 任何探测类扩展（后台服务接口 / 本机进程间通信 / 数据库内省）必须 async + 超时（≤500ms）+ TTL 负缓存，
+ * 失败时静默降级为登记数据——禁止让 dashboard 端点因此变慢或报错；
+ * 3. 新接入 harness：登记表条目写 `harness: '<id>'`，并新增 ./<id>.mjs 实现同契约。
  *
  * 登记表（gitignore 运行态，spawn 者登记 / 收工注销）：
- *   主径：<项目根>/.ai-matrix-team/runtime/state/instances.json（项目根由 server.mjs 注入本模块）
- *   回退：<团队仓>/runtime/state/instances.json（团队仓尚未随新目录结构迁移时的旧位置）
- *   条目：[{ callsign: 'PC哥#1', session: '会话名', wo: 'WO-…', startedAt: ISO, harness?: 'workbuddy' }]
+ * 主径：<项目根>/.ai-matrix-team/runtime/state/instances.json（项目根由 server.mjs 注入本模块）
+ * 回退：<团队仓>/runtime/state/instances.json（团队仓尚未随新目录结构迁移时的旧位置）
+ * 条目：[{ callsign: 'PC哥#1', session: '会话名', wo: 'WO-…', startedAt: ISO, harness?: 'workbuddy' }]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -38,10 +38,10 @@ import { fileURLToPath } from 'node:url';
 const HARNESS_DIR = path.dirname(fileURLToPath(import.meta.url));
 /** 旧登记表路径：<团队仓>/runtime/state/instances.json（团队仓 dashboard/ 尚未随项目运行时迁移时的旧位置） */
 const LEGACY_INSTANCES_FILE = path.resolve(HARNESS_DIR, '..', '..', '..', 'runtime', 'state', 'instances.json');
-/** 兼容导出：旧路径常量保留给白名单外历史消费者；实际读取以 instancesFilePath() 为准 */
+/** 兼容导出：旧路径常量保留给白名单外历史消费者；实际读取以 instancesFilePath 为准 */
 export const INSTANCES_FILE = LEGACY_INSTANCES_FILE;
 
-/** 项目根：由 server.mjs 在解析 harness 之前调用 setProjectRoot() 注入一次 */
+/** 项目根：由 server.mjs 在解析 harness 之前调用 setProjectRoot 注入一次 */
 let projectRoot = null;
 
 /** 注入项目根（P2：修登记表路径偏移）· idempotent，重复调用以最后一次为准 */
@@ -79,7 +79,7 @@ export function readInstancesFile() {
 
 /**
  * 环境标识（harness id）合法性 + 存在性 + 路径规范化，三重事前拦截（P1）。
- * 必须在 import() **之前**判定：契约校验是事后行为，挡不住被执行模块的副作用。
+ * 必须在 import **之前**判定：契约校验是事后行为，挡不住被执行模块的副作用。
  */
 export function isRegisteredHarness(id) {
   if (typeof id !== 'string' || !id) return false;

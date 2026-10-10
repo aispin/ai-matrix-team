@@ -1,7 +1,7 @@
 # specs · 迭代规格文档库
 
 > 本目录存放**每一次迭代**的规格文档：**需求 + 技术设计合一**，一份文档讲完整件事。
-> 目录创建于 WO-20261008-01（2026-10-08 创始人要求）。
+
 
 ## 为什么合一
 
@@ -34,7 +34,7 @@
 ## 附：照抄清单 · 如何接一个新 Agent 运行环境（harness）
 
 > harness = Agent 运行环境（成员实际干活的工具，如 WorkBuddy / codex / claude code）。
-> 样板实现：`dashboard/server/harness/codex.mjs` 与 `claude-code.mjs`（`WO-20261008-01`）。
+> 样板实现：`dashboard/server/harness/codex.mjs` 与 `claude-code.mjs`。
 > 改动面上限：**1 个新增文件 + 1 行登记**（越出此面需回资深风控师核准扩单）。
 
 | 步骤 | 动作 | 口径（四处必须一致） |

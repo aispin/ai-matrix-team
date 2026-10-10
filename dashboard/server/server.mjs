@@ -2,16 +2,16 @@
 /**
  * AI Matrix Team 指挥台 · 服务端（零依赖）
  *
- *   node server.mjs [--port 4780] [--root <repo>] [--no-open]
+ * node server.mjs [--port 4780] [--root <repo>] [--no-open]
  *
  * API（全部大白话，术语由 config.json.terms 提供）：
- *   GET /api/profile    项目与团队档案
- *   GET /api/pipeline   成员管线：谁在干什么 + 当前工单 + 待拍板
- *   GET /api/artifacts  产物清单：BRD/PRD/TDD/设计稿/ADR 按 App 分组
- *   GET /api/reports    汇报历史清单
- *   GET /api/reports/:id 单份汇报全文
- *   GET /api/tokens    词元消费估算：单据/回执/日志按字节估 token（CJK≈1/字，余 4 字节/token），
- *                      按天/周/月分桶 + 类别汇总 + 会话列表（instances.json，按关联 WO 归集）
+ * GET /api/profile 项目与团队档案
+ * GET /api/pipeline 成员管线：谁在干什么 + 当前工单 + 待拍板
+ * GET /api/artifacts 产物清单：BRD/PRD/TDD/设计稿/ADR 按 App 分组
+ * GET /api/reports 汇报历史清单
+ * GET /api/reports/:id 单份汇报全文
+ * GET /api/tokens 词元消费估算：单据/回执/日志按字节估 token（CJK≈1/字，余 4 字节/token），
+ * 按天/周/月分桶 + 类别汇总 + 会话列表（instances.json，按关联 WO 归集）
  * 静态：托管 ../dist（PWA 构建产物），SPA 回退到 index.html。
  * 数据源：.ai-matrix-team/runtime/ 台账文件（唯一真相源）+ data/dashboard.db（汇报库）。
  */
@@ -48,8 +48,7 @@ const parseExecutor = (e) => {
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const existsP = (p) => fs.existsSync(path.join(ROOT, p));
 
-
-/* ---------------- 产物清单（BRD/PRD/TDD/设计稿/ADR 等，2026-10-07） ---------------- */
+/* ---------------- 产物清单 ---------------- */
 const DOC_TYPES = [
   { re: /_BRD_.*\.md$/i, type: 'BRD', label: '立项报告' },
   { re: /_PRD_.*\.md$/i, type: 'PRD', label: '产品需求' },
@@ -59,7 +58,7 @@ const DOC_TYPES = [
   { re: /design[-_]?draft\.html?$/i, type: 'DESIGN', label: '设计稿' },
 ];
 const stat = (abs) => { const st = fs.statSync(abs); return { size: st.size, mtime: st.mtime.toISOString() }; };
-/* WO-20261007-19：矩阵级产品模块文档命名（BRD.md 等精确名 + design-draft.html） */
+/* 矩阵级产品模块文档命名（BRD.md 等精确名 + design-draft.html） */
 const EXACT_TYPES = {
   'BRD.md': { type: 'BRD', label: '立项报告' },
   'PRD.md': { type: 'PRD', label: '产品需求' },
@@ -101,7 +100,7 @@ function artifacts() {
       apps.push({ app: e.name, items: classifyAppDocs(docs, 'apps/' + e.name + '/docs') });
     }
   }
-  // WO-20261007-19：矩阵级产品模块（docs/product/ 子目录，非 apps/ 成员）
+  // 矩阵级产品模块（docs/product/ 子目录，非 apps/ 成员）
   const productDir = path.join(ROOT, 'docs/product');
   if (fs.existsSync(productDir)) {
     for (const e of fs.readdirSync(productDir, { withFileTypes: true })) {
@@ -177,8 +176,8 @@ function decisions() {
 
 /**
  * 锁状态归一（面域分片：lock.json schema 2 可含多个 holder）。
- *   优先读 holders[]（逐项 {wo, since: acquiredAt}）；缺失时回退 legacy 顶层 holder；
- *   无锁 → null。分片后 N≥2 是常态：消费方据此**列出全部在持单**，不得只显主 holder、不得低报。
+ * 优先读 holders[]（逐项 {wo, since: acquiredAt}）；缺失时回退 legacy 顶层 holder；
+ * 无锁 → null。分片后 N≥2 是常态：消费方据此**列出全部在持单**，不得只显主 holder、不得低报。
  */
 function lockState() {
   const f = path.join(ROOT, '.ai-matrix-team/runtime/state/lock.json');
@@ -247,10 +246,10 @@ function pipeline() {
   };
 }
 
-/* ---------------- 词元（token）消费估算（WO-20261007-17，charter §4A.8 度量配套） ----------------
+/* ---------------- 词元（token）消费估算（，charter §4A.8 度量配套） ----------------
  * 口径声明：真实计量在宿主（WorkBuddy）侧，本端点不可得 → 按**字节估算**：
- *   CJK 字符 ≈ 1 token/字，其余按 4 字节/token。曲线/饼图反映「单据与日志的体量走势」，
- *   供优化决策参考，不冒充精确计量。日期取文件 mtime（日志取文件名日期）。
+ * CJK 字符 ≈ 1 token/字，其余按 4 字节/token。曲线/饼图反映「单据与日志的体量走势」，
+ * 供优化决策参考，不冒充精确计量。日期取文件 mtime（日志取文件名日期）。
  */
 const TOKEN_KINDS = [
   { kind: 'wo', label: '工单', dirs: ['.ai-matrix-team/runtime/workorders/open', '.ai-matrix-team/runtime/workorders/closed'], re: /^WO-.*\.md$/ },
@@ -393,7 +392,7 @@ const server = http.createServer(async (req, res) => {
       }
       return send(res, 404, JSON.stringify({ error: '决定文档不存在' }));
     }
-    // DR 批复回填（创始人 2026-10-07）：勾选推荐选项 + 补充说明 → 回写单据「答复」段。
+    // DR 批复回填：勾选推荐选项 + 补充说明 → 回写单据「答复」段。
     // 双目录查找（open 优先）+ id 白名单防穿越；无结构化答复段时文末追加，不破坏原文其余部分。
     const drPost = url.pathname.match(new RegExp(`^/api/decisions/(${LEDGER_ID})/verdict$`));
     if (drPost && req.method === 'POST') {
@@ -463,8 +462,8 @@ const server = http.createServer(async (req, res) => {
     if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) file = path.join(DIST, 'index.html');
     if (!fs.existsSync(file)) return send(res, 503, '<h1>dashboard 未构建</h1><p>先在 .skills/dashboard 下执行 pnpm build。</p>', 'text/html; charset=utf-8');
     const ext = path.extname(file);
-    // 本地控制台：静态响应一律 no-store（创始人 2026-10-06 指示「关闭 dashboard 缓存」）——
-    // 改完刷新即生效，杜绝「刷新不生效」复发；/api/* 的 send() 本已 no-store。
+    // 本地控制台：静态响应一律 no-store——
+    // 改完刷新即生效，杜绝「刷新不生效」复发；/api/* 的 send 本已 no-store。
     res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': 'no-store' });
     return fs.createReadStream(file).pipe(res);
   } catch (e) {

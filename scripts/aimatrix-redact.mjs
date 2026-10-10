@@ -4,19 +4,19 @@
  *
  * 定位：`.ai-matrix-team/` 审计台账（WO/DR/交接单/汇报/复检）要随 git 进库；
  * 当目标项目是 public 仓库（或台账会被分享）时，台账里不得出现：
- *   ① 本机绝对路径（/Users/*、/Volumes/*）  ② API 密钥/令牌
- *   ③ 真实邮箱（github noreply 除外）        ④ 内网地址
+ * ① 本机绝对路径（/Users/*、/Volumes/*） ② API 密钥/令牌
+ * ③ 真实邮箱（github noreply 除外） ④ 内网地址
  *
  * 两条使用路径：
- *   A. **写入点强制**（机器 choke point）：report / new-dr / guard journal 等脚本
- *      落盘前调用本文件的 redact() —— import { redact } from './aimatrix-redact.mjs'
- *   B. **扫描兜底**（覆盖 agent 手写的 reviews / WO 正文）：
- *      node aimatrix-redact.mjs --project <root> --scan        # 只报不修，退出码 1 = 有泄漏
- *      node aimatrix-redact.mjs --project <root> --scan --fix  # 自动修复可安全修复的类别
+ * A. **写入点强制**（机器 choke point）：report / new-dr / guard journal 等脚本
+ * 落盘前调用本文件的 redact —— import { redact } from './aimatrix-redact.mjs'
+ * B. **扫描兜底**（覆盖 agent 手写的 reviews / WO 正文）：
+ * node aimatrix-redact.mjs --project <root> --scan # 只报不修，退出码 1 = 有泄漏
+ * node aimatrix-redact.mjs --project <root> --scan --fix # 自动修复可安全修复的类别
  *
  * 修复安全性分级：
- *   fix 安全（--fix 自动改）：绝对路径、键值型密钥、知名令牌前缀、邮箱
- *   fix 不安全（只报不改）：内网 IP（误伤示例文档的风险高，交人判断）
+ * fix 安全（--fix 自动改）：绝对路径、键值型密钥、知名令牌前缀、邮箱
+ * fix 不安全（只报不改）：内网 IP（误伤示例文档的风险高，交人判断）
  *
  * 退出码：0 干净 / 1 发现泄漏 / 2 参数错误
  */

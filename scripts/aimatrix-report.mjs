@@ -4,8 +4,8 @@
  *
  * 汇总门禁状态 / 活跃工单 / 待拍板 / 最近巡检 / git 近况，
  * 用大白话（config.json.terms 术语表）生成一份汇报：
- *   ① 文字版（Markdown，四段式）→ SQLite reports.body_md
- *   ② 图形版（SVG 信息图，四区块 + 金句）→ SQLite reports.svg + data/reports/report-<id>.svg
+ * ① 文字版（Markdown，四段式）→ SQLite reports.body_md
+ * ② 图形版（SVG 信息图，四区块 + 金句）→ SQLite reports.svg + data/reports/report-<id>.svg
  *
  * 用法：node <team-repo>/scripts/aimatrix-report.mjs [--root <repo>]
  * 退出码：0 成功
@@ -90,9 +90,9 @@ function lockState() {
 
 /**
  * 锁状态归一（面域分片：lock.json 可含多个 holder）。
- *   holders[] → {busy:true, count, holders:[{wo,since}], primary}
- *   legacy 单 holder → count:1
- *   无锁 → {busy:false, count:0}
+ * holders[] → {busy:true, count, holders:[{wo,since}], primary}
+ * legacy 单 holder → count:1
+ * 无锁 → {busy:false, count:0}
  * 供 compose / renderSvg 使用：N≥2 必须列出全部在持单，不得只显主 holder、不得显空闲。
  */
 function lockView(l) {
@@ -240,7 +240,7 @@ function compose(d) {
 
 // ---------- SVG 图形版（样张：黄昏小院信息图风格） ----------
 const varWrap = (name, fb) => `var(--rp-${name}, ${fb})`;
-// 2026-10-07（WO-20261007-04）：全部走 --rp-* CSS 变量（styles.css 三段主题），inline 嵌入 dashboard 时随主题自动暗黑；fallback 为浅色值（独立文件查看）
+// 2026-10-07：全部走 --rp-* CSS 变量（styles.css 三段主题），inline 嵌入 dashboard 时随主题自动暗黑；fallback 为浅色值（独立文件查看）
 const C = {
   bgTop: varWrap('bg-top', '#FDF8F3'), bgBottom: varWrap('bg-bottom', '#F3E3D2'), ink: varWrap('ink', '#1C1917'), muted: varWrap('muted', '#78716C'),
   line: varWrap('line', '#E7D5C0'), card: varWrap('card', '#FFFFFF'), cardStroke: varWrap('card-stroke', '#F0DCC6'),
@@ -287,7 +287,7 @@ function renderSvg(d) {
   const parts = [];
   const lv = lockView(d.lock);
   let y = 0;
-  const PAD = 24, W = 1100, X = PAD, CW = W; // 24px 内留白：背景铺满全幅，内容整体内缩（WO-20261007-04）
+  const PAD = 24, W = 1100, X = PAD, CW = W; // 24px 内留白：背景铺满全幅，内容整体内缩（）
 
   parts.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W + PAD * 2} ${'H'}" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">`);
   parts.push(`<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${C.bgTop}"/><stop offset="100%" stop-color="${C.bgBottom}"/></linearGradient></defs>`);

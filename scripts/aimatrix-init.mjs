@@ -7,7 +7,7 @@
  * 各角色 Agent 均以该文件为初始化依据，实现专家团与具体项目解耦。
  *
  * 用法：
- *   node <team-repo>/scripts/aimatrix-init.mjs [--root <repo>] [--force] [--check]
+ * node <team-repo>/scripts/aimatrix-init.mjs [--root <repo>] [--force] [--check]
  *
  * 退出码：0 成功 / 1 --check 漂移 / 2 参数错误
  */
@@ -32,8 +32,6 @@ const ROOT = path.resolve(getArg('--project') || getArg('--root') || process.env
 const FORCE = argv.includes('--force');
 const CHECK = argv.includes('--check');
 const CONFIG = path.join(ROOT, '.ai-matrix-team', 'project.json');
-
-
 
 /* ---------- 探测工具 ---------- */
 const exists = (p) => fs.existsSync(path.join(ROOT, p));
