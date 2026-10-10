@@ -127,9 +127,21 @@ for (const p of [...ls(path.join(ROOT, 'docs')).filter((f) => f.endsWith('.md'))
   }
 }
 
+// ⑥ CSS 注释配对：注释正文里混入 `*/` 会提前收尾，把紧随其后的整条规则吞掉
+// （实测：一处 `--n-*/--brand` 曾吞掉 :root 浅色令牌块与该段 43% 样式，浅色主题静默降级）
+for (const p of walkFiles(ROOT)) {
+  if (!/\.css$/.test(p)) continue;
+  const rel = path.relative(ROOT, p);
+  let raw;
+  try { raw = read(p); } catch { continue; }
+  const open = (raw.match(/\/\*/g) || []).length;
+  const close = (raw.match(/\*\//g) || []).length;
+  if (open !== close) add('csscomment', rel, `注释未配对：/* ${open} 个 vs */ ${close} 个——注释里混入 */ 会提前收尾，吞掉紧随其后的规则`);
+}
+
 // ---------- 报告 ----------
 const byKind = violations.reduce((a, v) => ({ ...a, [v.kind]: (a[v.kind] || 0) + 1 }), {});
-const label = { frontmatter: '技能 frontmatter', threshold: '三层阈值', link: '链接有效性', trace: '修订痕迹' };
+const label = { frontmatter: '技能 frontmatter', threshold: '三层阈值', link: '链接有效性', trace: '修订痕迹', csscomment: 'CSS 注释配对' };
 
 if (!violations.length) {
   console.log(`✓ 团队仓自检全过（${skillDirs.length} 个岗位技能、${ls(path.join(ROOT, 'members')).filter((f) => f.endsWith('.md')).length} 个角色定义）`);

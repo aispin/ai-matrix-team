@@ -262,10 +262,11 @@ const C = {
   bgTop: varWrap('bg-top', '#FDF8F3'), bgBottom: varWrap('bg-bottom', '#F3E3D2'), ink: varWrap('ink', '#1C1917'), muted: varWrap('muted', '#78716C'),
   line: varWrap('line', '#E7D5C0'), card: varWrap('card', '#FFFFFF'), cardStroke: varWrap('card-stroke', '#F0DCC6'),
   accent: varWrap('accent', '#C2410C'), bannerText: varWrap('banner-text', '#FCD9A8'),
+  bannerBg: varWrap('banner-bg', '#1C1917'), decideBg: varWrap('decide-bg', '#FFFBF5'), decideStroke: varWrap('decide-stroke', '#FFC97A'),
   greenBg: varWrap('green-bg', '#ECFDF5'), greenStroke: varWrap('green-stroke', '#A7F3D0'), greenBar: varWrap('green-bar', '#10B981'), greenText: varWrap('green-text', '#047857'),
   amberBg: varWrap('amber-bg', '#FEF3C7'), amberStroke: varWrap('amber-stroke', '#FDE68A'), amberBar: varWrap('amber-bar', '#F59E0B'), amberText: varWrap('amber-text', '#92400E'),
   orangeBg: varWrap('orange-bg', '#FFEDD5'), orangeStroke: varWrap('orange-stroke', '#FED7AA'), orangeBar: varWrap('orange-bar', '#EA580C'), orangeText: varWrap('orange-text', '#C2410C'),
-  blueBg: varWrap('blue-bg', '#EFF6FF'), blueBar: varWrap('blue-bar', '#3B82F6'), blueText: varWrap('blue-text', '#1D4ED8'),
+  blueBg: varWrap('blue-bg', '#EFF6FF'), blueStroke: varWrap('blue-stroke', '#BFDBFE'), blueBar: varWrap('blue-bar', '#3B82F6'), blueText: varWrap('blue-text', '#1D4ED8'),
 };
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 // 图形版专用：洗掉台账里的 Markdown 痕迹（**加粗**、`代码`、# 标题符）
@@ -326,7 +327,7 @@ function renderSvg(d) {
   const insp = d.inspect ? (/FAIL/i.test(d.inspect.summary) ? ['体检 ❌ 有问题', C.orangeBg, C.orangeStroke, C.orangeText]
     : /WARN/i.test(d.inspect.summary) ? ['体检 ⚠️ 有提醒', C.amberBg, C.amberStroke, C.amberText]
     : ['体检 ✅ 通过', C.greenBg, C.greenStroke, C.greenText]) : null;
-  chip(`在办${WO_LABEL} ${d.wos.length}`, { bg: C.blueBg, stroke: '#BFDBFE', text: C.blueText });
+  chip(`在办${WO_LABEL} ${d.wos.length}`, { bg: C.blueBg, stroke: C.blueStroke, text: C.blueText });
   chip(`等您拍板 ${d.drs.length}`, d.drs.length ? { bg: C.orangeBg, stroke: C.orangeStroke, text: C.orangeText } : { bg: C.greenBg, stroke: C.greenStroke, text: C.greenText });
   chip(lv.busy ? (lv.count === 1 ? '公共区域 占用中' : `公共区域 占用中·${lv.count}单`) : '公共区域 空闲', lv.busy ? { bg: C.amberBg, stroke: C.amberStroke, text: C.amberText } : { bg: C.greenBg, stroke: C.greenStroke, text: C.greenText });
   if (insp) chip(insp[0], { bg: insp[1], stroke: insp[2], text: insp[3] });
@@ -379,7 +380,7 @@ function renderSvg(d) {
     y += 42;
   };
   if (d.wos.length) {
-    for (const w of d.wos) row(`在办：${w.id} — ${plain(w.purpose)}`, { bg: C.greenBg, stroke: C.greenStroke, bar: C.greenBar, text: '#064E3B' }, w.executor || w.status);
+    for (const w of d.wos) row(`在办：${w.id} — ${plain(w.purpose)}`, { bg: C.greenBg, stroke: C.greenStroke, bar: C.greenBar, text: C.greenText }, w.executor || w.status);
   } else {
     row(`没有进行中的${WO_LABEL}，施工队列是空的。`, { bg: C.card, stroke: C.cardStroke, bar: C.blueBar, text: C.muted });
   }
@@ -420,7 +421,7 @@ function renderSvg(d) {
       const adviceLine = x.advice ? `我的建议：${plain(x.advice)} · 回「按默认」即可` : '等您一句话定方向。';
       const meta = [`编号 ${x.id}`, x.blocking ? '⏸ 不拍板相关工作就停着' : '', x.due ? `建议期限 ${x.due}` : ''].filter(Boolean).join(' · ');
       const h = 66;
-      parts.push(rect(X, y, CW, h, { fill: '#FFFBF5', stroke: '#FFC97A', sw: 2, rx: 12 }));
+      parts.push(rect(X, y, CW, h, { fill: C.decideBg, stroke: C.decideStroke, sw: 2, rx: 12 }));
       parts.push(txt(X + 24, y + 26, `❋ ${fit(plain(x.oneLine), CW - 200, 13)}`, { fs: 13, weight: 700 }));
       parts.push(txt(X + W - 24, y + 26, meta, { fs: 11, fill: C.accent, anchor: 'end', weight: 600 }));
       parts.push(txt(X + 24, y + 50, fit(adviceLine, CW - 48, 11.5), { fs: 11.5, fill: C.muted }));
@@ -428,9 +429,9 @@ function renderSvg(d) {
     }
   }
 
-  // ── 金句收尾 ──
+  // 金句收尾：底色用 banner-bg（两种主题下都保持深底），文字用 banner-text 暖琥珀
   y += 8;
-  parts.push(rect(X, y, CW, 38, { fill: C.ink, rx: 0 }));
+  parts.push(rect(X, y, CW, 38, { fill: C.bannerBg, rx: 0 }));
   parts.push(txt(W / 2, y + 24.5, '真正管住 AI 的不是规则条文，而是每件事有人负责、每个岔路口有人拍板。', { fs: 13, fill: C.bannerText, anchor: 'middle', weight: 600 }));
   y += 38;
 
