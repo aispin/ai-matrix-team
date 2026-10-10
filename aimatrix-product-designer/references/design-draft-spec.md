@@ -40,6 +40,7 @@ node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --stats   # 只�
 | `chat` | `messages:[{role,text,name}]`，role ∈ user/agent |
 | `list` | `items:[{text,icon,tag,tone}]` |
 | `tabs` | `tabs:[{label,text,items:[{text,icon,tag,tone}],kv:[{k,v}]}]`（页内切换，JS 内建） |
+| `raw` | `html:"…"`（逃生舱，见 §表达不了怎么办；每页 ≤1 处） |
 | `kv` | `items:[{k,v}]` |
 | `notice` | `text`、`tone` ∈ ok/warn/err、`icon` |
 
@@ -57,6 +58,21 @@ node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --stats   # 只�
 ## 图标
 
 `icon` 取值：grid / chart / users / settings / bell / search / check / alert / lock / wifi / refresh / plus / inbox / file / moon / side。**禁 emoji**（门禁）；需要新图标时在 `aimatrix-render.mjs` 的 `ICONS` 里加线性 SVG。
+
+## 表达不了怎么办（三级处置）
+
+渲染器是**固定词汇**（上表 10 类），覆盖不了的场景**不许硬塞**，按序选：
+
+| 情形 | 处置 | 成本 |
+|---|---|---|
+| 内容能用现有组件表达，只是组合方式不同 | 换组件组合（如「看板」用 `cards` + `tabs` 近似） | 低，仍省 token |
+| **个别区块**需要定制（特殊图表 / 独特交互） | 该 section 用 **`raw` 局部手写 HTML**（必须走设计令牌 `var(--n-*)`/`currentColor`，每页 ≤1 处） | 中 |
+| **整页**形态渲染器表达不了（3D / 强定制插画 / 一次性视觉实验） | **照 `examples/` 同场景手写整页**，比样自检以渲染产物为基线 | 高，但仍是合规路径 |
+
+**硬性保证**：草稿里出现渲染器不认识的组件 → **脚本退出码 1 且不产出文件**，并打印上述三条处置。
+因此**不存在「悄悄交出残缺稿」的情况**；设计师永远能交付符合业务需求的 HTML demo——最坏情况是退回手写，能力上限与改造前完全一致（`examples/` 六场景作为风格与结构基准仍在）。
+
+**判断口诀**：能表达 → 渲染（省 8 倍）；差一点 → `raw` 补那一块；差很多 → 整页手写。
 
 ## 铁律（与 examples 一致）
 

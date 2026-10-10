@@ -22,7 +22,7 @@ PRD（功能地图 + 可观测 AC，缺关键信息**打回产品阶段**，不�
 1. **需求解构**：用户 / 任务 / 数据 / 约束 / 成功定义，缺失就问 → 输出 ≤10 行《需求摘要》→ **闸门 1：等创始人或 PC 确认，不许往下**。
 2. **信息架构**：页面清单 + 主流程 + **状态矩阵**（每页：默认/加载/空/错误/无权限/离线/部分失败/超长）→ **闸门 2：矩阵列全才动稿**。
 3. **可交互视觉稿**：**单份交付**——单文件 HTML，高保真 + 浅深双主题（三件套：跟随系统+手动切换+记忆偏好）+ 可点击走通主流程与状态切换。严格按 [`design-system.md`](design-system.md) 执行——色彩（主色 <10%）、8pt 栅格、圆角/阴影令牌、图标自绘 SVG（24×24 网格、stroke 1.5/2 统一、currentColor、坐标全偶数）。不再出灰阶低保真稿——保真与走查一步到位。
-   **默认出稿路径（省 token）**：写草稿 JSON（[`design-draft-spec.md`](design-draft-spec.md)）→ 跑 `node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --out <page.html>`。HTML/CSS/SVG/主题机制/八态样板由脚本生成，令牌与 examples 同源；模型侧输出约为手写稿的 1/8。**例外**：3D 场景（如 `06-3d-personal-ip`）、强定制插画与一次性视觉实验仍可照 examples 手写——此时同样以脚本产物为基线比样。
+   **默认出稿路径（省 token）**：写草稿 JSON（[`design-draft-spec.md`](design-draft-spec.md)）→ 跑 `node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --out <page.html>`。HTML/CSS/SVG/主题机制/八态样板由脚本生成，令牌与 examples 同源；模型侧输出约为手写稿的 1/8。**覆盖不了的三级处置**（渲染器未知组件会**退出码 1 且不产出文件**，不会悄悄交出残缺稿）：① 换个组件组合近似 → ② 该区块 `raw` 局部手写（仍用设计令牌）→ ③ 整页照 [`../examples/`](../examples/) 手写（3D / 强定制插画 / 一次性视觉实验走这条），此时同样以脚本产物为基线比样。详见 [`design-draft-spec.md`](design-draft-spec.md) §表达不了怎么办。
 4. **比样自检**：交付前对照 [`../examples/`](../examples/) 同场景样例并排比一次，明显逊色 → 重做；自检清单逐条打勾。
 
 **产出落盘**：`apps/<app>/docs/design/<场景>-design.html`（**一份**；C3 面；团队自身页面按 WO 指定路径走 C2）。单文件零依赖、双击即开、375px 无横向滚动。

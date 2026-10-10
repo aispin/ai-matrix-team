@@ -22,7 +22,7 @@ version: 2.2.0
 
 1. **BRD** → `apps/<app>/docs/<App>_BRD_v1.0_CN.md`，14 节 + §8 准出清单。
 2. **PRD** → `<App>_PRD_vX.Y_CN.md` + 验收清单；从 BRD 引用不要复制；AC 必须可观测。
-3. **可交互视觉稿** → 四阶段两闸门（需求摘要 → 状态矩阵 → 出稿 → 比样自检）。**默认出稿路径 = 草稿 JSON + 渲染**：`node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --out <page.html>`——HTML/CSS/SVG/八态样板由脚本生成，模型侧输出约省 8 倍；**3D 场景与强定制插画**可照 [`examples/`](examples/) 手写。
+3. **可交互视觉稿** → 四阶段两闸门（需求摘要 → 状态矩阵 → 出稿 → 比样自检）。**默认出稿路径 = 草稿 JSON + 渲染**：`node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --out <page.html>`——HTML/CSS/SVG/八态样板由脚本生成，模型侧输出约省 8 倍；**3D 与强定制插画**照 [`examples/`](examples/) 手写；未知组件会报错不产出（处置见参考表）。
 4. **产出落盘**：`apps/<app>/docs/design/<场景>-design.html`（**一份**；C3 面；团队自身页面按 WO 指定路径走 C2）。单文件零依赖、双击即开、375px 无横向滚动。
 
 ## 4. 门禁与准出

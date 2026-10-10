@@ -206,6 +206,9 @@ const svg = (name, size = 18) =>
 // ---------------------------------------------------------------- 组件渲染
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+// 组件表达不了的 section 一律记错：渲染器只覆盖固定词汇，覆盖不了要显式告知（走手写路径或补组件），不许静默产出残缺页
+const renderErrors = [];
+const rawCount = { n: 0 };
 const uiAttr = (s) => (s.ui ? ` data-ui="${esc(s.ui)}"` : '');
 const stateCopy = (draft, s, key, fallback) => draft.stateCopy?.[key] ?? s.stateCopy?.[key] ?? fallback;
 
@@ -244,11 +247,13 @@ function sectionBody(s, state, draft) {
 }
 
 function sectionHtml(s, draft) {
+  if (s.type === 'raw' && !s.title) return (() => { rawCount.n++; return s.html || ''; })();
   if (s.type === 'notice') {
     return `<div class="panel"><div class="panel-body"><div class="notice ${s.tone || ''}">${svg(s.icon || 'alert', 16)}<span>${esc(s.text)}</span></div></div></div>`;
   }
   const body = (() => {
-    switch (s.type) {
+    const t = s.type;
+    switch (t) {
       case 'stats':
         return `<div class="grid cols-${Math.min((s.items || []).length, 4)}">${(s.items || []).map((i) => `<div class="stat"><div class="k">${esc(i.label)}</div><div class="v">${esc(i.value)}</div><div class="d ${i.tone ? 'tone-' + i.tone : ''}">${esc(i.delta || '')}</div></div>`).join('')}</div>`;
       case 'cards':
@@ -286,8 +291,15 @@ function sectionHtml(s, draft) {
         return `<ul class="list">${(s.items || []).map((i) => `<li>${svg(i.icon || 'check', 16)}<span style="flex:1">${esc(i.text)}</span>${i.tag ? `<span class="tag ${i.tone || ''}"><i></i>${esc(i.tag)}</span>` : ''}</li>`).join('')}</ul>`;
       case 'kv':
         return `<dl class="kv">${(s.items || []).map((i) => `<dt>${esc(i.k)}</dt><dd>${esc(i.v)}</dd>`).join('')}</dl>`;
+      case 'raw': {
+        // 逃生舱：个别区块渲染器表达不了时局部手写（必须用设计令牌；每页建议 ≤1 处）
+        rawCount.n++;
+        if (!s.html) { renderErrors.push(`raw 组件缺 html（${s.title || '无名区块'}）`); return ''; }
+        return `<div${uiAttr(s)} data-raw="1">${s.html}</div>`;
+      }
       default:
-        return `<div class="state-note">未知组件类型 ${esc(t)}（可用：stats/cards/table/form/chat/list/tabs/kv/notice）</div>`;
+        renderErrors.push(`未知组件类型「${t}」（${s.title || '无名区块'}）`);
+        return `<div class="state-note">⚠ 渲染器不支持组件「${esc(t)}」——请补组件，或改用 \`raw\` 局部手写 / 整页手写（照 examples/）</div>`;
     }
   })();
   const note = ['table', 'cards', 'stats', 'chat', 'list'].includes(s.type) ? '' : '';
@@ -395,6 +407,14 @@ const stats = has('--stats');
 const draftBytes = Buffer.byteLength(fs.readFileSync(inPath, 'utf8'));
 const html = render();
 const htmlBytes = Buffer.byteLength(html);
+
+// 覆盖不了就显式失败：不写文件、退出码 1，避免把残缺页当交付物
+if (renderErrors.length) {
+  console.error('✗ 草稿有渲染器表达不了的区块（未产出文件）：');
+  for (const e of renderErrors) console.error('  - ' + e);
+  console.error('  处置：① 换成本表支持的组件；② 该区块用 `raw` 局部手写（仍用设计令牌）；③ 整页照 examples/ 手写。');
+  process.exit(1);
+}
 
 if (stats) {
   let ex = [];
