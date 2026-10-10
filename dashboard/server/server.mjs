@@ -368,6 +368,14 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/profile') return json(res, { team: ABOUT.team, members: ABOUT.members, project: CONFIG.project, terms: CONFIG.terms });
     // 运行环境：侧栏展示「当前项目目录」用（root = 项目根，repo = 团队仓）
     if (url.pathname === '/api/env') return json(res, { root: ROOT, repo: TEAM_ROOT, project: CONFIG.project?.name || null });
+    // 团员头像：只认团队仓 assets/avatars/<name>.png（白名单文件名校验，防穿越）
+    const av = url.pathname.match(/^\/api\/avatar\/([a-z0-9-]+\.png)$/);
+    if (av) {
+      const file = path.join(TEAM_ROOT, 'assets', 'avatars', av[1]);
+      if (!fs.existsSync(file)) return send(res, 404, JSON.stringify({ error: '头像不存在' }));
+      res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' });
+      return fs.createReadStream(file).pipe(res);
+    }
     // 产物内容：只服务产物清单里出现过的文件（白名单，防路径穿越）；?raw=1 直出文件（html/图片），否则 JSON 返回文本
     if (url.pathname === '/api/artifact') {
       const rel = url.searchParams.get('path') || '';

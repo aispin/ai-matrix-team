@@ -5,6 +5,8 @@ export interface Member {
   stage: string;
   color: string;
   desc: string;
+  /** 头像文件名（团队仓 assets/avatars/ 下，经 /api/avatar/<file> 提供） */
+  avatar?: string;
   busy?: string;
   busyList?: string[];
   working?: boolean;

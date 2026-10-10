@@ -304,7 +304,7 @@ function renderSvg(d) {
   const parts = [];
   const lv = lockView(d.lock);
   let y = 0;
-  const PAD = 24, W = 1100, X = PAD, CW = W; // 24px 内留白：背景铺满全幅，内容整体内缩（）
+  const PAD = 24, W = 1100, X = 0, CW = W; // 画布 = 内容宽 W + 左右各 PAD；内容坐标从 0 起，左留白由外层 <g> 平移提供（不可再用 X=PAD，否则左留白被算两遍 → 左 48 / 右 0）
 
   parts.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W + PAD * 2} ${'H'}" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">`);
   parts.push(`<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${C.bgTop}"/><stop offset="100%" stop-color="${C.bgBottom}"/></linearGradient></defs>`);

@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { Icon } from '../icon';
-import { Avatar, Button, Card } from '@heroui/react';
-import type { TeamInfo } from '../types';
+import { Button, Card } from '@heroui/react';
+import type { Member, TeamInfo } from '../types';
 
 export default function About() {
   const [team, setTeam] = useState<TeamInfo | null>(null);
+  const [members, setMembers] = useState<Member[]>([]);
   const [copied, setCopied] = useState<string | null>(null);
 
-  useEffect(() => { api.team().then((d) => setTeam(d.team)).catch(() => setTeam(null)); }, []);
+  useEffect(() => {
+    api.team()
+      .then((d) => { setTeam(d.team); setMembers(d.members ?? []); })
+      .catch(() => setTeam(null));
+  }, []);
 
   const copy = (text: string) => {
     navigator.clipboard?.writeText(text).then(() => {
@@ -58,19 +63,18 @@ export default function About() {
       <section>
         <h2 className="section-title mb-3">团队成员</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            { name: 'PC', role: '产研高级总监 · 团长', color: 'var(--id-1)', desc: '接您的每一句话，开单派活、把关卡、核准公共区写入（风控并入），汇总交付。全队的入口。' },
-            { name: '毛毛', role: '资深产品设计师', color: 'var(--id-2)', desc: '一条链三件事：BRD 立项论证 → PRD 验收标准 → 可交互设计稿（双主题可点击）。' },
-            { name: 'Bruce', role: '资深开发工程师', color: 'var(--id-6)', desc: '动码前 15 分钟架构速断（TDD 增量 / ADR / 破坏性自查），按单施工，只在批准范围内动手。' },
-            { name: '石头', role: '资深质检工程师', color: 'var(--id-7)', desc: '独立验货：逐条核对验收标准，一票打回；破坏性影响面只核对不裁量；月度合规体检。' },
-            { name: '陈波', role: '资深运维工程师', color: 'var(--id-8)', desc: '部署、迁移、回滚，上线的事他兜底。' },
-          ].map((m) => (
-            <Card key={m.name} className="card !p-4">
+          {members.map((m) => (
+            <Card key={m.id} className="card !p-4">
               <Card.Content className="flex flex-row items-start gap-3 !p-0">
-                <Avatar
-                  className="h-10 w-10 shrink-0 text-lg font-bold"
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-bold"
                   style={{ background: m.color, color: '#fff' }}
-                />
+                  aria-hidden={!!m.avatar}
+                >
+                  {m.avatar
+                    ? <img src={`/api/avatar/${m.avatar}`} alt={m.name} className="h-full w-full object-cover" />
+                    : m.name.slice(0, 1)}
+                </span>
                 <div className="min-w-0">
                   <div className="flex items-baseline gap-2">
                     <span className="font-semibold">{m.name}</span>
