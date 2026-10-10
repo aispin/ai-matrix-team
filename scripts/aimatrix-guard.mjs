@@ -702,12 +702,25 @@ ${purpose}
 - [ ] 术语缩写自检（无裸用缩写）
 - [ ] 归档至 \`runtime/workorders/closed/\`
 `;
+  // 单一真相源：模板存在则以 docs/templates/wo.md 为准（内嵌骨架仅作兜底，防双份漂移）
+  const tplFile = path.join(TEAM_ROOT, 'docs/templates/wo.md');
+  const tpl = exists(tplFile) ? read(tplFile) : null;
+  const finalBody = tpl
+    ? tpl
+      .replace(/^# WO-YYYYMMDD-NN-<slug> · 任务单$/m, `# ${id} · 任务单`)
+      .replace(/WO-YYYYMMDD-NN-<slug>/g, id)
+      .replace('| 验收级别 | `L2` |', `| 验收级别 | \`${level}\` |`)
+      .replace('| 创建 / 完成 | YYYY-MM-DD / — |', `| 创建 / 完成 | ${today} / — |`)
+      .replace('（≤3 行：改什么 / 为什么现在改 / 依据节号。写不进 = 拆单）', purpose)
+      .replace('| C1/C2/C3/F | `（待填）` |', paths.map((p) => `| ${surface} | \`${p}\` |`).join('\n'))
+      .replace(/WO-xxx\.journal\.md/g, `${id}.journal.md`)
+    : body;
   const dir = path.join(WO_DIR(), 'open');
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, `${id}.md`);
   if (fs.existsSync(file)) die(EXIT.USAGE, `已存在：${file}`);
-  fs.writeFileSync(file, body);
-  console.log(`✓ 已生成 ${path.relative(PROJECT(), file)}（${Buffer.byteLength(body)} B）`);
+  fs.writeFileSync(file, finalBody);
+  console.log(`✓ 已生成 ${path.relative(PROJECT(), file)}（${Buffer.byteLength(finalBody)} B）`);
   console.log(G('  下一步：填 §1/§2/§5/§6 → guard wo lint <file> → 团长核准 → 派单'));
   process.exit(EXIT.OK);
 }
@@ -972,6 +985,10 @@ function lintOne(file) {
     if (!has(/^##\s*4\..*(影响面)/m)) missing.push('§4 影响面');
     if (!has(/^##\s*5\..*(验证)/m)) missing.push('§5 验证方式');
     if (!has(/^##\s*6\..*(回滚)/m)) missing.push('§6 回滚方案');
+    // 面向 agent 的两条硬纪律（charter §4A.8）：体量上限 + 验证段必须可执行
+    if (Buffer.byteLength(text) > 6 * 1024) missing.push(`主文件 ${(Buffer.byteLength(text) / 1024).toFixed(1)}KB 超 6KB 上限（过程叙事请入 journal）`);
+    const sec5 = text.split(/^##\s*5\..*$/m)[1]?.split(/^##\s/m)[0] || '';
+    if (sec5 && !/`/.test(sec5)) missing.push('§5 需含可执行命令（反引号/代码块）');
   } else if (/^DR-/.test(base)) {
     for (const f of ['提出者', '所属', '决策类型', '阻塞级别', '状态']) {
       if (!has(new RegExp(`\\|\\s*\\*{0,2}${f}\\*{0,2}\\s*\\|\\s*[^|\\s]`))) missing.push(`字段 ${f}`);
