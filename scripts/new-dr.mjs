@@ -76,7 +76,8 @@ const dl = `${deadline.getFullYear()}-${String(deadline.getMonth() + 1).padStart
 
 const content = `# ${id} · ${title}
 
-> 由 new-dr.mjs 生成骨架；提出者补全 §2–§5 后跑 \`wo lint\` 校验。
+> 由 new-dr.mjs 生成骨架；填 §1–§5 即可，其余按需。
+> **精炼铁律**：只抛背景 3–5 句 · 选项（含推荐）· 后果 2–3 句；**主文件 ≤2.5KB**（\`guard dr scan\` 强制查）——细则写对应文档，不写这里。
 
 | 字段 | 值 |
 |---|---|
@@ -115,27 +116,21 @@ ${title}？
 
 - ${blocking === 'BLOCKING' ? 'BLOCKING：任务停在 ______ 阶段，等你答复（不许沉默通过）。' : `NON-BLOCKING：48h 无答复 → 按 §4 默认执行（${def}），台账标注后可推翻（推翻代价：______）。`}
 
-## 6. 影响面
+## 6. 影响面与关联文档
 
-受影响 App / 服务 / 已上线产物 / 对外承诺：
-
-## 7. 关联文档
-
-\`${wo ? wo + ' · ' : ''}${app ? 'apps/' + app + '/docs/ · ' : ''}BRD §x / PRD §y / TDD §z\`
+受影响面（一行）／细则所在文档／\`${wo ? wo + ' · ' : ''}${app ? 'apps/' + app + '/docs/ · ' : ''}BRD §x / PRD §y\`
 
 ---
 
-## 8. 答复（创始人填写 / 由 Agent 回填原文）
+## 7. 答复（创始人填写 / 由 Agent 回填原文）
 
 - 答复人：创始人 · 日期：
 - 结论：选 ______ ／ 按默认 ／ 其他：______
 - 原文：
 
-## 9. 回填记录（提出者关闭 DR 前必填）
+## 8. 回填记录（关闭前必填）
 
-- [ ] 结论已写回：BRD §x / PRD §y / TDD §z / ADR-xxxx / shared-contracts.md / 代码注释
-- [ ] LEDGER.md 已更新（\`<team-repo>/scripts/ledger-sync.mjs\`）
-- [ ] 若影响 App 的 OPEN-ITEMS：\`<team-repo>/scripts/render-open-items.mjs\` 已同步
+- [ ] 结论已写回对应文档（勾选实际项）· LEDGER.md 已更新（\`<team-repo>/scripts/ledger-sync.mjs\`）
 - [ ] 文件移入 \`decisions/closed/\`
 `;
 

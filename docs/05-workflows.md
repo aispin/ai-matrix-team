@@ -34,7 +34,7 @@ flowchart LR
 | P2 立项评审 | PC（Bruce 咨询） | `<project>/.ai-matrix-team/runtime/reviews/<App>-立项评审.md` | 共享面影响已初判；技术可行性有结论 |
 | **P2.5 人类决策** | 创始人 | — | **Type 1 必须显式签字**（定价/永久免费/合规口径） |
 | P3 PRD | 毛毛（**同 P1 同一人**） | `<App>_PRD_v1.0_CN.md` + 验收清单 | 每条需求有可观测 AC；BRD 结论以章节号引用而非复制 |
-| P3.5 设计 | 毛毛（**与 P4 并行**） | `apps/<app>/docs/design/` 可交互视觉稿（单份：双主题可点击） | 四阶段两闸门已过：需求摘要确认、状态矩阵八态列全 |
+| P3.5 设计 | 毛毛（**与 P4 并行**） | `apps/<app>/docs/design/` 可交互视觉稿（单份：双主题可点击） | 四阶段两闸门已过：需求摘要确认、状态矩阵八态列全；**出稿模式已判定**（A 延续 / B 视觉换新 / C 全新方向，见 `aimatrix-product-designer/references/design-draft.md` §10） |
 | P4 TDD | Bruce | `<App>_TDD_v1.0_CN.md` + ADR | 破坏性判定明确；迁移 SQL 幂等 |
 | P5 接入 | PC → Bruce → 石头 | WO + 契约登记 + 验收 | 全矩阵 typecheck/test/build 绿；登记已追加 |
 

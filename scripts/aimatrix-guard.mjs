@@ -919,14 +919,28 @@ function cmdDrScan(args) {
   const blockingOnly = args.has('--blocking');
   const drs = scanDrs({ wo: woId, blockingOnly });
   const blocking = drs.filter((d) => d.blocking);
+  // 精炼铁律（docs/templates/dr.md）：open 单体量上限——创始人要读的就是它，超限直接烧 token
+  const DR_MAX = 2.5 * 1024;
+  const oversized = [];
+  for (const d of drs) {
+    let size = 0;
+    try { size = fs.statSync(d.file).size; } catch {}
+    if (size > DR_MAX) oversized.push({ id: d.id, size });
+  }
   for (const d of drs) {
     const tag = d.blocking ? R('BLOCKING') : Y('NON-BLOCK');
-    console.log(`${tag}  ${d.id}  ${d.title}  [${d.relFile}]`);
+    const over = oversized.find((o) => o.id === d.id);
+    console.log(`${tag}  ${d.id}  ${d.title}  [${d.relFile}]${over ? R(`  ⚠ ${(over.size / 1024).toFixed(1)}KB > 2.5KB`) : ''}`);
+  }
+  if (oversized.length) {
+    console.error(R(`\n⚠ ${oversized.length} 个 OPEN DR 超出精炼上限（≤2.5KB）：${oversized.map((o) => o.id).join(', ')}`));
+    console.error(R('   处置：删掉取证表/方案细则/清单/落地步骤，改为「背景 3-5 句 + 选项(含推荐) + 不做的后果 2-3 句」，细则移入对应文档并在 §7 引用。'));
   }
   if (blocking.length) {
     console.error(R(`\n⛔ ${blocking.length} 个 OPEN 的 BLOCKING DR 未闭环——相关 WO 不得进入下一阶段（章程 T2）。`));
     process.exit(EXIT.DR);
   }
+  if (oversized.length) process.exit(EXIT.VIOLATION);
   console.log(G(drs.length ? `\n有 ${drs.length} 个 NON-BLOCKING DR 待答复（不阻塞）。` : '\n无未闭环 DR。'));
   process.exit(EXIT.OK);
 }
