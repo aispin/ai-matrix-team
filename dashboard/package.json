@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "serve": "node server/server.mjs"
+    "serve": "node server/server.mjs",
+    "console": "node ../scripts/aimatrix-console.mjs --project .."
   },
   "dependencies": {
     "@ant-design/x-markdown": "^2.9.0",

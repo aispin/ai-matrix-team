@@ -10,8 +10,10 @@
 
 > ⚠️ **术语消歧（硬规则）**：本团队语境里「指挥台 / dashboard / 仪表盘」一律指**本团队仓的 `dashboard/` 操盘台**（127.0.0.1:4780，管线看板 + 汇报页 + 关于团队）。**绝不起 `iskill-pipeline-dashboard`**——那是 ISkills 的通用操盘台技能，与本团队无关；除非创始人明确点名「pipeline dashboard / 操盘台」，否则撞名一律按本节处理。
 
-1. `node <team-repo>/scripts/aimatrix-report.mjs` —— 汇总门禁状态、活跃工单、待拍板、巡检与 git 近况，**用 project.json 的 terms 段 的大白话**（工单/待拍板/占用，不用 WO/DR/lock 术语）生成一份报告，写入 SQLite（`dashboard/data/dashboard.db`），同时在会话里输出文字版。
-2. 服务器没起就起一个：`node <team-repo>/dashboard/server/server.mjs`（默认 127.0.0.1:4780），把 **http://127.0.0.1:4780** 给创始人（首页=管线看板 · 汇报页=本次已置顶）。
+1. **一条命令**：`node <team-repo>/scripts/aimatrix-console.mjs --project <root>` —— 生成汇报（走 project.json 的 terms 段大白话）+ 复用/重启控制台 + 打印实际地址（端口被占会自动 +1）。返回的 `http://127.0.0.1:<port>` 给创始人（首页=管线看板 · 汇报页=最新已置顶 · 关于=团队）。
+   - 变体：`--keep` 已在跑就不重启（只看一眼）；`--no-report` 跳过汇报只保服务；默认行为是**重启**（改过服务端代码或 `about.json` 必须重启才生效）。
+   - 汇报落库：`<team-repo>/dashboard/data/db/<project>.db`（**按项目分库**）；实例状态在 `dashboard/data/console-<project>.json`，日志 `dashboard/data/serve-<project>.log`。
+   - 手工兜底（脚本不可用时）：`node <team-repo>/scripts/aimatrix-report.mjs --root <root>` → `node <team-repo>/dashboard/server/server.mjs --project <root>`。
 3. 汇报结构固定四段：**今天干成了什么 → 现在卡在什么（等谁）→ 接下来打算怎么干 → 需要您定的事**。最后一段逐条列出待拍板事项并给出建议默认值。
 
 ## 2. 接入新项目（引导）

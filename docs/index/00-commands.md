@@ -5,6 +5,7 @@
 | 规则（出处） | 命令 |
 |---|---|
 | 判面域：碰受控面必须先开 WO（03-shared-surface §1） | `guard surface <paths...>` |
+| 打开/重启团队操盘台（汇报 + 服务 + 实际地址） | `node scripts/aimatrix-console.mjs --project <root> [--keep] [--no-report]` |
 | 受控面写入前校验：白名单 + 面域 + 共享锁（03 §4） | `guard check --wo <id> <paths...>`（`--quiet` 取单行结论） |
 | 串行锁：同面域互斥（03 §4） | `guard lock acquire\|renew\|release --wo <id>` |
 | 开单：字段齐全、主文件 ≤6KB（charter §4A.8） | `guard wo new --slug <kebab> --level L0\|L1\|L2 [--paths "a/**,b/**"]` |
