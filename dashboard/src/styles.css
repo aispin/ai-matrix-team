@@ -20,7 +20,7 @@
  * 品牌点：暖橙与冷静灰不搭，改用 aimatrix-product-designer/examples/
  * 默认配色 —— 蓝品牌：浅色 #3B5BFD（hover #2F4CE0 · soft #EEF1FF）、深色 #6B85FF（hover #8499FF · soft rgba(107,133,255,.14)）
  * 双主题：<head> 内联防闪脚本设 [data-theme] + localStorage 记忆 + prefers-color-scheme 跟随系统
- * 令牌命名与 docs/design/README.md §5 映射表逐值 1:1（accent 已随本次裁定偏离原映射表的橙值）
+ * 令牌命名与 aimatrix-product-designer/references/portability-map.md §2 映射表对应（稿侧 --n-*/--brand ↔ 本仓 --surface/--border/--accent）。
  * 注：--rp-* 为早期候选 A 遗留令牌，当前零引用，仅存档。
  */
 :root {

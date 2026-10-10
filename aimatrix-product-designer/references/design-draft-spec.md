@@ -111,3 +111,7 @@ node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --stats   # 只�
 
 - `aimatrix-product-designer/drafts/02-dashboard.draft.json`（应用版式：统计/表格/表单/tabs/列表/键值）
 - `aimatrix-product-designer/drafts/01-landing.draft.json`（营销版式：hero/features/compare/cta）
+
+## 稿 → 实现搬运
+
+出稿后开发怎么把稿搬成真实现（组件对照 / 令牌对照 / 不一致清单 / 可搬运率）：见 [`portability-map.md`](portability-map.md)。
