@@ -98,7 +98,7 @@ window.PROMO = {
         agentLabel: "PC",
         messages: [
           { role: "user", text: "接入这个新 App，走完整立项到上线流程。" },
-          { role: "agent", text: "收到。已开 WO-20261008：毛毛出 BRD→PRD→设计稿，Bruce 按单施工，石头独立验收，波波负责发布。每个 Phase 过机器门禁，需要拍板的我会来问你。", tag: "WO 已开 · 门禁 3/3 通过" },
+          { role: "agent", text: "收到。已开单：毛毛出 BRD→PRD→设计稿，Bruce 按单施工，石头独立验收，波波负责发布。每个 Phase 过机器门禁，需要拍板的我会来问你。", tag: "WO 已开 · 门禁 3/3 通过" },
           { role: "user", text: "共享模块要动，谁把关？" },
           { role: "agent", text: "我守门。改前加锁审批，改后登记契约台账，石头月度巡检复核——不会有人悄悄改公共代码。", tag: "共享锁 · C2 核准" }
         ]
@@ -216,7 +216,7 @@ window.PROMO = {
         agentLabel: "PC",
         messages: [
           { role: "user", text: "Onboard this new app — full pipeline from case to release." },
-          { role: "agent", text: "Done. WO-20261008 opened: Mao writes BRD→PRD→design draft, Bruce builds to spec, Xue runs independent acceptance, Bo owns the release. Every phase passes a machine gate; I'll ping you when a call is yours.", tag: "WO opened · gates 3/3 passed" },
+          { role: "agent", text: "Opened a work order: Mao writes BRD→PRD→design draft, Bruce builds to spec, Xue runs independent acceptance, Bo owns the release. Every phase passes a machine gate; I'll ping you when a call is yours.", tag: "WO opened · gates 3/3 passed" },
           { role: "user", text: "We need to touch a shared module. Who's gating?" },
           { role: "agent", text: "I am. Lock + approval before the change, contract ledger after, monthly compliance sweep by Xue. Nobody silently edits shared code on my watch.", tag: "shared lock · C2 approved" }
         ]

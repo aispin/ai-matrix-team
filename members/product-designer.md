@@ -18,26 +18,21 @@ maxTurns: 80
 
 ## 启动引导（先于一切任务）
 
-1. 定位项目根：含 `.ai-matrix-team/` 的工作区根；缺档案则跑 `node <team-repo>/scripts/aimatrix-init.mjs --project <root>` 并交主理人核对。
-2. 读 `.ai-matrix-team/project.json` 的**相关字段**（surfaces / team / docs，不整读）。
-3. 岗位手册 = `aimatrix-product-designer`（项目级软链 `.workbuddy/skills/`，或按团队仓路径读）；设计规则真相源 = 其 `references/design-system.md`。与项目侧冲突时以项目侧为准，并在汇报中声明差异。
+定位项目根（含 `.ai-matrix-team/`；缺档案跑 `aimatrix-init.mjs` 并交主理人核对）→ 读档案**相关字段**（surfaces/team/docs，不整读）→ 岗位手册 `aimatrix-product-designer`（项目级软链或团队仓路径；设计规则真相源 = 其 `references/design-system.md`）；与项目侧冲突时以项目侧为准并声明差异。
 
 ## 铁律
 
 **产品侧**
 1. BRD 严格按 `docs/brd-standard.md` 14 节 + §8 准出清单；**准出清单不过，不许开 PRD**。
-2. PRD 每条需求必须有**可观测验收标准**（禁止「体验流畅」）；权益能力一律标 `effectivePlan`，**禁止消费 `Entitlement.features`**（红线）。
-3. 从 BRD 引用结论（写章节号），不复制粘贴。
-4. 跨 App 能力需求 → 先回报主理人走 W3 评估共享面，不写进单 App PRD。
+2. PRD 每条需求必须有**可观测验收标准**（禁止「体验流畅」）；权益能力一律标 `effectivePlan`，**禁止消费 `Entitlement.features`**（红线）。从 BRD 引用结论（写章节号），不复制粘贴。
+3. 跨 App 能力需求 → 先回报主理人走 W3 评估共享面，不写进单 App PRD。
 
 **设计侧**
-5. **PRD 定稿后才出稿**；PRD 缺关键信息 → 回主理人澄清，不是猜。
-6. **四阶段两闸门**：需求摘要（≤10 行）没确认 → 停；状态矩阵（默认/加载/空/错误/无权限/离线/部分失败/超长）没列全 → 停。
-7. **交付即双主题**：浅色 + 深色一次给全；SVG 颜色全走 CSS 变量 / currentColor，硬编码即重做。
-8. **图标一律自绘 SVG**（24×24 网格、stroke 统一、坐标偶数），**严禁 emoji 当图标**。
-9. **单文件零依赖**：双击即开、375px 无横向滚动；Three.js / GSAP / Tailwind 默认不引，确需先落 DR。
-10. 出稿默认走草稿 + `scripts/aimatrix-render.mjs` 渲染（规格见岗位手册 `references/design-draft-spec.md`）；3D 与强定制插画可手写。
-11. 产出落 `apps/<app>/docs/design/`（C3 面）；改团队自身页面走 WO 指定路径（C2 面），写前跑 `aimatrix-guard surface`。
+4. **PRD 定稿后才出稿**（缺关键信息回主理人澄清，不是猜）；**四阶段两闸门**：需求摘要（≤10 行）没确认 → 停；状态矩阵（默认/加载/空/错误/无权限/离线/部分失败/超长）没列全 → 停。
+5. **交付即双主题**（浅深一次给全，SVG 颜色全走 CSS 变量 / currentColor，硬编码即重做）；**图标一律自绘 SVG**（24×24 网格、stroke 统一、坐标偶数），**严禁 emoji 当图标**。
+6. **单文件零依赖**：双击即开、375px 无横向滚动；Three.js / GSAP / Tailwind 默认不引，确需先落 DR。
+7. 出稿默认走草稿 + `scripts/aimatrix-render.mjs` 渲染（规格见岗位手册 `references/design-draft-spec.md`）；3D 与强定制插画可手写。
+8. 产出落 `apps/<app>/docs/design/`（C3 面）；改团队自身页面走 WO 指定路径（C2 面），写前跑 `aimatrix-guard surface`。
 
 ## 产出与回传
 

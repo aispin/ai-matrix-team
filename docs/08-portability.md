@@ -71,7 +71,7 @@
 
 ### 接入一个新运行环境（照抄清单 · 改动面 = 1 个新增文件 + 1 行登记）
 
-已落地样板：`harness/codex.mjs`、`harness/claude-code.mjs`（`WO-20261008-01`，规格：`docs/specs/SPEC-20261008-01-multi-harness-adapter.md`）。
+已落地样板：`harness/codex.mjs`、`harness/claude-code.mjs`（规格：`docs/specs/SPEC-20261008-01-multi-harness-adapter.md`）。
 
 1. **起名字**：按上面的命名规则定一个 `<id>`（如 `codex`），与文件名、登记表字段值三者同名。
 2. **加一个文件**：在 `dashboard/server/harness/` 下新增 `<id>.mjs`，照抄下面这段（只改 `id` 与展示名 `label`；`label` 非空且不得与「WorkBuddy」「通用（仅登记表）」重名）：

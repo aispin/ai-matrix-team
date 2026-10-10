@@ -533,7 +533,7 @@ body {
 }
 
 /* 第④条：产物页底部悬浮毛玻璃胶囊 dock（按毛毛设计稿落地，色板对齐现有 accent 令牌） */
-/* 2026-10-07 创始人裁定：改 fixed 恒贴视口底——sticky 挂在内容流末尾，内容高度变化（加载/筛选）会在流位置与贴底位之间跳动 */
+/* 恒贴视口底：sticky 挂在内容流末尾，内容高度变化（加载/筛选）会在流位置与贴底位之间跳动 */
 .artifacts-dock-zone {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 15;
   display: flex; justify-content: center; pointer-events: none;

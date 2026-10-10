@@ -101,7 +101,7 @@ stateDiagram-v2
 
 ## 4. 串行锁（Shared Lock · 按面域分片）
 
-落实 `shared-contracts.md` §2-3「串行优先」；**2026-10-06 起按面域分片**（`DR-20261006-012` 裁定 A）：面域**不相交**的多个 WO 可同时持锁，**同面域仍互斥**。
+落实 `shared-contracts.md` §2-3「串行优先」；**按面域分片**：面域**不相交**的多个 WO 可同时持锁，**同面域仍互斥**。
 
 - **状态文件**：`<project>/.ai-matrix-team/runtime/state/lock.json`（schema 2，**多持有者**）
   ```json
@@ -111,14 +111,14 @@ stateDiagram-v2
       {
         "wo": "WO-YYYYMMDD-NN-<slug>",
         "surfaces": ["packages/shared-types", "services/payment"],
-        "acquiredAt": "2026-10-05T14:20:00+08:00",
+        "acquiredAt": "YYYY-MM-DDTHH:mm:ss+08:00",
         "ttlMinutes": 240,
         "renewable": true
       }
     ],
     "holder": "WO-YYYYMMDD-NN-<slug>",
     "surfaces": ["packages/shared-types", "services/payment"],
-    "acquiredAt": "2026-10-05T14:20:00+08:00",
+    "acquiredAt": "YYYY-MM-DDTHH:mm:ss+08:00",
     "ttlMinutes": 240,
     "renewable": true
   }

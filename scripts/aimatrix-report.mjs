@@ -240,7 +240,7 @@ function compose(d) {
 
 // ---------- SVG 图形版（样张：黄昏小院信息图风格） ----------
 const varWrap = (name, fb) => `var(--rp-${name}, ${fb})`;
-// 2026-10-07：全部走 --rp-* CSS 变量（styles.css 三段主题），inline 嵌入 dashboard 时随主题自动暗黑；fallback 为浅色值（独立文件查看）
+// 全部走 --rp-* CSS 变量（styles.css 三段主题），inline 嵌入 dashboard 时随主题自动暗黑；fallback 为浅色值（独立文件查看）
 const C = {
   bgTop: varWrap('bg-top', '#FDF8F3'), bgBottom: varWrap('bg-bottom', '#F3E3D2'), ink: varWrap('ink', '#1C1917'), muted: varWrap('muted', '#78716C'),
   line: varWrap('line', '#E7D5C0'), card: varWrap('card', '#FFFFFF'), cardStroke: varWrap('card-stroke', '#F0DCC6'),

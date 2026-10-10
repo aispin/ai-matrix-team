@@ -23,6 +23,7 @@
 | 实例呼号登记（多实例并行） | `guard instances` |
 | 无单写入审计（charter §4A） | `guard audit` |
 | 一键体检（角色/技能/软链） | `guard agents` |
+| **团队仓自检**：技能 frontmatter / 三层阈值 / references 链接 / 修订痕迹 | `aimatrix-repo-check.mjs`（改完仓库跑一次，退出码 1 = 有违规） |
 
 路径简称：`guard` = `node <team-repo>/scripts/aimatrix-guard.mjs`，其余同理。
 **读法**：遇不确定先跑命令看退出码，再决定要不要读治理文档正文（charter §4A.5 按需读）。
