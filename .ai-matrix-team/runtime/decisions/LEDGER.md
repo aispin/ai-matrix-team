@@ -7,3 +7,4 @@
 | DR-20261008-002 | Bruce·资深研发工程师（经 PC 复核确认） | WO-20261008-01-multi-harness-adapter（发现现场） / 团队仓 scripts/aimatrix-guard.mjs | 门禁 findWoFile 误选 journal 缺陷，何时修 | Type 2（可逆——1 行修复） | NON-BLOCKING | ANSWERED | 2026-10-08 | 2026-10-10（NON-BLOCKING 默认 +48h） |
 | DR-20261008-003 | 石头·资深质检工程师（L1 验收发现）· 经 PC 复核裁定 | 团队仓 dashboard/（与 WO-20261008-01 **无因果关系**，本单未触碰） | dashboard 构建门禁不可复现，是否立维护单 | Type 2（可逆——依赖与 lockfile 可重建） | NON-BLOCKING | ANSWERED | 2026-10-08 | 2026-10-10（NON-BLOCKING 默认 +48h） |
 | DR-20261010-001 | PC·team-lead | WO-BOOTSTRAP | 设计稿渲染是否引入 HeroUI+Tailwind 同栈（B2/B3 取舍） | Type 2（可逆） | NON-BLOCKING | ANSWERED | 2026-10-10 | 2026-10-12（NON-BLOCKING +48h 按默认执行） |
+| DR-20261010-002 | PC·team-lead | WO-BOOTSTRAP | 脱离既有设计系统的「全新视觉」出稿支持（模式 A/B/C 与铁律适用边界） | Type 1（品牌 / 视觉口径） | BLOCKING | OPEN | 2026-10-10 | 2026-10-17（BLOCKING 不因超时自动通过） |
