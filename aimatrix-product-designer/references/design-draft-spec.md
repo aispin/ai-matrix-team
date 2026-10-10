@@ -22,6 +22,7 @@ node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --stats   # 只�
 | `title` | | `<title>` |
 | `lang` | | 默认 `zh-CN` |
 | `nav` | | 导航项 `[{icon,label}]`，与 `pages` 顺序一一对应 |
+| `layout` | | 默认应用版式（左侧栏）；`"marketing"` = 落地页版式（隐藏侧栏与收起钮、内容居中 1080px） |
 | `youLabel` / `agentLabel` | | 对话气泡署名，默认「你 / Agent」 |
 | `stateCopy` | | 全局状态文案覆盖，如 `{"empty":"还没有订单"}` |
 
@@ -42,6 +43,10 @@ node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --stats   # 只�
 | `tabs` | `tabs:[{label,text,items:[{text,icon,tag,tone}],kv:[{k,v}]}]`（页内切换，JS 内建） |
 | `raw` | `html:"…"`（逃生舱，见 §表达不了怎么办；每页 ≤1 处） |
 | `kv` | `items:[{k,v}]` |
+| `hero` | `eyebrow`、`title`、`accent`（品牌色后半句）、`sub`、`ctas:[{label,kind}]`、`meta:[…]`——落地页首屏 |
+| `features` | `title`、`sub`、`cols`、`items:[{icon,title,text}]`——特性墙 |
+| `compare` | `title`、`before:{title,items:[]}`、`after:{…}`——两栏对比（after 品牌色底） |
+| `cta` | `title`、`sub`、`primary`、`secondary`——行动号召条 |
 | `notice` | `text`、`tone` ∈ ok/warn/err、`icon` |
 
 通用可选字段：`title`、`hint`、`ui`（`data-ui="<框架>:<组件名>"` 标注，供开发取用真组件）、`stateCopy`、`emptyAction`、`partialCount`。
@@ -83,4 +88,5 @@ node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --stats   # 只�
 
 ## 样例
 
-`aimatrix-product-designer/drafts/02-dashboard.draft.json`
+- `aimatrix-product-designer/drafts/02-dashboard.draft.json`（应用版式：统计/表格/表单/tabs/列表/键值）
+- `aimatrix-product-designer/drafts/01-landing.draft.json`（营销版式：hero/features/compare/cta）

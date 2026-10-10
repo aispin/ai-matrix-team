@@ -28,9 +28,10 @@ jobs:
       - name: 团队仓自检（技能 frontmatter / 三层阈值 / 链接 / 修订痕迹）
         run: node scripts/aimatrix-repo-check.mjs
 
-      - name: 设计稿渲染器冒烟（草稿 → HTML）
+      - name: 设计稿渲染器冒烟（两份样例草稿 → HTML）
         run: |
-          node scripts/aimatrix-render.mjs \
-            --in aimatrix-product-designer/drafts/02-dashboard.draft.json \
-            --out /tmp/ci-render.html
-          test -s /tmp/ci-render.html
+          for d in aimatrix-product-designer/drafts/*.draft.json; do
+            out="/tmp/ci-$(basename "$d" .json).html"
+            node scripts/aimatrix-render.mjs --in "$d" --out "$out"
+            test -s "$out"
+          done

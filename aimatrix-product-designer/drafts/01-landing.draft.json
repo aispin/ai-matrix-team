@@ -1,0 +1,73 @@
+{
+  "app": "Nimbus",
+  "layout": "marketing",
+  "lang": "zh-CN",
+  "title": "Nimbus — 设计稿",
+  "nav": [{ "icon": "grid", "label": "首页" }],
+  "pages": [
+    {
+      "id": "landing",
+      "title": "Nimbus",
+      "sections": [
+        {
+          "type": "hero",
+          "ui": "heroui:Card",
+          "eyebrow": "现已开放公测",
+          "title": "把散落的交付流程，",
+          "accent": "收进一条轨道",
+          "sub": "从需求到上线，每一步都有门禁、有留痕。团队不必再靠记忆对齐进度，谁在做什么一眼可见。",
+          "ctas": [
+            { "label": "免费开始", "kind": "primary" },
+            { "label": "看 3 分钟演示", "kind": "ghost" }
+          ],
+          "meta": ["5 分钟接入", "无需信用卡", "数据留在你自己的库里"]
+        },
+        {
+          "type": "features",
+          "title": "三件事，把它变成可依赖的流程",
+          "sub": "不是又一个看板，而是把纪律写进系统。",
+          "cols": 3,
+          "items": [
+            { "icon": "check", "title": "门禁前置", "text": "每个阶段跑可判定的检查，退出码说了算，不靠人盯。" },
+            { "icon": "file", "title": "交接留痕", "text": "每单产出交接单：结论、改动、证据指针、回滚方式。" },
+            { "icon": "users", "title": "责任到人", "text": "一单一人负责，跨面改动必须有人核准，公共区域不许悄悄动。" }
+          ]
+        },
+        {
+          "type": "compare",
+          "title": "和「多开几个对话窗口」的区别",
+          "ui": "heroui:Card",
+          "before": {
+            "title": "散装做法",
+            "items": [
+              "上下文混在一起，越聊越乱",
+              "公共代码谁都能改，出问题靠回忆",
+              "做没做完，全凭自己说"
+            ]
+          },
+          "after": {
+            "title": "Nimbus 做法",
+            "items": [
+              "专人管专事，上下文彼此隔离",
+              "公共区域有守门人，改动先核准",
+              "每个阶段过机器门禁，退出码可判"
+            ]
+          }
+        },
+        {
+          "type": "cta",
+          "title": "今天就把流程收进一条轨道",
+          "sub": "接入只要 5 分钟，不改变你现有的仓库结构。",
+          "primary": "免费开始",
+          "secondary": "读文档"
+        },
+        {
+          "type": "notice",
+          "tone": "ok",
+          "icon": "check",
+          "text": "已有 1,200+ 个小团队在用 Nimbus 管理交付。"
+        }
+      ]
+    }
+  ]
+}

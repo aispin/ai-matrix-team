@@ -169,6 +169,38 @@ tbody tr:last-child td{border-bottom:0}
 .skel.row{height:38px;margin-bottom:8px}
 @keyframes sk{0%{background-position:100% 50%}100%{background-position:0 50%}}
 .state-note{font-size:12.5px;color:var(--n-400);padding:2px}
+/* ---- 营销版式（landing 场景 · layout:"marketing"） ---- */
+[data-layout="marketing"] .side{display:none}
+[data-layout="marketing"] .side-toggle,[data-layout="marketing"] .side-restore{display:none !important}
+[data-layout="marketing"] .content{max-width:1080px;margin:0 auto;padding:0 20px 56px}
+.hero{text-align:center;padding:72px 0 48px}
+.hero .eyebrow{display:inline-block;border:1px solid var(--n-200);background:var(--n-0);color:var(--n-600);border-radius:999px;padding:4px 12px;font-size:12.5px;margin-bottom:18px}
+.hero h1{margin:0 0 14px;font-size:40px;line-height:1.22;letter-spacing:-.02em;font-weight:680}
+.hero h1 .accent{color:var(--brand)}
+.hero .sub{margin:0 auto;max-width:620px;color:var(--n-600);font-size:15px;line-height:1.7}
+.hero .ctas{display:flex;gap:10px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+.hero .meta{display:flex;gap:18px;justify-content:center;margin-top:22px;color:var(--n-500);font-size:12.5px;flex-wrap:wrap}
+.btn.lg{padding:11px 20px;font-size:13.5px}
+.feature-grid{display:grid;gap:16px}
+.feature{border:1px solid var(--n-200);border-radius:14px;background:var(--n-0);padding:18px}
+.feature .fic{width:34px;height:34px;border-radius:10px;background:var(--brand-bg);color:var(--brand);display:grid;place-items:center;margin-bottom:12px}
+.feature h3{margin:0 0 6px;font-size:14px}
+.feature p{margin:0;color:var(--n-600);font-size:13px;line-height:1.65}
+.sec-head{text-align:center;margin:40px 0 20px}
+.sec-head h2{margin:0 0 8px;font-size:24px;letter-spacing:-.01em}
+.sec-head p{margin:0;color:var(--n-500);font-size:13.5px}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.compare{border:1px solid var(--n-200);border-radius:14px;padding:18px;background:var(--n-0)}
+.compare.after{border-color:var(--brand);background:var(--brand-bg)}
+.compare h3{margin:0 0 10px;font-size:14px}
+.compare.before h3{color:var(--n-500)}
+.compare ul{list-style:none;margin:0;padding:0}
+.compare li{display:flex;gap:9px;align-items:flex-start;padding:7px 0;font-size:13px;color:var(--n-700)}
+.compare li svg{flex:0 0 16px;margin-top:2px;color:var(--n-400)}
+.compare.after li svg{color:var(--brand)}
+.cta-band{text-align:center;border:1px solid var(--n-200);border-radius:16px;background:var(--n-0);padding:34px 20px;margin-top:44px}
+.cta-band h2{margin:0 0 8px;font-size:22px}
+.cta-band p{margin:0 0 18px;color:var(--n-500);font-size:13.5px}
 .content[data-state="default"] .only-state{display:none}
 .content:not([data-state="default"]) .only-default{display:none}
 [data-state="loading"] .s-loading,[data-state="empty"] .s-empty,[data-state="error"] .s-error,[data-state="forbidden"] .s-forbidden,[data-state="offline"] .s-offline,[data-state="partial"] .s-partial,[data-state="overflow"] .s-overflow{display:block}
@@ -248,6 +280,36 @@ function sectionBody(s, state, draft) {
 
 function sectionHtml(s, draft) {
   if (s.type === 'raw' && !s.title) return (() => { rawCount.n++; return s.html || ''; })();
+  // 营销区块：整块版式，不套 panel 外壳
+  if (s.type === 'hero') {
+    return `<section class="hero"${uiAttr(s)}>` +
+      (s.eyebrow ? `<span class="eyebrow">${esc(s.eyebrow)}</span>` : '') +
+      `<h1>${esc(s.title)}${s.accent ? ` <span class="accent">${esc(s.accent)}</span>` : ''}</h1>` +
+      (s.sub ? `<p class="sub">${esc(s.sub)}</p>` : '') +
+      (s.ctas?.length ? `<div class="ctas">${s.ctas.map((c) => `<button class="btn ${c.kind === 'ghost' ? 'ghost' : ''} lg">${esc(c.label)}</button>`).join('')}</div>` : '') +
+      (s.meta?.length ? `<div class="meta">${s.meta.map((m) => `<span>${esc(m)}</span>`).join('')}</div>` : '') +
+      `</section>`;
+  }
+  if (s.type === 'features') {
+    const cols = Math.min(s.cols || 3, 4);
+    return `<section${uiAttr(s)}>` +
+      (s.title ? `<div class="sec-head"><h2>${esc(s.title)}</h2>${s.sub ? `<p>${esc(s.sub)}</p>` : ''}</div>` : '') +
+      `<div class="feature-grid cols-${cols}">${(s.items || []).map((i) => `<div class="feature"><div class="fic">${svg(i.icon || 'check', 18)}</div><h3>${esc(i.title)}</h3><p>${esc(i.text || '')}</p></div>`).join('')}</div>` +
+      `</section>`;
+  }
+  if (s.type === 'compare') {
+    const col = (side, cls) => `<div class="compare ${cls}"><h3>${esc(side?.title || '')}</h3><ul>${(side?.items || []).map((it) => `<li>${svg(cls === 'after' ? 'check' : 'alert', 16)}<span>${esc(it)}</span></li>`).join('')}</ul></div>`;
+    return `<section${uiAttr(s)}>` +
+      (s.title ? `<div class="sec-head"><h2>${esc(s.title)}</h2></div>` : '') +
+      `<div class="compare-grid">${col(s.before, 'before')}${col(s.after, 'after')}</div>` +
+      `</section>`;
+  }
+  if (s.type === 'cta') {
+    return `<section class="cta-band"${uiAttr(s)}><h2>${esc(s.title)}</h2>${s.sub ? `<p>${esc(s.sub)}</p>` : ''}<div class="ctas" style="justify-content:center;display:flex;gap:10px;flex-wrap:wrap">` +
+      (s.primary ? `<button class="btn lg">${esc(s.primary)}</button>` : '') +
+      (s.secondary ? `<button class="btn ghost lg">${esc(s.secondary)}</button>` : '') +
+      `</div></section>`;
+  }
   if (s.type === 'notice') {
     return `<div class="panel"><div class="panel-body"><div class="notice ${s.tone || ''}">${svg(s.icon || 'alert', 16)}<span>${esc(s.text)}</span></div></div></div>`;
   }
@@ -317,7 +379,7 @@ function navHtml(draft) {
 function render() {
   const pages = draft.pages.map((p, i) => pageHtml(p, i, draft));
   return `<!DOCTYPE html>
-<html lang="${esc(draft.lang || 'zh-CN')}">
+<html lang="${esc(draft.lang || 'zh-CN')}"${draft.layout === 'marketing' ? ' data-layout="marketing"' : ''}>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -336,7 +398,7 @@ function render() {
   <div class="main">
     <header class="topbar">
       <h1 id="page-title">${esc(pages[0].title)}</h1>
-      <button class="icon-btn" id="side-toggle">${svg('side', 16)} 收起侧栏</button>
+      <button class="icon-btn side-toggle" id="side-toggle">${svg('side', 16)} 收起侧栏</button>
       <button class="icon-btn" id="theme-toggle">${svg('moon', 16)} 深色</button>
     </header>
     <main class="content" data-state="default">
