@@ -22,6 +22,7 @@ PRD（功能地图 + 可观测 AC，缺关键信息**打回产品阶段**，不�
 1. **需求解构**：用户 / 任务 / 数据 / 约束 / 成功定义，缺失就问 → 输出 ≤10 行《需求摘要》→ **闸门 1：等创始人或 PC 确认，不许往下**。
 2. **信息架构**：页面清单 + 主流程 + **状态矩阵**（每页：默认/加载/空/错误/无权限/离线/部分失败/超长）→ **闸门 2：矩阵列全才动稿**。
 3. **可交互视觉稿**：**单份交付**——单文件 HTML，高保真 + 浅深双主题（三件套：跟随系统+手动切换+记忆偏好）+ 可点击走通主流程与状态切换。严格按 [`design-system.md`](design-system.md) 执行——色彩（主色 <10%）、8pt 栅格、圆角/阴影令牌、图标自绘 SVG（24×24 网格、stroke 1.5/2 统一、currentColor、坐标全偶数）。不再出灰阶低保真稿——保真与走查一步到位。
+   **默认出稿路径（省 token）**：写草稿 JSON（[`design-draft-spec.md`](design-draft-spec.md)）→ 跑 `node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --out <page.html>`。HTML/CSS/SVG/主题机制/八态样板由脚本生成，令牌与 examples 同源；模型侧输出约为手写稿的 1/8。**例外**：3D 场景（如 `06-3d-personal-ip`）、强定制插画与一次性视觉实验仍可照 examples 手写——此时同样以脚本产物为基线比样。
 4. **比样自检**：交付前对照 [`../examples/`](../examples/) 同场景样例并排比一次，明显逊色 → 重做；自检清单逐条打勾。
 
 **产出落盘**：`apps/<app>/docs/design/<场景>-design.html`（**一份**；C3 面；团队自身页面按 WO 指定路径走 C2）。单文件零依赖、双击即开、375px 无横向滚动。
@@ -51,5 +52,5 @@ PRD 与 AC 是上游，AC 与稿冲突以 PRD 为准并上报 · 质检可对「
 
 1. **组件与交互设计必须基于成熟的行业 UI 框架**（设计师与开发共用一套设计语言）：默认 **HeroUI**（React 栈），可选 Ant Design；阶段一（需求摘要确认）定框架选型，写入 PRD 前置。
 2. **Agent Chat 场景**参考：https://x.ant.design/（Ant Design X：Bubble / Sender / Conversations / ThoughtChain / Attachments）与 assistant-ui（@assistant-ui/react，ExternalStore 运行时可接任意自有后端）。
-3. **模板骨架 = [`../examples/`](../examples/) 目录**（六套示例即模板真相源）。出稿从对应场景起步，不从零画框；dashboard（02）/ desktop-app（03）**侧栏两段式收起是既定交互**（第一段收起只留图标：触发钮图标旋转+变蓝微变；第二段完全隐藏：左上浮现复原钮），两页已内置同款实现，出稿直接沿用。**配色一律沿用 examples 默认配色**（蓝品牌：浅色 #3B5BFD / 深色 #6B85FF + 中性灰阶令牌），只搬参考站结构、不搬参考站配色。
+3. **模板骨架 = [`../examples/`](../examples/) 目录**（六套示例即模板真相源，也是渲染器的令牌与交互来源）。默认路径：草稿 JSON + `aimatrix-render.mjs` 出稿（组件词汇与状态样板见 [`design-draft-spec.md`](design-draft-spec.md)）；手写路径从对应场景起步，不从零画框；dashboard（02）/ desktop-app（03）**侧栏两段式收起是既定交互**（第一段收起只留图标：触发钮图标旋转+变蓝微变；第二段完全隐藏：左上浮现复原钮），两页已内置同款实现，出稿直接沿用。**配色一律沿用 examples 默认配色**（蓝品牌：浅色 #3B5BFD / 深色 #6B85FF + 中性灰阶令牌），只搬参考站结构、不搬参考站配色。
 4. 稿内每个 UI 区域挂 `data-ui="<框架>:<组件名>"` 标注，供开发按名取用真组件（对账规则见 aimatrix-developer「UI 框架铁律」）。

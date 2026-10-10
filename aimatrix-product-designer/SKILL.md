@@ -1,7 +1,7 @@
 ---
 name: aimatrix-product-designer
 description: "产品与设计一条链：BRD 按 Working Backwards 14 节论证值不值得做，过准出清单后连写 PRD（功能地图 + 每条可观测验收标准），再把 PRD 变成可走查的可交互视觉稿（单文件 HTML 双主题）。不做技术选型、不写业务代码。"
-version: 2.0.1
+version: 2.1.0
 ---
 
 # aimatrix-product-designer · 产品设计一条链（BRD → PRD → 可交互视觉稿）
@@ -35,7 +35,7 @@ W1 立项流程 P3 阶段（BRD+PRD）与 P3.5 阶段（视觉稿，与开发的
 
 1. **需求解构**：用户 / 任务 / 数据 / 约束 / 成功定义 → 输出 ≤10 行《需求摘要》→ **闸门 1：等创始人或 PC 确认，不许往下**。
 2. **信息架构**：页面清单 + 主流程 + **状态矩阵**（每页：默认/加载/空/错误/无权限/离线/部分失败/超长）→ **闸门 2：矩阵列全才动稿**。
-3. **出稿**：**单份交付**——单文件 HTML，高保真 + 浅深双主题（跟随系统+手动切换+记忆偏好）+ 可点击走通主流程与状态切换。规则真相源 = [`references/design-system.md`](references/design-system.md)；模板骨架 = [`examples/`](examples/)（六场景：landing / dashboard / desktop-app / settings / state-gallery / 3d-personal-ip），从对应场景起步不从零画框。
+3. **出稿**：**单份交付**——单文件 HTML，高保真 + 浅深双主题（跟随系统+手动切换+记忆偏好）+ 可点击走通主流程与状态切换。**默认路径 = 草稿 JSON + 渲染**（`node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --out <page.html>`；草稿规格见 [`references/design-draft-spec.md`](references/design-draft-spec.md)）——HTML/CSS/SVG/八态样板由脚本生成，模型侧输出约省 8 倍。规则真相源 = [`references/design-system.md`](references/design-system.md)；令牌与模板骨架 = [`examples/`](examples/)（六场景）。**3D 场景与强定制插画**可照 examples 手写。
 4. **比样自检**：对照 examples 同场景样例并排比一次，明显逊色 → 重做；自检清单逐条打勾。
 
 **产出落盘**：`apps/<app>/docs/design/<场景>-design.html`（**一份**；C3 面；团队自身页面按 WO 指定路径走 C2）。单文件零依赖、双击即开、375px 无横向滚动。

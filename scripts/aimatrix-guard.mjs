@@ -545,6 +545,26 @@ function cmdStats() {
     ['instances 登记', String(readInstances().length) + ' 条'],
     ['锁在持', liveLocks().length + ' 单'],
     ['今日日志', kb(size(path.join(PROJECT(), '.workbuddy/memory', today + '.md')))],
+    ['设计稿产物', (() => {
+      // 产物面：草稿 JSON（模型写）vs 渲染 HTML（工具写）——出稿默认走 aimatrix-render
+      const dirs = [];
+      const walk = (d, depth) => {
+        if (depth > 5) return;
+        let es = [];
+        try { es = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
+        for (const e of es) {
+          if (e.isDirectory() && !/^(node_modules|\.git|dist)$/.test(e.name)) walk(path.join(d, e.name), depth + 1);
+          else if (e.isFile() && /\.(draft\.json|-design\.html)$/.test(e.name)) dirs.push(path.join(d, e.name));
+        }
+      };
+      walk(PROJECT(), 0);
+      const drafts = dirs.filter((f) => f.endsWith('.draft.json'));
+      const htmls = dirs.filter((f) => f.endsWith('-design.html'));
+      if (!drafts.length && !htmls.length) return '无（出稿见 aimatrix-render.mjs）';
+      const db = drafts.reduce((a, f) => a + size(f), 0);
+      const hb = htmls.reduce((a, f) => a + size(f), 0);
+      return `草稿 ${kb(db)} / 产物 ${kb(hb)}（${drafts.length} : ${htmls.length}）`;
+    })()],
   ];
   console.log(T('== token 注入面基线（v1.5 stats · 度量先行） =='));
   for (const [k, v] of rows) console.log('  ' + k.padEnd(18) + v);

@@ -1,0 +1,107 @@
+{
+  "app": "Pulse",
+  "lang": "zh-CN",
+  "title": "Pulse — 设计稿",
+  "nav": [
+    { "icon": "grid", "label": "概览" },
+    { "icon": "chart", "label": "性能" },
+    { "icon": "settings", "label": "设置" }
+  ],
+  "pages": [
+    {
+      "id": "overview",
+      "title": "数据概览",
+      "sections": [
+        {
+          "type": "stats",
+          "title": "核心指标",
+          "hint": "过去 24 小时",
+          "ui": "heroui:Card",
+          "items": [
+            { "label": "日活 DAU", "value": "12.4k", "delta": "+8.2% 环比", "tone": "ok" },
+            { "label": "请求量", "value": "3.82M", "delta": "+3.1% 环比", "tone": "ok" },
+            { "label": "错误率", "value": "0.42%", "delta": "+0.11pp", "tone": "err" },
+            { "label": "P95 延迟", "value": "418ms", "delta": "-24ms", "tone": "ok" }
+          ],
+          "stateCopy": { "empty": "接入数据源后这里会显示核心指标" }
+        },
+        {
+          "type": "table",
+          "title": "最近事件",
+          "hint": "过去 2 小时 · 12 条",
+          "ui": "heroui:Table",
+          "columns": ["时间", "接口", "状态", "延迟", "区域"],
+          "rows": [
+            ["14:32:08", { "mono": "/api/v2/search" }, { "tag": "超时", "tone": "err" }, "5,001ms", "ap-southeast-1"],
+            ["14:31:42", { "mono": "/api/v1/users/8412" }, { "tag": "200", "tone": "ok" }, "142ms", "us-east-1"],
+            ["14:30:15", { "mono": "/api/v2/reports/export" }, { "tag": "重试", "tone": "warn" }, "2,318ms", "eu-west-1"],
+            ["14:28:51", { "mono": "/api/v2/analytics" }, { "tag": "200", "tone": "ok" }, "387ms", "ap-southeast-1"],
+            ["14:27:03", { "mono": "/api/v1/webhooks" }, { "tag": "503", "tone": "err" }, "1,024ms", "us-west-2"]
+          ],
+          "emptyAction": "接入数据源"
+        },
+        {
+          "type": "form",
+          "title": "筛选",
+          "ui": "heroui:Form",
+          "submit": "查询",
+          "fields": [
+            { "label": "时间范围", "kind": "date" },
+            { "label": "状态", "kind": "select", "options": ["全部", "成功", "超时", "重试"] },
+            { "label": "接口路径", "kind": "text", "placeholder": "/api/v2/" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "perf",
+      "title": "性能",
+      "sections": [
+        {
+          "type": "cards",
+          "title": "慢接口 Top 5",
+          "cols": 3,
+          "items": [
+            { "title": "/api/v2/search", "text": "P95 1,240ms · 命中缓存率 18%" },
+            { "title": "/api/v2/reports/export", "text": "P95 968ms · 导出并发 12" },
+            { "title": "/api/v1/users/:id", "text": "P95 645ms · 慢查询占比 31%" },
+            { "title": "/api/v2/analytics", "text": "P95 459ms · 冷启动明显" },
+            { "title": "/api/v1/webhooks", "text": "P95 298ms · 重试风暴 3 次" }
+          ]
+        },
+        { "type": "notice", "tone": "warn", "icon": "alert", "text": "3 个接口超过 SLO 预算，建议本周内排期优化。" }
+      ]
+    },
+    {
+      "id": "settings",
+      "title": "设置",
+      "sections": [
+        {
+          "type": "form",
+          "title": "告警规则",
+          "ui": "heroui:Form",
+          "submit": "保存",
+          "fields": [
+            { "label": "错误率阈值", "kind": "text", "placeholder": "0.5%" },
+            { "label": "通知方式", "kind": "select", "options": ["邮件", "企业微信", "Webhook"] },
+            { "label": "规则说明", "kind": "textarea", "rows": 3, "placeholder": "可写触发条件与例外" }
+          ]
+        },
+        {
+          "type": "list",
+          "title": "已启用规则",
+          "items": [
+            { "text": "错误率 > 0.5% 连续 5 分钟", "tag": "启用", "tone": "ok", "icon": "check" },
+            { "text": "P95 > 800ms 连续 10 分钟", "tag": "启用", "tone": "ok", "icon": "check" },
+            { "text": "导出任务积压 > 50", "tag": "暂停", "tone": "warn", "icon": "alert" }
+          ]
+        },
+        { "type": "kv", "title": "接入信息", "items": [
+          { "k": "数据源", "v": "ClickHouse · pulse_events" },
+          { "k": "同步频率", "v": "5 分钟" },
+          { "k": "保留期", "v": "90 天" }
+        ] }
+      ]
+    }
+  ]
+}
