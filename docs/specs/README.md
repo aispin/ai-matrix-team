@@ -30,6 +30,7 @@
 ```
 
 > 首次落地的完整样例见 [`SPEC-20261008-01-multi-harness-adapter.md`](SPEC-20261008-01-multi-harness-adapter.md)。
+> 上下文成本治理与操盘台可用性（含实测 AC 与令牌口径）见 [`SPEC-20261010-01-context-budget-and-console.md`](SPEC-20261010-01-context-budget-and-console.md)。
 
 ## 附：照抄清单 · 如何接一个新 Agent 运行环境（harness）
 
