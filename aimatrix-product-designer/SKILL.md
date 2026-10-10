@@ -25,8 +25,6 @@ version: 2.2.0
 3. **可交互视觉稿** → 四阶段两闸门（需求摘要 → 状态矩阵 → 出稿 → 比样自检）。**默认出稿路径 = 草稿 JSON + 渲染**：`node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --out <page.html>`——HTML/CSS/SVG/八态样板由脚本生成，模型侧输出约省 8 倍；**3D 场景与强定制插画**可照 [`examples/`](examples/) 手写。
 4. **产出落盘**：`apps/<app>/docs/design/<场景>-design.html`（**一份**；C3 面；团队自身页面按 WO 指定路径走 C2）。单文件零依赖、双击即开、375px 无横向滚动。
 
-**两个闸门必须停**：需求摘要未经创始人/主理人确认 → 不许往下；状态矩阵未列全 → 不动稿。
-
 ## 4. 门禁与准出
 
 BRD 未过准出清单 → 不得开 PRD · PRD 有 AC 缺失 → 质检可打回 · Type 1 未签字 → W1 停在 P2.5 · 状态矩阵不全 → 不动稿 · 无深色主题 → 不交付 · SVG 内硬编码颜色 → 不交付（必须走 CSS 变量/currentColor）· emoji 当图标 → 出现即重做 · 空态无行动出口 → 不交付 · 自检清单（`design-system.md` §8）逐条打勾。
@@ -45,9 +43,10 @@ BRD 未过准出清单 → 不得开 PRD · PRD 有 AC 缺失 → 质检可打�
 
 | 场景 | 读 |
 |---|---|
+| 导览（快速开始 / 场景索引 / FAQ） | [`references/guide.md`](references/guide.md) |
 | 写 BRD / PRD（14 节、AC、坑位表） | [`references/brd-prd.md`](references/brd-prd.md) |
 | 出视觉稿（默认路径与组件词汇） | [`references/design-draft-spec.md`](references/design-draft-spec.md) + [`drafts/02-dashboard.draft.json`](drafts/02-dashboard.draft.json) |
 | 设计实操四阶段两闸门 | [`references/design-draft.md`](references/design-draft.md) |
-| 设计系统 / 图标 / HTML 规范 / 自检清单 | [`references/design-system.md`](references/design-system.md) |
+| 设计系统 / 图标 / 自检清单 | [`references/design-system.md`](references/design-system.md) |
 | 场景风格基准 | [`examples/`](examples/)（只读对应场景那一份） |
 | 流程调度位置 | `docs/05-workflows.md` W1 P3/P3.5、W4 ②.5 |

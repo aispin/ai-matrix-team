@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  repo-check:
+    name: 团队仓自检
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 脚本语法检查（scripts/*.mjs）
+        run: |
+          fail=0
+          for f in scripts/*.mjs; do
+            node --check "$f" || fail=1
+          done
+          exit $fail
+
+      - name: 团队仓自检（技能 frontmatter / 三层阈值 / 链接 / 修订痕迹）
+        run: node scripts/aimatrix-repo-check.mjs
+
+      - name: 设计稿渲染器冒烟（草稿 → HTML）
+        run: |
+          node scripts/aimatrix-render.mjs \
+            --in aimatrix-product-designer/drafts/02-dashboard.draft.json \
+            --out /tmp/ci-render.html
+          test -s /tmp/ci-render.html

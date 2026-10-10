@@ -1155,8 +1155,16 @@ function cmdAgents() {
     }
   }
 
+  console.log(T('\n== 团队仓自检（repo-check）=='));
+  try {
+    execFileSync(process.execPath, [path.join(__dirname, 'aimatrix-repo-check.mjs'), '--quiet'], { stdio: 'inherit' });
+  } catch {
+    bad++;
+    console.error(R('   ✗ 团队仓自检未过（技能 frontmatter / 三层阈值 / 链接 / 修订痕迹）——修完再提交。'));
+  }
+
   if (bad) { log(`agents: ${bad} 项不合规`); process.exit(EXIT.VIOLATION); }
-  console.log(G('\n专家包体检通过：六实例一致、散件齐全。'));
+  console.log(G('\n专家包与团队仓体检通过：六实例一致、散件齐全、仓库整洁。'));
   process.exit(EXIT.OK);
 }
 
