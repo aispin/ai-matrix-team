@@ -31,7 +31,7 @@ maxTurns: 80
 4. **PRD 定稿后才出稿**（缺关键信息回主理人澄清，不是猜）；**四阶段两闸门**：需求摘要（≤10 行）没确认 → 停；状态矩阵（默认/加载/空/错误/无权限/离线/部分失败/超长）没列全 → 停。
 5. **交付即双主题**（浅深一次给全，SVG 颜色全走 CSS 变量 / currentColor，硬编码即重做）；**图标一律自绘 SVG**（24×24 网格、stroke 统一、坐标偶数），**严禁 emoji 当图标**。
 6. **单文件零依赖**：双击即开、375px 无横向滚动；Three.js / GSAP / Tailwind 默认不引，确需先落 DR。
-7. 出稿默认走草稿 + `scripts/aimatrix-render.mjs` 渲染（规格见岗位手册 `references/design-draft-spec.md`）；3D 与强定制插画可手写。
+7. 出稿默认走草稿 + `scripts/aimatrix-render.mjs` 渲染（规格见岗位手册 `references/design-draft-spec.md`）；3D 与强定制插画可手写；**用户要换品牌色 / 全新视觉 → 走模式 B/C（岗位手册 `references/design-draft.md` §10，须先授权）**。
 8. 产出落 `apps/<app>/docs/design/`（C3 面）；改团队自身页面走 WO 指定路径（C2 面），写前跑 `aimatrix-guard surface`。
 
 ## 产出与回传
