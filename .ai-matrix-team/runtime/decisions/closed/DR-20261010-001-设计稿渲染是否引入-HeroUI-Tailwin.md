@@ -60,12 +60,15 @@
 
 ## 8. 答复（创始人填写 / 由 Agent 回填原文）
 
-- 答复人：创始人 · 日期：
-- 结论：选 ______ ／ 按默认 ／ 其他：______
-- 原文：
+- 答复人：创始人
+- 结论：**维持 B1**（规格对齐；B2 不同栈运行时挂起，B3 不做）
+- 原文：「维持B1」
+- 补充认定：稿侧令牌为真相源（`aimatrix-product-designer/references/design-system.md`）；与 dashboard 的 9 项值差异**不做统一**（dashboard 是团队内部操盘台，非目标产品；其色差仅在「目标项目恰与 dashboard 同栈」时才有影响）。
+- 复开条件：若目标项目确认采用 HeroUI + Tailwind + React，重开一单评估 B2（落地方式为复用 `dashboard/` 现有构建，不新起 service）。
 
 ## 9. 回填记录（提出者关闭 DR 前必填）
 
-- [ ] 结论已写回：`references/portability-map.md` / `design-draft-spec.md` / 代码注释
-- [ ] LEDGER.md 已更新（`<team-repo>/scripts/ledger-sync.mjs`）
-- [ ] 文件移入 `decisions/closed/`
+- [x] 结论已写回：`aimatrix-product-designer/references/portability-map.md` §2 定案段 / 本文件 §4
+- [x] LEDGER.md 已更新（`<team-repo>/scripts/ledger-sync.mjs`）
+- [x] 不涉 App 的 OPEN-ITEMS（团队仓自身决策，无需 `render-open-items.mjs`）
+- [x] 文件已移入 `decisions/closed/`
