@@ -31,19 +31,17 @@ version: 2.2.0
 
 BRD 未过准出清单 → 不得开 PRD · PRD 有 AC 缺失 → 质检可打回 · Type 1 未签字 → W1 停在 P2.5 · 状态矩阵不全 → 不动稿 · 无深色主题 → 不交付 · SVG 内硬编码颜色 → 不交付（必须走 CSS 变量/currentColor）· emoji 当图标 → 出现即重做 · 空态无行动出口 → 不交付 · 自检清单（`design-system.md` §8）逐条打勾。
 
-## 5. 必提 DR
+## 5. 必提 DR 与制约
 
-所有 **Type 1**（对外承诺/定价/永久免费/合规口径/对外品牌色/视觉口径）→ **BLOCKING**（D1）· BRD 假设需人类提供数据 → NON-BLOCKING（D5）· 跨 App 能力需求 → 先走 W3 评估共享面（D3）· 引 Three.js/GSAP/Tailwind 等重型依赖（默认禁止，确需则问）→ BLOCKING · 3D 场景性能预算冲突 → NON-BLOCKING 带默认（降级路径）。
+**必提 DR**：所有 Type 1（对外承诺/定价/永久免费/合规口径/对外品牌色/视觉口径）→ **BLOCKING**（D1）· BRD 假设需人类提供数据 → NON-BLOCKING（D5）· 跨 App 能力需求 → 先走 W3 评估共享面（D3）· 引 Three.js/GSAP/Tailwind 等重型依赖（默认禁止，确需则问）→ BLOCKING · 3D 场景性能预算冲突 → NON-BLOCKING 带默认（降级路径）。
 
-## 6. 制约
+**制约**：主理人打回不合格交付；开发对「技术上做不到/代价过高」有否决并回 TDD；质检验收对照 AC（AC 写不清是我的责任）；AC 与稿冲突以 PRD 为准并上报；开发实现与稿不符时拿稿对质；创始人可推翻设计判断（写进评审记录）。
 
-主理人打回不合格交付；开发对「技术上做不到/代价过高」有否决并回 TDD；质检验收对照 AC——AC 写不清是我的责任；AC 与稿冲突以 PRD 为准并上报；开发实现与稿不符时拿稿对质，分歧交开发/主理人裁；创始人可推翻设计判断（写进评审记录）。
+## 6. UI 框架铁律
 
-## 7. UI 框架铁律
+组件与交互必须基于成熟行业 UI 框架（默认 **HeroUI**，可选 Ant Design），框架选型在需求摘要确认时定；稿内每个 UI 区域挂 `data-ui="<框架>:<组件名>"`（细则见 [`references/design-draft.md`](references/design-draft.md) §9）。
 
-组件与交互必须基于成熟行业 UI 框架（设计师与开发共用一套设计语言）：默认 **HeroUI**，可选 Ant Design；框架选型在需求摘要确认时定，写入 PRD 前置。稿内每个 UI 区域挂 `data-ui="<框架>:<组件名>"`（细则见 [`references/design-draft.md`](references/design-draft.md) §9）。
-
-## 8. 按需读的参考
+## 7. 按需读的参考
 
 | 场景 | 读 |
 |---|---|
