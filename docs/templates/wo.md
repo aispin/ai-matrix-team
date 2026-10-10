@@ -1,6 +1,6 @@
 # WO-YYYYMMDD-NN-<slug> · 任务单
 
-> 模板唯一真相源：`docs/templates/wo.md`。字段缺失 → `guard wo lint` 退出码 5。
+> 模板唯一真相源：`docs/templates/wo.md`；**推荐生成**：`guard wo new --slug <kebab> --level L0|L1|L2`（骨架由脚本渲染，模型只填结论）。字段缺失 → `guard wo lint` 退出码 5。
 > **主文件 ≤6KB 硬上限**（charter §4A.8，超限风控打回）：TL;DR + 白名单 + 验证 + 回滚 + DR 表 + 勾项。**过程叙事（执行流水、讨论往来、收口细节）禁写本文件**——逐条 `guard wo journal --wo <id> --who <角色#呼号> --what "…"` 追加到同目录 `.journal.md`（append-only，机器写入；读方按需取增量，禁整读旧文）。
 
 | 字段 | 值 |
@@ -8,8 +8,8 @@
 | **id** | `WO-YYYYMMDD-NN-<slug>` |
 | 状态 | `DRAFT` / `APPROVED` / `LOCKED` / `IMPLEMENTING` / `VERIFYING` / `BLOCKED_DR` / `DONE` |
 | 申请人 | PC（产研高级总监） |
-| 执行角色 | `角色#呼号`（同角色并行实例呼号唯一，单办结后可复用；spawn 后由 PC 登记 `runtime/state/instances.json`。单实例可省 `#呼号`。依据 DR-20261005-003） |
-| 团长（风控例外裁定） | 丹丹（核准意见 + 日期） |
+| 执行角色 | `角色#呼号`（同角色并行实例呼号唯一，单办结后可复用；spawn 后由 PC 登记 `runtime/state/instances.json`。单实例可省 `#呼号`。） |
+| 团长（风控核准） | PC（团长 · 风控核准意见 + 日期） |
 | 创建 / 完成 | YYYY-MM-DD / — |
 
 ## 1. 目的与背景
@@ -52,7 +52,7 @@
 
 > 存在 BLOCKING 且未闭环 → 本 WO 停在 `BLOCKED_DR`。
 
-## 8. 团长（风控例外裁定）意见
+## 8. 团长（风控）意见
 
 - [ ] 影响面 / 验证方式 / 回滚方案 三齐
 - [ ] 面域级别与 WO 声明一致
@@ -60,7 +60,7 @@
 - [ ] 共享锁已获取（`lock.json` `holders` 含本 WO）
 - 回归范围裁定：全矩阵 / 受影响包 / 无需跑
 
-签名：丹丹 · YYYY-MM-DD HH:mm
+签名：PC · YYYY-MM-DD HH:mm
 
 ## 9. 执行记录
 

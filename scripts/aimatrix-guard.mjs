@@ -602,7 +602,161 @@ function cmdInstances() {
   process.exit(EXIT.OK);
 }
 
+// ---------- 单据生成（模板渲染交给脚本，模型只写内容结论） ----------
+
+function readDirSafe(d) { try { return fs.readdirSync(d); } catch { return []; } }
+
+// 参数解析器对多值参数返回数组，统一归一化
+const one = (v) => (Array.isArray(v) ? v[0] : v) || '';
+const many = (v) => (Array.isArray(v) ? v : v ? [v] : []);
+
+function nextWoId(slug) {
+  const d = new Date();
+  const day = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+  const names = [...readDirSafe(path.join(WO_DIR(), 'open')), ...readDirSafe(path.join(WO_DIR(), 'closed'))];
+  let max = 0;
+  for (const f of names) {
+    const m = /^WO-(\d{8})-(\d{2,3})-/.exec(f);
+    if (m && m[1] === day) max = Math.max(max, Number(m[2]));
+  }
+  return `WO-${day}-${String(max + 1).padStart(2, '0')}-${slug}`;
+}
+
+function cmdWoNew(args) {
+  const slug = one(args.get('--slug')).trim();
+  if (!slug || !/^[a-z0-9-]+$/.test(slug)) die(EXIT.USAGE, '用法：wo new --slug <kebab-case> [--level L0|L1|L2] [--surface C1|C2|C3|F] [--paths "a/**,b/**"] [--purpose "…"]');
+  const level = one(args.get('--level') || 'L2').toUpperCase();
+  const surface = one(args.get('--surface') || 'C2').toUpperCase();
+  const paths = many(args.get('--paths')).length ? many(args.get('--paths')).join(',').split(',').map((s) => s.trim()).filter(Boolean) : ['（待填：glob，一行一个）'];
+  const purpose = one(args.get('--purpose')) || '（三行内：改什么 / 为什么现在改 / 依据）';
+  const id = nextWoId(slug);
+  const today = new Date().toISOString().slice(0, 10);
+  const body = `# ${id} · 任务单
+
+| 字段 | 值 |
+|---|---|
+| **id** | \`${id}\` |
+| 状态 | \`DRAFT\` |
+| 申请人 | PC（产研高级总监） |
+| 执行角色 | — |
+| 验收级别 | \`${level}\`（L0 直提 / L1 质检代验收 / L2 亲验收） |
+| 创建 / 完成 | ${today} / — |
+
+## 1. 目的与背景
+
+${purpose}
+
+## 2. 面域与路径白名单
+
+| 面域 | 路径（glob） |
+|---|---|
+| ${surface} | ${paths.map((p) => `\`${p}\``).join(' · ')} |
+
+> 白名单外一律不得改；扩大 → 回团长核准。
+
+## 3. 变更类型
+
+\`additive\` / \`非破坏\` / \`破坏性\` / \`新增契约\`（破坏性 → 事前 INTENT + 兼容证明各一行）
+
+## 4. 影响面
+
+- 受影响 App / 服务 / 在线产物：
+- 需重部署（运行时行为 / CORS / 密钥轮换）：
+
+## 5. 验证方式（可机器判定）
+
+\`\`\`bash
+# 3-5 条可复制直跑的命令 + 期望结果
+\`\`\`
+
+## 6. 回滚方案
+
+（可执行动作，不写「重新部署上一版」）
+
+## 7. 关联 DR
+
+| DR id | 一句话 | 阻塞级别 | 状态 |
+|---|---|---|---|
+| — | — | — | — |
+
+## 8. 团长（风控）意见
+
+- [ ] 影响面 / 验证方式 / 回滚方案 三齐
+- [ ] 面域级别与声明一致
+- [ ] 破坏性 → 事前 INTENT 已登记
+- [ ] 共享锁已获取
+
+签名：PC · —
+
+## 9. 执行记录
+
+- journal：\`${id}.journal.md\`（0 条）
+- spawn 次数：0
+
+## 10. 收口
+
+- [ ] QA 放行
+- [ ] \`shared-contracts.md\` §3 已登记（含 WO 号）
+- [ ] 交接单已落盘（≤15 行）
+- [ ] 共享锁已释放
+- [ ] 术语缩写自检（无裸用缩写）
+- [ ] 归档至 \`runtime/workorders/closed/\`
+`;
+  const dir = path.join(WO_DIR(), 'open');
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, `${id}.md`);
+  if (fs.existsSync(file)) die(EXIT.USAGE, `已存在：${file}`);
+  fs.writeFileSync(file, body);
+  console.log(`✓ 已生成 ${path.relative(PROJECT(), file)}（${Buffer.byteLength(body)} B）`);
+  console.log(G('  下一步：填 §1/§2/§5/§6 → guard wo lint <file> → 团长核准 → 派单'));
+  process.exit(EXIT.OK);
+}
+
+function cmdHandoffNew(args) {
+  const wo = one(args.get('--wo')).trim();
+  if (!/^WO-\d{8}-\d{2,3}-[a-z0-9-]+$/.test(wo)) die(EXIT.USAGE, '用法：handoff --wo WO-YYYYMMDD-NN-<slug>');
+  const dir = path.join(RUNTIME(), 'handoffs');
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, `${wo}-handoff.md`);
+  const today = new Date().toISOString().slice(0, 10);
+  const body = `# ${wo} · 交接单
+
+| WO | ${wo} | 完成日期 | ${today} | 参与角色 | PC / 毛毛 / Bruce / 石头 / 波波（勾选） |
+|---|---|---|---|---|---|
+
+## 1. 一句话结论
+
+（做了什么 / 现在什么状态：可用 · 待验证 · 部分上线 · 已回滚）
+
+## 2. 改动清单
+
+| 面域 | 路径 | 性质 | 备注 |
+|---|---|---|---|
+| | | additive / 非破坏 / 破坏性 | |
+
+## 3. 验证证据
+
+\`\`\`text
+（贴命令尾行，不贴过程）
+\`\`\`
+
+## 4. 回滚方式
+
+（命令 / 开关 / 反向迁移；已演练：是 / 否）
+
+## 5. 遗留 DR / 风险
+
+| # | 事项 | 级别 | 处理时点 |
+|---|---|---|---|
+| | | BLOCKING / NON-BLOCKING | |
+`;
+  fs.writeFileSync(file, body);
+  console.log(`✓ 已生成 ${path.relative(PROJECT(), file)}（${Buffer.byteLength(body)} B，上限 15 行口径）`);
+  process.exit(EXIT.OK);
+}
+
 // ---------- 输出助手 ----------
+
 const T = (s) => `\x1b[36m${s}\x1b[0m`;
 const G = (s) => `\x1b[32m${s}\x1b[0m`;
 const Y = (s) => `\x1b[33m${s}\x1b[0m`;
@@ -666,7 +820,7 @@ function cmdCheck(args) {
   const outside = controlled.filter((p) => !woCovers(wo, p));
   if (outside.length) {
     if (q) { console.error(R(`⛔ check 未过：越权 ${outside.length} 路径（exit 2）——首因 ${outside[0]}`)); process.exit(EXIT.VIOLATION); }
-    console.error(R('⛔ 越权：以下路径不在 WO 白名单内（扩大白名单须回资深风控师核准）：'));
+    console.error(R('⛔ 越权：以下路径不在 WO 白名单内（扩大白名单须回团长（风控）核准）：'));
     for (const p of outside) console.error(`   ${tierOf(p).tier}  ${p}`);
     console.error(`   WO：${wo.relFile}`);
     console.error(`   白名单：${wo.globs.join(', ') || '（空）'}`);
@@ -793,7 +947,7 @@ function lintOne(file) {
     if (!has(/\|\s*\*{0,2}状态\*{0,2}\s*\|/)) missing.push('字段表 状态');
     if (!has(/申请人/)) missing.push('申请人');
     if (!has(/执行角色/)) missing.push('执行角色');
-    if (!has(/资深风控师/)) missing.push('资深风控师');
+    if (!has(/团长|资深风控师/)) missing.push('团长（风控）');
     if (!has(/^##\s*1\..*(目的|背景)/m)) missing.push('§1 目的与背景');
     if (!has(/^##\s*2\./m)) missing.push('§2 面域与路径白名单');
     else {
@@ -1072,9 +1226,11 @@ try {
       break;
     }
     case 'wo':
+      if (positional[0] === 'new') { cmdWoNew(args); break; }
       if (positional[0] === 'lint') { cmdWoLint(positional.slice(1)); break; }
       if (positional[0] === 'journal') { cmdWoJournal(args); break; }
-      die(EXIT.USAGE, '用法：wo lint <files...> | wo journal --wo <id> --who <who> --what <text>');
+      die(EXIT.USAGE, '用法：wo new --slug <kebab> | wo lint <files...> | wo journal --wo <id> --who <who> --what <text>');
+    case 'handoff': cmdHandoffNew(args); break;
     case 'sync-check': cmdSyncCheck(args); break;
     case 'audit': cmdAudit(args); break;
     case 'report': cmdReport(); break;
@@ -1082,7 +1238,7 @@ try {
     case 'stats': cmdStats(); break;
     case 'agents': cmdAgents(); break;
     default:
-      die(EXIT.USAGE, `未知命令 ${cmd ?? ''}。可用：surface | check [--quiet] | lock | dr scan | wo lint | instances | stats | sync-check | audit | report | agents`);
+      die(EXIT.USAGE, `未知命令 ${cmd ?? ''}。可用：surface | check [--quiet] | lock | dr scan | wo new | wo lint | wo journal | handoff | instances | stats | sync-check | audit | report | agents`);
   }
 } catch (e) {
   die(EXIT.USAGE, `guard 异常：${e.stack || e.message}`);

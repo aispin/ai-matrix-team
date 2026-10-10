@@ -22,8 +22,9 @@
 ## 2. 判面域与开单
 
 1. **判面域**：`node <team-repo>/scripts/aimatrix-guard.mjs surface <paths>`。碰 C1/C2 → 必须先开 WO。
-2. **开 WO**：按 `<team-repo>/docs/templates/wo.md` 落 `<project>/.ai-matrix-team/runtime/workorders/WO-YYYYMMDD-NN-<slug>.md`，填影响面/验证/回滚/初判破坏性 → `wo lint` 过 → 风控核准（团长兼、自核留痕；Type 1 报创始人终裁）。
+2. **开 WO**：`guard wo new --slug <kebab> --level L0|L1|L2 [--paths "a/**,b/**"] [--surface C3] [--purpose "…"]` 生成骨架（模板渲染，只填结论），落 `<project>/.ai-matrix-team/runtime/workorders/open/WO-YYYYMMDD-NN-<slug>.md`，填影响面/验证/回滚/初判破坏性 → `wo lint` 过 → 风控核准（团长兼、自核留痕；Type 1 报创始人终裁）。
 3. **验收级别（W9）**：开单时标 `验收级别`——L0 直提 / L1 质检代验收（门禁+代码评审，7 天默认放行）/ **L2 亲验收**（`feat/<WO号>` 分支 → 门禁+评审 → 提请创始人 → 明确验收后 squash 合并 + 打 tag `wo/<WO号>`）；拿不准一律就高 L2；测试通过 ≠ 验收通过。
+4. **收口交接单**：`guard handoff --wo <WO id>` 生成 ≤15 行骨架。
 
 ## 3. 派单与收口
 
