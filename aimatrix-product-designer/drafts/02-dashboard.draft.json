@@ -96,6 +96,25 @@
             { "text": "导出任务积压 > 50", "tag": "暂停", "tone": "warn", "icon": "alert" }
           ]
         },
+        {
+          "type": "tabs",
+          "title": "数据源设置",
+          "ui": "heroui:Tabs",
+          "tabs": [
+            { "label": "接入", "text": "填写数据源连接信息，保存后 5 分钟内首次同步。", "kv": [
+              { "k": "类型", "v": "ClickHouse" },
+              { "k": "库表", "v": "pulse_events" }
+            ] },
+            { "label": "字段映射", "items": [
+              { "text": "event_time → 时间轴", "icon": "check" },
+              { "text": "api_path → 接口维度", "icon": "check" },
+              { "text": "region → 区域维度", "icon": "check" }
+            ] },
+            { "label": "告警", "text": "阈值改动即时生效，历史告警不受影响。", "items": [
+              { "text": "错误率 > 0.5% 连续 5 分钟", "tag": "启用", "tone": "ok" }
+            ] }
+          ]
+        },
         { "type": "kv", "title": "接入信息", "items": [
           { "k": "数据源", "v": "ClickHouse · pulse_events" },
           { "k": "同步频率", "v": "5 分钟" },

@@ -155,6 +155,14 @@ tbody tr:last-child td{border-bottom:0}
 .list{list-style:none;padding:0;margin:0}
 .list li{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--n-100)}
 .list li:last-child{border-bottom:0}
+.tabs .tabbar{display:flex;gap:4px;border-bottom:1px solid var(--n-200);margin-bottom:14px;flex-wrap:wrap}
+.tabs .tab{border:0;background:none;padding:8px 12px;font:inherit;font-size:13px;color:var(--n-500);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs .tab:hover{color:var(--n-800)}
+.tabs .tab.active{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+.tabs .tabpanel{display:none}
+.tabs .tabpanel.active{display:block}
+.tabs .tabtext{margin:0 0 10px;color:var(--n-600);font-size:13px}
+.tabs .tabpanel .tabs{margin-top:10px}
 .empty{text-align:center;padding:34px 16px;color:var(--n-500)}
 .empty .ic{width:44px;height:44px;border-radius:12px;background:var(--n-100);display:grid;place-items:center;margin:0 auto 10px}
 .skel{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--n-100) 25%,var(--n-200) 37%,var(--n-100) 63%);background-size:400% 100%;animation:sk 1.3s ease-in-out infinite}
@@ -265,12 +273,21 @@ function sectionHtml(s, draft) {
         }).join('')}<button class="btn">${esc(s.submit || '查询')}</button></div>`;
       case 'chat':
         return `<div class="chat">${(s.messages || []).map((m) => `<div class="msg ${m.role === 'user' ? 'user' : 'agent'}"><span class="meta">${esc(m.role === 'user' ? (draft.youLabel || '你') : (m.name || draft.agentLabel || 'Agent'))}</span>${esc(m.text)}</div>`).join('')}</div>`;
+      case 'tabs':
+        return `<div class="tabs" data-tabs>` +
+          `<div class="tabbar">${(s.tabs || []).map((t, i) => `<button type="button" class="tab${i === 0 ? ' active' : ''}" data-tab="${i}">${esc(t.label)}</button>`).join('')}</div>` +
+          (s.tabs || []).map((t, i) => `<div class="tabpanel${i === 0 ? ' active' : ''}" data-panel="${i}">` +
+            (t.text ? `<p class="tabtext">${esc(t.text)}</p>` : '') +
+            (t.items?.length ? `<ul class="list">${t.items.map((it) => `<li>${svg(it.icon || 'check', 16)}<span style="flex:1">${esc(it.text)}</span>${it.tag ? `<span class="tag ${it.tone || ''}"><i></i>${esc(it.tag)}</span>` : ''}</li>`).join('')}</ul>` : '') +
+            (t.kv?.length ? `<dl class="kv">${t.kv.map((k) => `<dt>${esc(k.k)}</dt><dd>${esc(k.v)}</dd>`).join('')}</dl>` : '') +
+            `</div>`).join('') +
+          `</div>`;
       case 'list':
         return `<ul class="list">${(s.items || []).map((i) => `<li>${svg(i.icon || 'check', 16)}<span style="flex:1">${esc(i.text)}</span>${i.tag ? `<span class="tag ${i.tone || ''}"><i></i>${esc(i.tag)}</span>` : ''}</li>`).join('')}</ul>`;
       case 'kv':
         return `<dl class="kv">${(s.items || []).map((i) => `<dt>${esc(i.k)}</dt><dd>${esc(i.v)}</dd>`).join('')}</dl>`;
       default:
-        return `<div class="state-note">未知组件类型 ${esc(t)}（可用：stats/cards/table/form/chat/list/kv/notice）</div>`;
+        return `<div class="state-note">未知组件类型 ${esc(t)}（可用：stats/cards/table/form/chat/list/tabs/kv/notice）</div>`;
     }
   })();
   const note = ['table', 'cards', 'stats', 'chat', 'list'].includes(s.type) ? '' : '';
@@ -336,6 +353,15 @@ function render() {
       var page=c.closest('.page');
       page.querySelectorAll('.chip').forEach(function(x){x.classList.toggle('active',x===c)});
       content.dataset.state=c.dataset.state;
+    });
+  });
+  document.querySelectorAll('[data-tabs]').forEach(function(w){
+    w.querySelectorAll('.tab').forEach(function(b){
+      b.addEventListener('click',function(){
+        var i=b.dataset.tab;
+        w.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('active',x===b)});
+        w.querySelectorAll('.tabpanel').forEach(function(p){p.classList.toggle('active',p.dataset.panel===i)});
+      });
     });
   });
   var tb=document.getElementById('theme-toggle');

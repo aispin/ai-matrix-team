@@ -39,6 +39,7 @@ node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --stats   # 只�
 | `form` | `fields:[{label,kind,options,placeholder}]`，kind ∈ text/date/select/textarea；`submit` |
 | `chat` | `messages:[{role,text,name}]`，role ∈ user/agent |
 | `list` | `items:[{text,icon,tag,tone}]` |
+| `tabs` | `tabs:[{label,text,items:[{text,icon,tag,tone}],kv:[{k,v}]}]`（页内切换，JS 内建） |
 | `kv` | `items:[{k,v}]` |
 | `notice` | `text`、`tone` ∈ ok/warn/err、`icon` |
 

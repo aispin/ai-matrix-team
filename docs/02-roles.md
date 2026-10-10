@@ -19,7 +19,7 @@
 | `aimatrix-team-qa` | **石头** | 资深质检工程师 | `aimatrix-qa` | 门禁结论、验收报告、打回单、合规巡检报告 |
 | `aimatrix-team-devops` | **波波** | 资深运维工程师 | `aimatrix-devops` | 部署记录、迁移记录、回滚方案 |
 
-跨角色工具：`aimatrix-guard`（CLI 门禁，含 `audit` / `inspect`）· `aimatrix-decision`（DR 规范）· `aimatrix-guardian`（共享资产守门手册，团长在例外场景使用）· `aimatrix-architect`（TDD/ADR/选型/破坏性判定手册，开发的深读材料）。
+跨角色工具：`aimatrix-guard`（CLI 门禁）· `aimatrix-decision`（DR 规范）· `aimatrix-guardian`（共享资产守门手册，团长在例外场景使用）· `aimatrix-architect`（TDD/ADR/选型/破坏性判定手册，开发的深读材料）。独立脚本：`aimatrix-inspect.mjs`（合规巡检）· `aimatrix-report.mjs`（汇报）· `aimatrix-repo-check.mjs`（团队仓自检）。
 
 ### 0.1 概念关系：专家团 / 专家 / 技能
 
