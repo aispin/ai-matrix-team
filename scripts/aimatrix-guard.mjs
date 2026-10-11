@@ -1417,6 +1417,18 @@ function archiveAppend(block) {
   fs.appendFileSync(f, block.replace(/\n*$/, '\n\n'));
 }
 
+/** 顺手归档：wo 表任何写命令收尾调用，把 DONE 行即时移入月度归档（终态即收口，不留滞留窗口；sweep 继续兜底 issues/DR） */
+function tidyWoDone() {
+  const { lines, head, rows } = woRows();
+  const done = rows.filter((r) => r.c[4] === 'DONE');
+  if (!done.length) return 0;
+  const out = lines.slice(0, head + 2).concat(rows.filter((r) => r.c[4] !== 'DONE').map((r) => r.line));
+  fs.writeFileSync(WO_TABLE(), out.join('\n') + '\n');
+  for (const r of done) archiveAppend(`## WO ${r.c[0]} ${r.c[1]}（归档 ${todayStr()}）\n简述: ${r.c[2]} · 关联: ${r.c[3]} · 终态: ${r.c[4]} · 处理者: ${r.c[5]} · 更新: ${r.c[7]}`);
+  console.log(G(`📦 顺手归档 ${done.length} 条 DONE：${done.map((r) => r.c[0]).join('、')}`));
+  return done.length;
+}
+
 function requireTableId(id, re, what) {
   if (!re.test(id || '')) die(EXIT.USAGE, `缺合法 ${what} 编号（--id ${what}-…）`);
 }
@@ -1552,6 +1564,7 @@ function cmdWoTable(sub, args) {
     save();
     console.log(G(`✅ 已开单 ${id}（TODO）。执行前 wo table start --id ${id} --who <角色#呼号>。`));
     warnOrphanDetails(todayStr().replace(/-/g, ''));
+    tidyWoDone();
     process.exit(EXIT.OK);
   }
   if (sub === 'start' || sub === 'verify' || sub === 'done' || sub === 'block') {
@@ -1580,6 +1593,7 @@ function cmdWoTable(sub, args) {
     save();
     const after = find(id);
     console.log(G(`✅ ${id} → ${after ? after.c[4] : '?'}`));
+    tidyWoDone();
     process.exit(EXIT.OK);
   }
   die(EXIT.USAGE, '用法：wo table add|start|verify|done|block');
@@ -1672,7 +1686,12 @@ function cmdArchive(sub, args) {
     if (kind === 'wo') {
       const { lines, head, rows } = woRows();
       const i = rows.findIndex((r) => r.c[0] === id);
-      if (i < 0) die(EXIT.FORMAT, `⛔ 表中无 ${id}`);
+      if (i < 0) {
+        // 幂等：行已不在表但归档里有 → 视为成功（兼容既有 done→archive move 流程，重复跑不炸）
+        const af = archivePath();
+        if (exists(af) && read(af).includes(`## WO ${id} `)) { console.log(G(`✅ ${id} 已归档（幂等）。`)); process.exit(EXIT.OK); }
+        die(EXIT.FORMAT, `⛔ 表中无 ${id}`);
+      }
       const r = rows[i];
       if (!['DONE'].includes(r.c[4])) die(EXIT.VIOLATION, `⛔ ${id} 状态 ${r.c[4]} 非终态（DONE 才可归档）`);
       archiveAppend(`## WO ${id} ${r.c[1]}（归档 ${todayStr()}）\n简述: ${r.c[2]} · 关联: ${r.c[3]} · 终态: ${r.c[4]} · 处理者: ${r.c[5]} · 更新: ${r.c[7]}`);
@@ -1684,11 +1703,15 @@ function cmdArchive(sub, args) {
     }
     const file = kind === 'issue' ? ISSUES_FILE() : DR_TABLE();
     const { pre, blocks } = splitBlocks(file, kind === 'issue' ? ISSUE_HEADER : DR_TABLE_HEADER);
+    const kindTag = kind === 'issue' ? 'ISSUE' : 'DR';
     const i = blocks.findIndex((b) => b.head.startsWith(`## ${id} `));
-    if (i < 0) die(EXIT.FORMAT, `⛔ 找不到 ${id}`);
+    if (i < 0) {
+      const af = archivePath();
+      if (exists(af) && read(af).includes(`## ${kindTag} ${id} `)) { console.log(G(`✅ ${id} 已归档（幂等）。`)); process.exit(EXIT.OK); }
+      die(EXIT.FORMAT, `⛔ 找不到 ${id}`);
+    }
     const b = blocks[i];
     const title = b.head.replace(/^##\s*[^ ]+\s*/, '');
-    const kindTag = kind === 'issue' ? 'ISSUE' : 'DR';
     archiveAppend(`## ${kindTag} ${id} ${title}（归档 ${todayStr()}）\n${b.lines.join('\n').trim()}`);
     blocks.splice(i, 1);
     writeBlocks(file, pre, blocks);
