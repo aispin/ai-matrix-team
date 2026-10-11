@@ -101,7 +101,7 @@ $G audit --since HEAD~5
 **① 写入点强制脱敏（机器 choke point）**——以下脚本落盘前自动过 `aimatrix-redact.mjs` 的 `redact()`：
 
 - `aimatrix-report.mjs`（汇报，文字版 + 图形版）
-- `new-dr.mjs`（DR 正文）
+- `aimatrix-guard.mjs dr add`（DR 条目块）
 - `aimatrix-guard.mjs wo journal`（执行日志追加行）
 
 **② 扫描兜底（覆盖 agent 手写的 WO 正文 / 复检 / 巡检）**：
@@ -169,7 +169,7 @@ maxTurns: 80
 | 风险 | 表现 | 对策 |
 |---|---|---|
 | 流程过重，一人公司跑不动 | 每件事都要开单、抢锁，Agent 变慢 | 分层：F 面不开单；C2 走轻单；只有 C1 与部署走全流程。Express 模式默认（charter §4A）。度量「人均打扰量」，超标就放宽 |
-| 台账变成新的文档债 | WO/DR 写了没人维护 | 台账**由脚本生成/更新**（`ledger-sync.mjs`），人只写 DR 正文 |
+| 台账变成新的文档债 | WO/DR 写了没人维护 | 台账**由脚本生成/更新**（`guard` 三表命令 + `archive move`），人只改 DR 的「回填」行 |
 | 门禁被绕过 | Agent 直接改文件不跑 guard | 不追求拦住，追求**可见**：CI `audit` 每次跑，违规在 PR 暴露并记流程事故 |
 | 专家包与真源漂移 | 两份副本不一致 | 唯一通道 `expert-sync.mjs`（`--check` 巡检）；禁止手改实例 |
 | 团队成员过多导致成本 | 每次任务 spawn 全团 | 按 Workflow 只调度需要的角色（W4 只要 2-3 人；W8 只调 1 人 + 事后开单） |

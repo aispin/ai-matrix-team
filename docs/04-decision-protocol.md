@@ -72,7 +72,7 @@ stateDiagram-v2
 
 1. **BLOCKING DR 不闭环，相关 WO 不得进入下一阶段**（章程 T2）——门禁：`node <team-repo>/scripts/aimatrix-guard.mjs dr scan --blocking --wo <id>`，退出码 4 即停。
 2. **Type 1 不许沉默通过**（沿用 `brd-standard.md` C4）：BLOCKING 项**不会**因为超时自动按默认执行，必须显式答复。
-3. **NON-BLOCKING 可超时按默认推进**，但必须在 LEDGER 标注「按默认执行 + 日期」，且结论可被推翻（推翻代价写进 DR）。
+3. **NON-BLOCKING 可超时按默认推进**，但必须在条目「回填」行标注「按默认执行 + 日期」，且结论可被推翻（推翻代价写进 DR）。
 4. **谁提出谁回填**：答复后由提出者把结论写回 BRD/PRD/TDD/代码注释/`shared-contracts.md`，再关闭 DR。**不许「答复了但没落地」**。
 5. **当轮通报**：主理人不得攒 DR，BLOCKING 项在产生的那一轮就告知创始人。
 
@@ -81,21 +81,21 @@ stateDiagram-v2
 ## 5. 落盘与命名
 
 ```text
-decisions/
-├── LEDGER.md                     # 机读台账（唯一真相源）
-├── open/DR-20261005-001-xxxx.md
-└── closed/DR-20261004-003-yyyy.md
+<project>/.ai-matrix-team/
+├── decisions.md                  # 决策条目块（唯一增量真相源）
+└── runtime/
+    ├── dr-details/DR-*.md        # 长背景（可选）
+    ├── decisions/closed/         # v2 之前的 DR 历史（只读留档）
+    └── archive/YYYY-MM.md        # 已闭环条目（append-only）
 ```
 
-**LEDGER.md 表头**（脚本 `<team-repo>/scripts/ledger-sync.mjs` 自动维护，Agent 只写 DR 文件、跑一次同步）：
+**条目格式**：`## DR-YYYYMMDD-NNN <一句话>` + `方案：` 有序列表（≤3）+ `推荐: N · 关联: … · 状态: … · 阻塞: … · 更新: …` + `回填: （待答复，直接改本行）`。用户唯一动作 = 改「回填」行。
 
-| id | 提出者 | 所属 WO/App | 一句话 | 类型 | 阻塞 | 状态 | 提出日 | 期限 | 答复日 |
-|---|---|---|---|---|---|---|---|---|---|
-
-**脚本**（`aimatrix-decision` Skill）：
-- `<team-repo>/scripts/new-dr.mjs --title ... --type 1 --blocking --wo ...` → 生成 id + 文件骨架
-- `<team-repo>/scripts/ledger-sync.mjs` → 扫描 `open/`、`closed/` 重建 LEDGER.md
-- `<team-repo>/scripts/render-open-items.mjs --app <app>` → 从 LEDGER 渲染 `apps/<app>/docs/OPEN-ITEMS.md`
+**命令**（`aimatrix-decision` Skill）：
+- `node <team-repo>/scripts/aimatrix-guard.mjs dr add --title … --opt … --opt … [--recommend N] [--blocking] [--ref …]` → 生成条目块
+- `node <team-repo>/scripts/aimatrix-guard.mjs dr scan [--blocking] [--wo …]` → 列 OPEN 项（退出码 4 = 有 BLOCKING）
+- `node <team-repo>/scripts/aimatrix-guard.mjs archive move --kind dr --id <DR-id>` → 闭环归档
+- `node <team-repo>/scripts/render-open-items.mjs --app <app>` → 渲染 `apps/<app>/docs/OPEN-ITEMS.md`
 
 ---
 

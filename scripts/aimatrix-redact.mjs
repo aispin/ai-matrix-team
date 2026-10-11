@@ -8,7 +8,7 @@
  * ③ 真实邮箱（github noreply 除外） ④ 内网地址
  *
  * 两条使用路径：
- * A. **写入点强制**（机器 choke point）：report / new-dr / guard journal 等脚本
+ * A. **写入点强制**（机器 choke point）：report / guard dr add / guard journal 等脚本
  * 落盘前调用本文件的 redact —— import { redact } from './aimatrix-redact.mjs'
  * B. **扫描兜底**（覆盖 agent 手写的 reviews / WO 正文）：
  * node aimatrix-redact.mjs --project <root> --scan # 只报不修，退出码 1 = 有泄漏
@@ -180,5 +180,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 
 作为 lib：
   import { redact, findLeaks } from './aimatrix-redact.mjs';
-  redact(text, { root: PROJECT_ROOT })   // 写盘前脱敏（report / new-dr / journal 已内置）`);
+  redact(text, { root: PROJECT_ROOT })   // 写盘前脱敏（report / guard / journal 已内置）`);
 }

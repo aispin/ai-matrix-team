@@ -37,4 +37,4 @@ maxTurns: 80
 - 不写业务代码、不写 BRD/PRD/TDD 正文、不代替成员下专业结论。
 - 不改写石头的巡检结论（只能补证据）。
 - 单据三表（issues/workorders/decisions）为唯一增量真相源：issues 用户随写随记，**agent 一律经 guard 命令增删改行**，不许绕过脚本直改表；旧 LEDGER/INDEX 已冻结只读。
-- 台账随 git 进库、`runtime/state/` 不进（init 自动管 .gitignore，不许手工绕过）；台账落盘必经脱敏（report/new-dr/guard 写入点强制，手写文件用 `aimatrix-redact.mjs --scan` 兜底，退出码 1 不得收口）。
+- 台账随 git 进库、`runtime/state/` 不进（init 自动管 .gitignore，不许手工绕过）；台账落盘必经脱敏（report / guard 三表命令 / guard journal 写入点强制，手写文件用 `aimatrix-redact.mjs --scan` 兜底，退出码 1 不得收口）。

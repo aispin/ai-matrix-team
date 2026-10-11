@@ -92,14 +92,14 @@ issues.md + PRD/技术spec（简单需求免spec）
 | `wo new` 保留 | 仅用于需详情单的重单（生成瘦身 wo-details） |
 | `wo lint` 改造 | 校验三字段（白名单/验证/回滚）仅对详情单；表格行校验简述长度与关联引用存在性 |
 | `dr scan` 改造 | 扫 decisions.md 表行替代 `open/*.md`；BLOCKING 语义不变 |
-| 退役 `ledger-sync.mjs`、`render-open-items.mjs` | **过渡期保留**（closed 历史仍需 LEDGER 视图）；新条目块（decisions.md）为唯一增量真相源，双写期结束后再删 |
+| 退役 `ledger-sync.mjs`、`new-dr.mjs` | ✅ 已退役（2026-10-11 · 引擎 0.7.0）：DR 生成/流转/归档全走 `guard dr add|scan` + `archive move`，载体是 decisions.md 条目块。`render-open-items.mjs` 保留（App 视图渲染） |
 | `dr scan --blocking --wo` 门禁 | 保留，改为查表行关联 |
 
 ## 5. 迁移步骤（采纳后执行）— 状态：①②③④ 已完成（2026-10-10，WO-20261010-01）
 
 1. [x] 落三表骨架 + guard issues/wo-table/archive 命令（WO-20261010-01）。
 2. [x] 存量 open DR 搬入 decisions.md（当时 open 已清零；closed 不迁，历史留原目录只读）。
-3. [x] 改造 `dr scan`（双扫 open/ + decisions.md 条目块）/ `wo table` 新命令；`ledger-sync`/`render-open-items` 过渡保留；已更新 `index/00`、`index/04`、`index/09`。
+3. [x] 改造 `dr scan`（双扫 open/ + decisions.md 条目块）/ `wo table` 新命令；已更新 `index/00`、`index/04`、`index/09`。（2026-10-11 · 引擎 0.7.0 收尾：消费端全切三表 + `wo-details/`，`ledger-sync`/`new-dr` 退役）
 4. [x] 全链自测：issues add/normalize/triage/close、wo table add/start/verify/done/锁定保护、dr add/scan（含 BLOCKING 退出码 4 与 --wo 过滤）、archive move/sweep（含滞留报警退出码 2）。
 
 ## 6. 旧项目升级迁移（不得手动改别人项目）

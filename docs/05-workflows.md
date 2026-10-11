@@ -129,7 +129,7 @@ flowchart TD
 1. 跑 `node <team-repo>/scripts/aimatrix-guard.mjs dr scan` → 列出 OPEN 项。
 2. 主理人按「阻塞 > Type 1 > 等待时长」排序，输出**一页决策清单**（每项：一句话问题 + 建议默认 + 不做的后果）。
 3. 创始人逐条答复（「按默认」即可）。
-4. 主理人**回填**：结论写回 BRD/PRD/TDD/ADR/`shared-contracts.md` → DR 移 `closed/` → `<team-repo>/scripts/ledger-sync.mjs` 更新 → `<team-repo>/scripts/render-open-items.mjs` 同步 OPEN-ITEMS。
+4. 主理人**回填**：结论写回 BRD/PRD/TDD/ADR/`shared-contracts.md` → `guard archive move --kind dr --id <DR-id>` 收口 → `<team-repo>/scripts/render-open-items.mjs` 同步 OPEN-ITEMS。
 5. 输出「本轮闭环 N 项，遗留 M 项，其中 BLOCKING K 项」。
 
 ---

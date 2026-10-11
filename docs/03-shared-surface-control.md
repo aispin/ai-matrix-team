@@ -209,7 +209,7 @@ stateDiagram-v2
 │   ├── aimatrix-guard.mjs          门禁 CLI（--project）
 │   ├── aimatrix-inspect.mjs        合规巡检 CLI
 │   ├── expert-sync.mjs             成员真源 → 专家包全链同步
-│   ├── new-dr.mjs / ledger-sync.mjs / render-open-items.mjs
+│   ├── aimatrix-migrate-v2.mjs / aimatrix-preflight.mjs / aimatrix-report.mjs / render-open-items.mjs
 │   └── surfaces-default.json       面域默认规则（项目可覆盖）
 ├── dashboard/                      操盘台（Vite + React，--project 读项目薄层）
 └── aimatrix-*/                     角色 Skill（SKILL.md + references/ + examples/ + scripts/）

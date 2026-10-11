@@ -202,7 +202,7 @@ ai-matrix-team/
 │   ├── examples/ | templates/    # 产出基准样例 / 模板
 │   └── scripts/                  # 该角色专属脚本（零依赖优先）
 ├── members/                      # 成员真源（五席，一席一份）
-├── scripts/                      # 跨角色 CLI：aimatrix-guard / inspect / expert-sync / new-dr / ledger-sync
+├── scripts/                      # 跨角色 CLI：aimatrix-guard / inspect / expert-sync / migrate-v2 / verify-skills
 ├── docs/                         # 治理规范本文 + 通用模板
 └── SKILL.md                      # 安装器技能：agent 读它即知如何接入新项目
 ```
@@ -229,7 +229,7 @@ ai-matrix-team/
 | Skill | 内容 |
 |---|---|
 | `aimatrix-guard` | 门禁 CLI（`scripts/aimatrix-guard.mjs`）+ 面域清单 + 退出码语义；**所有角色在写受控面前必读必跑** |
-| `aimatrix-decision` | DR 规范、模板、生成器（`scripts/new-dr.mjs`）、台账更新器（`scripts/ledger-sync.mjs`） |
+| `aimatrix-decision` | DR 规范与模板；生成 / 流转 / 归档全经 `guard dr add|scan` + `archive move`（载体是 `decisions.md` 条目块） |
 | `aimatrix-guardian` | 共享资产守门手册：受控面写入核准、串行锁、契约登记、冲突检测、回归裁定——团长在例外场景（扩白名单/破坏性/新契约/Type 1/多单锁冲突/利益相关回避）使用 |
 | `aimatrix-architect` | TDD/ADR/技术选型/破坏性判定手册——开发的深读材料（架构速断配套） |
 | `aimatrix-inspect` | 合规巡检 CLI（`scripts/aimatrix-inspect.mjs`，属 `aimatrix-qa` 工具层，单独成脚本便于 CI 调用） |
