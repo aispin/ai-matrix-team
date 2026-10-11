@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# install-to-workbuddy.sh · POSIX 薄壳入口（CI / 命令行用）
-# 真源是同目录的 install-to-workbuddy.mjs —— 这里只负责「找 node → 转参数」。
+# aimatrix-install.sh · POSIX 薄壳入口（CI / 命令行用）
+# 真源是同目录的 aimatrix-install.mjs —— 这里只负责「找 node → 转参数」。
 
 set -euo pipefail
 
@@ -23,4 +23,4 @@ if [ -z "$NODE" ]; then
   exit 1
 fi
 
-exec "$NODE" "$HERE/install-to-workbuddy.mjs" "$@"
+exec "$NODE" "$HERE/aimatrix-install.mjs" "$@"

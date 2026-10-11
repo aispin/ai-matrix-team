@@ -60,7 +60,7 @@ function surfacesFile() {
 /** 兼容历史单据/规则里的 .skills/ 前缀 → 项目薄层 .ai-matrix-team/ */
 const normP = (p) => p.startsWith('.skills/') ? '.ai-matrix-team/' + p.slice(8) : p;
 
-const EXIT = { OK: 0, USAGE: 1, VIOLATION: 2, NOLOCK: 3, DR: 4, FORMAT: 5, SYNC: 6 };
+const EXIT = { OK: 0, USAGE: 1, VIOLATION: 2, NOLOCK: 3, DR: 4, FORMAT: 5, SYNC: 6, PROJECT: 7 };
 
 // ---------- 基础工具 ----------
 const rel = (p) => path.relative(PROJECT(), p).split(path.sep).join('/');
@@ -427,15 +427,15 @@ function parseExecutor(e) {
   const m = /^(.+?)#([0-9A-Za-z]+)$/.exec((e || '').trim());
   return m ? { role: m[1].trim(), callsign: m[2] } : { role: (e || '').trim(), callsign: null };
 }
-const INSTANCES_FILE = path.join(STATE_DIR(), 'instances.json');
+const INSTANCES_FILE = () => path.join(STATE_DIR(), 'instances.json');
 /** D2：instances.json 无 role 字段，从 session 前缀（如 "implementer#1 · xxx"）提取角色合成 role#callsign 键 */
 function instKey(session, callsign) {
   const m = /^(.+?)#[0-9A-Za-z]+/.exec((session || '').trim());
   return `${m ? m[1].trim() : '' }#${callsign}`;
 }
 function readInstances() {
-  if (!exists(INSTANCES_FILE)) return [];
-  try { return JSON.parse(fs.readFileSync(INSTANCES_FILE, 'utf8')); } catch { return []; }
+  if (!exists(INSTANCES_FILE())) return [];
+  try { return JSON.parse(fs.readFileSync(INSTANCES_FILE(), 'utf8')); } catch { return []; }
 }
 function activeWos() {
   const out = [];
@@ -469,7 +469,7 @@ function checkInstances() {
   for (const w of actives) {
     const { role, callsign } = parseExecutor(w.executor);
     if (callsign && !registered.has(`${role}#${callsign}`)) {
-      warns.push(`未登记：${w.id} 的呼号 ${w.executor} 不在 ${rel(INSTANCES_FILE)}（spawn 后请由PC登记）`);
+      warns.push(`未登记：${w.id} 的呼号 ${w.executor} 不在 ${rel(INSTANCES_FILE())}（spawn 后请由PC登记）`);
     }
   }
   return warns;
@@ -1199,6 +1199,29 @@ function cmdAgents() {
   process.exit(EXIT.OK);
 }
 
+/**
+ * guard role — 智能判定当前身处什么仓（「升级≠发版」的机器判据）
+ * 判据（按序）：① 仓根有 members/team-lead.md + scripts/expert-sync.mjs → team-repo；
+ *             ② 仓根有 .ai-matrix-team/ → project；③ 两者皆非 → unknown。
+ * 注意：团队仓自身也有 .ai-matrix-team/（自管理），故 team-repo 判据必须在先。
+ * 退出码：0 = team-repo（可发版）· 7 = project（只有升级，严禁 expert-sync）· 1 = unknown
+ */
+function cmdRole() {
+  const i = process.argv.indexOf('--project');
+  const root = path.resolve(i > 0 && process.argv[i + 1] ? process.argv[i + 1] : process.cwd());
+  const isTeamRepo = exists(path.join(root, 'members', 'team-lead.md')) && exists(path.join(root, 'scripts', 'expert-sync.mjs'));
+  if (isTeamRepo) {
+    console.log(G(`role: team-repo（${root}）→ 可发版：VERSION 升 + expert-sync 全链 + guard agents 体检`));
+    process.exit(EXIT.OK);
+  }
+  if (exists(path.join(root, '.ai-matrix-team'))) {
+    console.log(Y(`role: project（${root}）→ 只有升级：preflight → git pull 团队仓 → v2 迁移；严禁 expert-sync / VERSION 升版`));
+    process.exit(EXIT.PROJECT);
+  }
+  console.error(R(`role: unknown（${root}）→ 既非团队仓也非已接入项目；接入走 aimatrix-init.mjs`));
+  process.exit(EXIT.USAGE);
+}
+
 function cmdReport() {
   console.log(T('== 共享锁 =='));
   const holders = liveLocks();
@@ -1571,13 +1594,18 @@ for (let i = 0; i < rest.length; i++) {
 // marker（runtime/state/v2-migrated）缺失且有旧单据（open DR / INDEX.md）→ 静默升级一次；
 // 纯新项目 → 写 marker 即走；失败只提示不阻断 guard 主流程。
 try {
-  const mtScript = path.join(TEAM_ROOT, 'scripts', 'aimatrix-migrate-v2.mjs');
-  const projMatrix = path.join(PROJECT(), '.ai-matrix-team');
-  const mtMarker = path.join(projMatrix, 'runtime', 'state', 'v2-migrated');
-  if (fs.existsSync(mtScript) && fs.existsSync(projMatrix) && !fs.existsSync(mtMarker)) {
-    const r = spawnSync(process.execPath, [mtScript, '--project', PROJECT(), '--auto'], { encoding: 'utf8' });
-    if (r.status === 0 && (r.stdout || '').includes('➜')) console.error((r.stdout || '').trim());
-    else if (r.status !== 0) console.error(`⚠ v2 自动迁移失败（不影响本命令）：${((r.stderr || r.stdout || '').trim().split('\n').pop() || '').slice(0, 200)}——可显式运行 aimatrix-migrate-v2.mjs 重试`);
+  // 软解析项目根（同 PROJECT() 的候选序，但解析不到 → null，不 die）：钩子在任意 cwd 都不得阻断
+  const sr = () => { const p = process.argv.indexOf('--project'); return p > 0 && process.argv[p + 1] ? path.resolve(process.argv[p + 1]) : process.env.AIM_PROJECT_ROOT ? path.resolve(process.env.AIM_PROJECT_ROOT) : fs.existsSync(path.join(process.cwd(), '.ai-matrix-team')) ? process.cwd() : null; };
+  const softRoot = sr();
+  if (softRoot) {
+    const mtScript = path.join(TEAM_ROOT, 'scripts', 'aimatrix-migrate-v2.mjs');
+    const projMatrix = path.join(softRoot, '.ai-matrix-team');
+    const mtMarker = path.join(projMatrix, 'runtime', 'state', 'v2-migrated');
+    if (fs.existsSync(mtScript) && fs.existsSync(projMatrix) && !fs.existsSync(mtMarker)) {
+      const r = spawnSync(process.execPath, [mtScript, '--project', softRoot, '--auto'], { encoding: 'utf8' });
+      if (r.status === 0 && (r.stdout || '').includes('➜')) console.error((r.stdout || '').trim());
+      else if (r.status !== 0) console.error(`⚠ v2 自动迁移失败（不影响本命令）：${((r.stderr || r.stdout || '').trim().split('\n').pop() || '').slice(0, 200)}——可显式运行 aimatrix-migrate-v2.mjs 重试`);
+    }
   }
 } catch { /* 迁移钩子绝不阻断主流程 */ }
 
@@ -1620,8 +1648,9 @@ try {
     case 'instances': cmdInstances(); break;
     case 'stats': cmdStats(); break;
     case 'agents': cmdAgents(); break;
+    case 'role': cmdRole(); break;
     default:
-      die(EXIT.USAGE, `未知命令 ${cmd ?? ''}。可用：surface | check [--quiet] | lock | dr scan | dr add | issues | wo new | wo table | wo lint | wo journal | archive | handoff | instances | stats | sync-check | audit | report | agents`);
+      die(EXIT.USAGE, `未知命令 ${cmd ?? ''}。可用：surface | check [--quiet] | lock | dr scan | dr add | issues | wo new | wo table | wo lint | wo journal | archive | handoff | instances | stats | sync-check | audit | report | agents | role`);
   }
 } catch (e) {
   die(EXIT.USAGE, `guard 异常：${e.stack || e.message}`);

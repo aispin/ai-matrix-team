@@ -28,6 +28,7 @@
 | 实例呼号登记（多实例并行） | `guard instances` |
 | 无单写入审计（charter §4A） | `guard audit` |
 | 一键体检（角色/技能/软链） | `guard agents` |
+| 智能判定身处什么仓（升级≠发版的机器判据） | `guard role`（0 = team-repo 可发版 · 7 = project 只能升级 · 1 = unknown） |
 | 旧项目升级 v2 三表（SPEC-20261010-03 §6；guard/console 启动时也会自动跑） | `aimatrix-migrate-v2.mjs --project <root> [--dry]` |
 | **团队仓自检**：技能 frontmatter / 三层阈值 / references 链接 / 修订痕迹 | `aimatrix-repo-check.mjs`（改完仓库跑一次，退出码 1 = 有违规） |
 

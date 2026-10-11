@@ -13,7 +13,7 @@
 | **团队仓（本仓）** | `ai-matrix-team/`（独立 git 仓库） | ✅ | Skill 真相源 `aimatrix-*/`、成员真源 `members/`、治理规范 `docs/`、CLI `scripts/`、操盘台 `dashboard/` |
 | **项目薄层** | `<project>/.ai-matrix-team/` | ✅（state 除外） | `project.json`（项目档案：apps/面域/workspace）+ `runtime/{workorders,decisions,handoffs,reviews}` 运行台账 |
 | **运行态（锁/日志）** | `<project>/.ai-matrix-team/runtime/state/` | ❌ | 机器写；`lock.json` / `guard.log`（gitignore） |
-| **Skill 激活点** | `<project>/.workbuddy/skills/aimatrix-*` → 团队仓 `aimatrix-*` | ❌ | **软链、自动生成、禁止手改**；由 `install-to-workbuddy.mjs` 创建 |
+| **Skill 激活点** | `<project>/.workbuddy/skills/aimatrix-*` → 团队仓 `aimatrix-*` | ❌ | **软链、自动生成、禁止手改**；由 `aimatrix-install.mjs` 创建 |
 | **专家包（源）** | `~/.workbuddy/plugins/marketplaces/my-experts/plugins/<pkg>/` | ❌ | 由 `expert-sync.mjs` 从 `members/` + 包元数据配置生成，**禁止手改** |
 | **专家包（安装快照）** | `~/.workbuddy/plugins/cache/my-experts/<pkg>/<ver>/` | ❌ | WorkBuddy 实际加载处；重装 = cache 落位 + installed_plugins.json 对齐 |
 
@@ -25,7 +25,7 @@
 
 ```bash
 # ① Skill 软链激活（幂等；--check 供 CI/W8 巡检，漂移退出码 1）
-node <team-repo>/scripts/install-to-workbuddy.mjs --project <project-root>
+node <team-repo>/scripts/aimatrix-install.mjs --project <project-root>
 
 # ② 项目薄层初始化（project.json 骨架 + runtime 目录）
 node <team-repo>/scripts/aimatrix-init.mjs --project <project-root>

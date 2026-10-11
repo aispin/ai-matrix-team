@@ -234,10 +234,10 @@ function chkSweepFreshness() {
 // ---- 13. Skill 链路 ----
 function chkLinks() {
   try {
-    execFileSync('node', [path.join(__dirname, 'install-to-workbuddy.mjs'), '--check', '--project', REPO_ROOT], { cwd: REPO_ROOT, stdio: 'pipe' });
-    record('13.Skill 软链激活链路', 'PASS', 'install-to-workbuddy --check 全绿');
+    execFileSync('node', [path.join(__dirname, 'aimatrix-install.mjs'), '--check', '--project', REPO_ROOT], { cwd: REPO_ROOT, stdio: 'pipe' });
+    record('13.Skill 软链激活链路', 'PASS', 'aimatrix-install --check 全绿');
   } catch (e) {
-    record('13.Skill 软链激活链路', 'FAIL', '软链漂移 → 重跑 install-to-workbuddy.mjs');
+    record('13.Skill 软链激活链路', 'FAIL', '软链漂移 → 重跑 aimatrix-install.mjs');
   }
 }
 

@@ -27,6 +27,8 @@ version: 2.0.0
 | `aimatrix-team-qa` | 石头 | AIM资深质检工程师 | aimatrix-qa |
 | `aimatrix-team-devops` | 波波 | AIM资深运维工程师 | aimatrix-devops |
 
+岗位技能**不进用户技能列表**：agent 按团队仓路径直读 `<TEAM>/aimatrix-<role>/SKILL.md`；项目级只暴露本文件这一个入口（见安装步骤 ②）。
+
 分发形态：专家团包 `ai-matrix-team`（WorkBuddy 专家中心）+ 两个独立专家 `aimatrix-team-team-lead`、`aimatrix-team-product-designer`（项目任务挂载用，WorkBuddy 项目任务不提供团队 tab）。
 
 ## 安装步骤（对新项目，按序执行）
@@ -38,8 +40,8 @@ PROJECT=<目标项目绝对路径>
 # ① 生成项目档案（扫描项目结构 → <PROJECT>/.ai-matrix-team/project.json）
 node $TEAM/scripts/aimatrix-init.mjs --project $PROJECT
 
-# ② Skill 软链激活（<PROJECT>/.workbuddy/skills/aimatrix-* → 团队仓；幂等）
-node $TEAM/scripts/install-to-workbuddy.mjs --project $PROJECT
+# ② Skill 桥激活（三平台一次建齐：WorkBuddy / Claude Code 软链 + Codex AGENTS.md 壳；幂等，自动清理旧版 9 链布局）
+node $TEAM/scripts/aimatrix-install.mjs --project $PROJECT
 
 # ③ 专家包同步安装（团队包 + 2 独立包：validate→register→package→cache→登记）
 node $TEAM/scripts/expert-sync.mjs
@@ -56,7 +58,7 @@ node $TEAM/scripts/aimatrix-guard.mjs --project $PROJECT surface packages
 ```bash
 node $TEAM/scripts/expert-sync.mjs --check     # 专家包与真源漂移检查（退出码 1 = 有漂移）
 node $TEAM/scripts/expert-sync.mjs             # 重新同步安装（改过 members/ 后必跑）
-node $TEAM/scripts/install-to-workbuddy.mjs --check --project $PROJECT   # Skill 链路巡检
+node $TEAM/scripts/aimatrix-install.mjs --check --project $PROJECT   # Skill 链路巡检
 node $TEAM/scripts/aimatrix-guard.mjs agents --project $PROJECT          # 一键体检
 node $TEAM/scripts/aimatrix-init.mjs --check --project $PROJECT          # 项目档案新鲜度
 ```

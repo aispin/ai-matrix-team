@@ -71,7 +71,7 @@
 
 ```bash
 node <本仓>/scripts/aimatrix-init.mjs --project <项目根>        # ① 项目档案
-node <本仓>/scripts/install-to-workbuddy.mjs --project <项目根>  # ② Skill 软链
+node <本仓>/scripts/aimatrix-install.mjs --project <项目根>  # ② Skill 软链
 node <本仓>/scripts/expert-sync.mjs                              # ③ 专家包安装（首次）
 node <本仓>/scripts/aimatrix-guard.mjs agents --project <项目根>  # ④ 体检
 ```

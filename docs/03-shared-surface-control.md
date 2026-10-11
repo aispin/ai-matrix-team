@@ -18,7 +18,7 @@
 | **F** | 自由面 | `apps/<app>/src/**`、`apps/<app>/packages/**`、`apps/<app>/scripts/**`、`apps/<app>/public/**` | 直接改，无需 WO；仍需通过 QA 门禁（typecheck/test/build） |
 | **C2** | **专家团资产**（改 Agent 行为 = 影响全矩阵） | `<team-repo>/aimatrix-*/**`（角色 Skill 正文与 references）、`<team-repo>/members/**`（成员真源）、`<team-repo>/scripts/**`（guard / inspect / expert-sync / DR 生成器）、`<team-repo>/docs/**`（治理规范与模板） | **WO + 团长（风控）核准 + 共享锁**；改后当日登记；回归范围由守卫裁定（改 Skill 正文 ≥ 至少跑一次受影响角色的示例任务；改 `scripts/` 必须跑脚本自测） |
 | **T** | 台账面 | `<project>/.ai-matrix-team/runtime/**`（WO / DR / 台账 / 交接单 / 巡检报告） | 任何角色可写，**格式必须套模板**；由 `guard` 校验字段完整性；`runtime/state/` 为机器写（锁、日志），**不入库** |
-| **—** | 软链（非源码） | `<project>/.workbuddy/skills/aimatrix-*` → `<team-repo>/aimatrix-*` | **不入库、禁止手改**；由 `<team-repo>/scripts/install-to-workbuddy.mjs` 生成与校验（`--check`） |
+| **—** | 软链（非源码） | `<project>/.workbuddy/skills/aimatrix-*` → `<team-repo>/aimatrix-*` | **不入库、禁止手改**；由 `<team-repo>/scripts/aimatrix-install.mjs` 生成与校验（`--check`） |
 
 > **判定原则**：吃不下面域的路径 → 按**更高级别**处理（从严）。
 > **查询**：`node <team-repo>/scripts/aimatrix-guard.mjs surface <path...>` 直接打印每个路径的级别与要求。
@@ -204,8 +204,8 @@ stateDiagram-v2
 │   ├── index/                      各篇索引卡（先读卡再读正文）
 │   └── templates/                  WO / DR / 交接单 模板（唯一格式源）
 ├── scripts/                        可执行物（零第三方依赖）
-│   ├── install-to-workbuddy.mjs    Skill 软链安装/校验/卸载（--project）
-│   ├── install-to-workbuddy.command / .sh   双击 / POSIX 薄壳
+│   ├── aimatrix-install.mjs    Skill 软链安装/校验/卸载（--project）
+│   ├── aimatrix-install.command / .sh   双击 / POSIX 薄壳
 │   ├── aimatrix-guard.mjs          门禁 CLI（--project）
 │   ├── aimatrix-inspect.mjs        合规巡检 CLI
 │   ├── expert-sync.mjs             成员真源 → 专家包全链同步
@@ -227,5 +227,5 @@ stateDiagram-v2
 <project>/.workbuddy/skills/aimatrix-*  ← 软链，**不入库、禁止手改**（install 脚本生成）
 ```
 
-> **单一真相源纪律**：团队仓与项目薄层里任何文件都只有这一份。`.workbuddy/skills/` 是软链、`.bak-<ts>` 是冲突备份——**手改激活点或副本 = 违规**（`install-to-workbuddy.mjs --check` 会查出软链漂移；处置见 §7）。
+> **单一真相源纪律**：团队仓与项目薄层里任何文件都只有这一份。`.workbuddy/skills/` 是软链、`.bak-<ts>` 是冲突备份——**手改激活点或副本 = 违规**（`aimatrix-install.mjs --check` 会查出软链漂移；处置见 §7）。
 > **surfaces 与 §1 表格同源**：改一处须同步另一处，`guard` 启动时自检一致性。

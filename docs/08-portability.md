@@ -25,7 +25,7 @@
       ├── 扫描 .github/workflows → CI 接入点
       ├── 聚合各子包依赖 → 技术栈档案（vite/react/tailwind/…）
       └── 落盘 <project>/.ai-matrix-team/project.json（含大白话术语表 terms）
-③  node <team-repo>/scripts/install-to-workbuddy.mjs --project <project-root>   # Skill 软链激活
+③  node <team-repo>/scripts/aimatrix-install.mjs --project <project-root>   # Skill 软链激活
 ④  node <team-repo>/scripts/expert-sync.mjs                                     # 专家包生成/刷新（可选，一次性）
 ⑤  人工核对：surfaces 初判是否要升级个别路径；terms 术语是否符合项目语感
 ⑥  PC 按 project.json 向全员广播项目档案 → 专家团就绪
@@ -48,7 +48,7 @@
 1. clone 团队仓到本机任意位置
 2. `node <team-repo>/scripts/aimatrix-init.mjs --project <root>` → 生成项目档案
 3. 人工校正 surfaces / terms / docs 绑定（缺失的规范文档先补骨架或声明降级）
-4. `node <team-repo>/scripts/install-to-workbuddy.mjs --project <root>` 激活 Skill 软链
+4. `node <team-repo>/scripts/aimatrix-install.mjs --project <root>` 激活 Skill 软链
 5. `node <team-repo>/scripts/expert-sync.mjs` 生成/安装专家包（首次）
 6. PC 开场：向全团队广播项目档案，跑一次空巡检出基线
 7. 创建者回答 init 报告中的「待拍板」清单（该项目的第一批 DR）

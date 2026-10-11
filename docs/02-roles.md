@@ -164,7 +164,7 @@ per-WO 分支 `wo/WO-<id>`；**面域不相交才允许并行**（guard 锁分�
 | 10 | BLOCKING DR 存量与等待时长 | `guard dr scan` | 超 7 天 → 主理人当轮升级通报 |
 | 11 | OPEN-ITEMS 与 DR 台账一致（每条带 DR id） | `aimatrix-inspect open-items --check` | 重跑 `render-open-items.mjs` 同步 |
 | 12 | 每个 App 距上次被巡检的时间 | 台账时间戳 | 超 90 天未巡检的 App 优先排本月 |
-| 13 | **专家团自身链路**：Skill 是否都已正确软链到激活点 | `install-to-workbuddy.mjs --check`（退出码 1 = 漂移） | 立即重跑 install；若发现有人手改了 `.workbuddy/skills/` 副本 → 记流程事故 |
+| 13 | **专家团自身链路**：Skill 是否都已正确软链到激活点 | `aimatrix-install.mjs --check`（退出码 1 = 漂移） | 立即重跑 install；若发现有人手改了 `.workbuddy/skills/` 副本 → 记流程事故 |
 
 > 第 12 项是巡检本身也需要被巡检（谁查过、什么时候查的、结论在哪）。
 > 第 13 项防「Skill 写好了但链路没通」——规范写得再好，加载不进来等于零。
@@ -208,7 +208,7 @@ ai-matrix-team/
 ```
 
 > **唯一真相源**：本团队仓（入库）。目标项目 `.workbuddy/skills/aimatrix-*` 是**软链**、由安装脚本生成，**禁止手改**（见 06/07）。
-> **写完 Skill 必做**：`node scripts/install-to-workbuddy.mjs --check`（链路不通 = 没交付）。
+> **写完 Skill 必做**：`node scripts/aimatrix-install.mjs --check`（链路不通 = 没交付）。
 
 **SKILL.md 必含章节**（顺序固定，便于 Agent 稳定加载）：
 

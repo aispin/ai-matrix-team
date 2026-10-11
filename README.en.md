@@ -69,7 +69,7 @@ Manual onboarding (the agent does this automatically; for those who want to run 
 
 ```bash
 node <repo>/scripts/aimatrix-init.mjs --project <project-root>        # 1. project profile
-node <repo>/scripts/install-to-workbuddy.mjs --project <project-root> # 2. skill symlinks
+node <repo>/scripts/aimatrix-install.mjs --project <project-root> # 2. skill symlinks
 node <repo>/scripts/expert-sync.mjs                                   # 3. expert packages (first time)
 node <repo>/scripts/aimatrix-guard.mjs agents --project <project-root> # 4. gate check
 ```
