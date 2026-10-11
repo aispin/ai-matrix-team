@@ -10,6 +10,8 @@
       "node_modules/**",
       "**/node_modules/**",
       ".workbuddy/**",
+      ".claude/skills/**",
+      ".agents/skills/**",
       "**/dist/**",
       "**/.turbo/**",
       "**/coverage/**"

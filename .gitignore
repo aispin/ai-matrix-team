@@ -9,4 +9,7 @@ dashboard/tsconfig.tsbuildinfo
 # ── ai-matrix-team 薄层（init 管理）：审计台账进库，runtime/state 易失运行态不进 ──
 .ai-matrix-team/runtime/state/
 # ── ai-matrix-team 薄层结束 ──
+# 激活入口（软链，按 SKILL.md 安装步骤 ② 生成；机器产物，不入库、禁止手改）
 .workbuddy/
+.agents/
+.claude/

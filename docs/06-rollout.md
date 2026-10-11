@@ -13,7 +13,7 @@
 | **团队仓（本仓）** | `ai-matrix-team/`（独立 git 仓库） | ✅ | Skill 真相源 `aimatrix-*/`、成员真源 `members/`、治理规范 `docs/`、CLI `scripts/`、操盘台 `dashboard/` |
 | **项目薄层** | `<project>/.ai-matrix-team/` | ✅（state 除外） | `project.json`（项目档案：apps/面域/workspace）+ `runtime/{workorders,decisions,handoffs,reviews}` 运行台账 |
 | **运行态（锁/日志）** | `<project>/.ai-matrix-team/runtime/state/` | ❌ | 机器写；`lock.json` / `guard.log`（gitignore） |
-| **Skill 激活入口** | `<project>/.workbuddy/skills/ai-matrix-team/SKILL.md` → 团队仓 `SKILL.md`（Claude Code 同款布局在 `.claude/skills/`，Codex 走 AGENTS.md 壳） | ❌ | **软链、按 SKILL.md 步骤 ② 生成、禁止手改**；`aimatrix-verify-skills.mjs` 校验 |
+| **Skill 激活入口** | `<project>/<平台技能目录>/ai-matrix-team/SKILL.md` → 团队仓 `SKILL.md`（平台目录见团队仓 SKILL.md 步骤 ②：`.agents/skills/` / `.workbuddy/skills/` / `.claude/skills/`，Codex 走 AGENTS.md 壳） | ❌ | **软链、按 SKILL.md 步骤 ② 生成、禁止手改**；`aimatrix-verify-skills.mjs` 校验 |
 | **专家包（源）** | `~/.workbuddy/plugins/marketplaces/my-experts/plugins/<pkg>/` | ❌ | 由 `expert-sync.mjs` 从 `members/` + 包元数据配置生成，**禁止手改** |
 | **专家包（安装快照）** | `~/.workbuddy/plugins/cache/my-experts/<pkg>/<ver>/` | ❌ | WorkBuddy 实际加载处；重装 = cache 落位 + installed_plugins.json 对齐 |
 
@@ -37,9 +37,10 @@ node <team-repo>/scripts/expert-sync.mjs
 node <team-repo>/scripts/aimatrix-guard.mjs agents --project <project-root>
 ```
 
-- Skill 默认只链**项目级** `.workbuddy/skills/`（全局加载会污染别的项目；确需 `--user-level`）。
-- 遇同名旧副本：报冲突、退出码 2；确认可弃后 `--force`（改名 `.bak-<ts>`，**不直接删除**）。
-- **软链不被识别的兜底**：退到单向同步 + 字节比对，仍然**禁止手改目标副本**。
+- 激活入口按平台目录链**项目级**（见团队仓 SKILL.md 安装步骤 ②；各平台互不代扫，用几个建几个）；软链一律写绝对路径。
+- 本项目已有 `surfaces.json` 时，其上**冻结着当时的团队默认**：`guard` 取规则是「有项目文件即用项目文件、否则回退团队默认」，**不合并**——团队默认后续新增的条目不会自动传导。
+  - 实例：团队默认的 `skip` 曾新增 `.agents/skills/**` / `.claude/skills/**`（激活入口不进面域门禁），**已建 `surfaces.json` 的项目收不到**。
+  - 处置：采用新平台技能目录时，把对应 pattern 补进本项目 `surfaces.json` 的 `skip.patterns`；存量项目可择机重跑 `init --force` 对齐（会覆盖人工校正，先 diff）。
 
 ---
 

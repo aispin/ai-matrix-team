@@ -48,9 +48,13 @@ node $TEAM/scripts/aimatrix-init.mjs --project $PROJECT
 
 | 平台 | 激活入口 | 做法 |
 |---|---|---|
-| WorkBuddy | `<PROJECT>/.workbuddy/skills/ai-matrix-team/SKILL.md` | `mkdir -p` 真目录后，`ln -s $TEAM/SKILL.md <入口路径>` |
+| **`.agents/skills/`**（中性聚合点） | `<PROJECT>/.agents/skills/ai-matrix-team/SKILL.md` | `mkdir -p` 真目录后 `ln -s $TEAM/SKILL.md <入口路径>`。VS Code / Copilot 默认扫描此目录；同一目录可并列本组织其他技能，本团队只占 `ai-matrix-team/` 一个位置 |
+| WorkBuddy | `<PROJECT>/.workbuddy/skills/ai-matrix-team/SKILL.md` | 同上 |
 | Claude Code | `<PROJECT>/.claude/skills/ai-matrix-team/SKILL.md` | 同上（SKILL.md 格式原生兼容） |
 | Codex | `<PROJECT>/AGENTS.md` | 壳文件：内容只有指向 `$TEAM/SKILL.md` 的指针（用实际绝对/相对路径写明，带 `<!-- managed-by: ai-matrix-team -->` 标记）；项目已有 AGENTS.md 则把指针**合并**进去，不覆盖 |
+
+> 各平台各扫自家目录，互不代扫：同时用多个工具时按需各建一条（`aimatrix-verify-skills.mjs` 逐个独立校验，不要求全建）。
+> **软链一律写绝对路径**（`ln -s $TEAM/SKILL.md …`）：相对目标要相对**入口自身目录**解析，层级算错即 drift；绝对路径无此歧义，且 `$TEAM` 本可位于任意位置。
 
 ```bash
 # ③ 专家包安装（WorkBuddy 平台；其他平台跳过本步）

@@ -41,7 +41,7 @@ version: 1.1.0
 ## 5. 红线
 
 1. **不许绕过 check 直接改 C1/C2**——绕得过脚本，绕不过 CI `audit` 与月度巡检；每次被 audit 抓到 = 一次流程事故。
-2. **不许改 `.workbuddy/skills/` 激活点**（软链，机器生成）。
+2. **不许改激活入口软链**（各平台技能目录下的 `ai-matrix-team/SKILL.md`，机器生成、按 SKILL.md 安装步骤 ② 建）。
 3. commit message 里带 WO 单号（`WO-YYYYMMDD-NN-slug`）——audit 靠它溯源。
 
 ## 按需读：面域速记（规则源 `<team-repo>/scripts/surfaces.json`） / 共享锁规则（按面域分片）

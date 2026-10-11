@@ -31,7 +31,7 @@
 要点：
 1. **专家团 ⊃ 专家**：一个专家包内含 N 个 agent（本团 5 个），`settings.json` 的 `agent` 字段指向主理人作团队入口。
 2. **专家 → 加载 → 技能**：成员干活时读自己的 `aimatrix-*` Skill 拿方法与规则；Skill 名见上表。
-3. **两者可分离**：安装/挂载层级（专家包）与知识层级（Skill 软链 `.workbuddy/skills/`）互不依赖，见 07-workbuddy-native.md。
+3. **两者可分离**：安装/挂载层级（专家包）与知识层级（Skill 软链，平台目录见团队仓 SKILL.md 安装步骤 ②）互不依赖，见 07-workbuddy-native.md。
 
 ### 0.2 真源与实例：成员定义的「类 → 对象」同步纪律
 
@@ -207,7 +207,7 @@ ai-matrix-team/
 └── SKILL.md                      # 安装器技能：agent 读它即知如何接入新项目
 ```
 
-> **唯一真相源**：本团队仓（入库）。目标项目的激活入口（如 `.workbuddy/skills/ai-matrix-team/SKILL.md`）是**软链**、按本仓 SKILL.md 安装步骤 ② 生成，**禁止手改**（见 06/07）。
+> **唯一真相源**：本团队仓（入库）。目标项目的激活入口（各平台技能目录下的 `ai-matrix-team/SKILL.md`，见本仓 SKILL.md 安装步骤 ②）是**软链**、**禁止手改**（见 06/07）。
 > **写完 Skill 必做**：`node scripts/aimatrix-verify-skills.mjs --project <root>`（链路不通 = 没交付）。
 
 **SKILL.md 必含章节**（顺序固定，便于 Agent 稳定加载）：
