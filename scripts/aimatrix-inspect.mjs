@@ -234,10 +234,11 @@ function chkSweepFreshness() {
 // ---- 13. Skill 链路 ----
 function chkLinks() {
   try {
-    execFileSync('node', [path.join(__dirname, 'aimatrix-install.mjs'), '--check', '--project', REPO_ROOT], { cwd: REPO_ROOT, stdio: 'pipe' });
-    record('13.Skill 软链激活链路', 'PASS', 'aimatrix-install --check 全绿');
+    const out = execFileSync('node', [path.join(__dirname, 'aimatrix-verify-skills.mjs'), '--project', REPO_ROOT], { cwd: REPO_ROOT, stdio: 'pipe', encoding: 'utf8' });
+    record('13.Skill 激活入口链路', 'PASS', (out.trim().split('\n')[0] || 'aimatrix-verify-skills 全绿').slice(0, 60));
   } catch (e) {
-    record('13.Skill 软链激活链路', 'FAIL', '软链漂移 → 重跑 aimatrix-install.mjs');
+    const out = ((e.stdout || '') + (e.stderr || '')).trim();
+    record('13.Skill 激活入口链路', 'FAIL', (out.split('\n').find((l) => l.startsWith('!')) || '入口缺失或漂移 → 按团队仓 SKILL.md 安装步骤 ② 重建软链').slice(0, 80));
   }
 }
 

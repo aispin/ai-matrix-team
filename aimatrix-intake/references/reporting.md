@@ -22,6 +22,6 @@
 
 1. 检查 `<project>/.ai-matrix-team/` 骨架齐不齐（缺则按 `<team-repo>/docs/08-portability.md` §5 清单补）。
 2. `node <team-repo>/scripts/aimatrix-init.mjs` 扫描落 `<project>/.ai-matrix-team/project.json` → **人工核对面域初判与术语表**（这是唯一的适配点）。
-3. `node <team-repo>/scripts/aimatrix-install.mjs` 激活 Skill 软链 → `--check` 全绿。
+3. 按团队仓 `SKILL.md` 安装步骤 ② 建平台激活入口 → `node <team-repo>/scripts/aimatrix-verify-skills.mjs --project <root>` 全绿。
 4. 跑一次空巡检出基线，把「规范文档缺失项」立成该项目的第一批待拍板（DR）。
 5. 向全员广播项目档案：此后所有成员以 project.json 为初始化依据，**禁止硬编码项目路径**。

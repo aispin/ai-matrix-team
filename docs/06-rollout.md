@@ -13,7 +13,7 @@
 | **团队仓（本仓）** | `ai-matrix-team/`（独立 git 仓库） | ✅ | Skill 真相源 `aimatrix-*/`、成员真源 `members/`、治理规范 `docs/`、CLI `scripts/`、操盘台 `dashboard/` |
 | **项目薄层** | `<project>/.ai-matrix-team/` | ✅（state 除外） | `project.json`（项目档案：apps/面域/workspace）+ `runtime/{workorders,decisions,handoffs,reviews}` 运行台账 |
 | **运行态（锁/日志）** | `<project>/.ai-matrix-team/runtime/state/` | ❌ | 机器写；`lock.json` / `guard.log`（gitignore） |
-| **Skill 激活点** | `<project>/.workbuddy/skills/aimatrix-*` → 团队仓 `aimatrix-*` | ❌ | **软链、自动生成、禁止手改**；由 `aimatrix-install.mjs` 创建 |
+| **Skill 激活入口** | `<project>/.workbuddy/skills/ai-matrix-team/SKILL.md` → 团队仓 `SKILL.md`（Claude Code 同款布局在 `.claude/skills/`，Codex 走 AGENTS.md 壳） | ❌ | **软链、按 SKILL.md 步骤 ② 生成、禁止手改**；`aimatrix-verify-skills.mjs` 校验 |
 | **专家包（源）** | `~/.workbuddy/plugins/marketplaces/my-experts/plugins/<pkg>/` | ❌ | 由 `expert-sync.mjs` 从 `members/` + 包元数据配置生成，**禁止手改** |
 | **专家包（安装快照）** | `~/.workbuddy/plugins/cache/my-experts/<pkg>/<ver>/` | ❌ | WorkBuddy 实际加载处；重装 = cache 落位 + installed_plugins.json 对齐 |
 
@@ -24,8 +24,8 @@
 ## 2. 接入新项目（一次配好）
 
 ```bash
-# ① Skill 软链激活（幂等；--check 供 CI/W8 巡检，漂移退出码 1）
-node <team-repo>/scripts/aimatrix-install.mjs --project <project-root>
+# ① 激活入口（按 SKILL.md 安装步骤 ② 建链；aimatrix-verify-skills 供 CI/W8 巡检，退出码 1 = 缺失/漂移）
+node <team-repo>/scripts/aimatrix-verify-skills.mjs --project <project-root>
 
 # ② 项目薄层初始化（project.json 骨架 + runtime 目录）
 node <team-repo>/scripts/aimatrix-init.mjs --project <project-root>
@@ -158,7 +158,7 @@ maxTurns: 80
 **实施纪律**：
 - `settings.json` 必写 `{"agent": "<主理人 agentName>"}`（Team 型丢了它主理人不生效）。
 - 打包走官方流程：`validate_expert.py` → `register_expert.py` → `package_expert.py`（`env -u PYTHONPATH`，**禁止手搓 zip**）；expert-sync.mjs 已内置。
-- **包内不随 Skills**：成员 MD 里写「必读 Skill：`aimatrix-*`」即可，实际加载走项目级软链。
+- **包内不随 Skills**：成员 MD 里写「必读 Skill：`aimatrix-*`」即可，agent 按团队仓路径直读（真源唯一，不复制不装包）。
 - 头像统一风格（512×512、PNG、≤500KB）；调度成员时 `name` 与 `subagent_type` 均传 **Agent ID**，禁止用中文花名。
 
 ---

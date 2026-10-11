@@ -151,7 +151,7 @@ flowchart LR
 
 | 步骤 | 谁 | 动作 | 门禁 |
 |---|---|---|---|
-| ① 扫描 | 石头 | `node <team-repo>/scripts/aimatrix-inspect.mjs all --json`（13 项清单见 [`02`](02-roles.md) §6.1）<br/>外加 `aimatrix-install.mjs --check`（专家团自身链路） | 脚本退出码 0 = 全通过；非 0 列出违约项 |
+| ① 扫描 | 石头 | `node <team-repo>/scripts/aimatrix-inspect.mjs all --json`（13 项清单见 [`02`](02-roles.md) §6.1）<br/>外加 `aimatrix-verify-skills.mjs --project <root>`（专家团自身链路） | 脚本退出码 0 = 全通过；非 0 列出违约项 |
 | ② 人工判定 | 石头 | 补查脚本查不了的项（BRD 准出质量、配置合理性），写明证据 | 每项有「证据或 N/A」，不许空判 |
 | ③ 报告 | 石头 | `<project>/.ai-matrix-team/runtime/reviews/YYYY-MM-合规巡检.md`：每 App 一行结论 + 违约明细 + 建议排期 | **结论不受主理人改写** |
 | ④ 开单 | PC | 每个违约项开整改 WO（标 `AUDIT`），P0 红线当轮修 | WO 模板三件套齐 |

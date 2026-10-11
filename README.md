@@ -60,7 +60,7 @@
 ├── SKILL.md            安装器技能（agent 读它即知如何接入/升级/体检）
 ├── members/            成员真源（五席，一席一份；expert-sync 的类）
 ├── aimatrix-*/         角色 Skill（9 个：6 岗位 + architect 深读 + guardian 守门 + guard/decision 工具）
-├── scripts/            CLI：guard 门禁 · inspect 巡检 · expert-sync 专家包同步 · init 引导 · install 软链 · DR 工具链
+├── scripts/            CLI：guard 门禁 · inspect 巡检 · expert-sync 专家包同步 · init 引导 · verify-skills 链路校验 · DR 工具链
 ├── docs/               治理规范 01-08（charter / roles / 面域 / DR / 工作流 / 落地 / workbuddy 原生 / 可移植）+ index 索引卡 + 模板
 ├── dashboard/          操盘台（Vite + React，--project 读项目薄层）
 ├── promo-page/         落地页源码（发布于 gh-pages 分支）
@@ -71,8 +71,8 @@
 
 ```bash
 node <本仓>/scripts/aimatrix-init.mjs --project <项目根>        # ① 项目档案
-node <本仓>/scripts/aimatrix-install.mjs --project <项目根>  # ② Skill 软链
-node <本仓>/scripts/expert-sync.mjs                              # ③ 专家包安装（首次）
+node <本仓>/scripts/aimatrix-verify-skills.mjs --project <项目根>  # ② 激活入口校验（建链方法见 SKILL.md 安装步骤 ②）
+node <本仓>/scripts/expert-sync.mjs                              # ③ 专家包安装（首次，WorkBuddy 平台）
 node <本仓>/scripts/aimatrix-guard.mjs agents --project <项目根>  # ④ 体检
 ```
 

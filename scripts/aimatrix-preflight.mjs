@@ -8,7 +8,7 @@
  * 检查项：① 版本闭环（引擎 VERSION vs 项目档案 engineVersion）
  * ② 项目档案漂移（init --check）
  * ③ 专家包漂移（expert-sync --check）
- * ④ Skill 软链健康（aimatrix-install --check）
+ * ④ Skill 激活入口（aimatrix-verify-skills）
  * ⑤ 工作区干净度（git status）
  * ⑥ 在途工单与未闭环决策单（WO / DR）
  *
@@ -110,13 +110,13 @@ add('③ 专家包漂移',
   r3.code === 0 ? '全部实例与真源一致' : '实例与真源不一致',
   r3.code === 0 ? null : '专家包发版是团队仓维护动作：只在团队仓自己的会话里跑 expert-sync（validate→register→package→cache→installed），项目侧升级不需要也不应该执行');
 
-/* ④ Skill 软链 */
-const instScript = path.join(TEAM_ROOT, 'scripts', 'aimatrix-install.mjs');
-const r4 = run(process.execPath, [instScript, '--check', '--project', ROOT]);
-add('④ Skill 软链',
+/* ④ Skill 激活入口 */
+const vsScript = path.join(TEAM_ROOT, 'scripts', 'aimatrix-verify-skills.mjs');
+const r4 = run(process.execPath, [vsScript, '--project', ROOT]);
+add('④ Skill 激活入口',
   r4.code === 0 ? 'pass' : 'fail',
   r4.code === 0 ? '就绪' : '存在漂移或缺失',
-  r4.code === 0 ? null : `跑：node ${instScript} --project ${ROOT}`);
+  r4.code === 0 ? null : `跑：node ${vsScript} --project ${ROOT}（按提示重建入口软链，布局见团队仓 SKILL.md 安装步骤 ②）`);
 
 /* ⑤ 工作区干净度 */
 let dirty = 0;

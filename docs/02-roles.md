@@ -47,7 +47,7 @@
   ├── qa.md                  → 实例⑥ 专家团 aimatrix-team-qa
   └── devops.md              → 实例⑦ 专家团 aimatrix-team-devops
                 │ node <team-repo>/scripts/expert-sync.mjs（--check 巡检）
-技能层:      各实例共享同一套 aimatrix-* Skill（.workbuddy/skills/ 软链），天然不漂移
+技能层:      各实例共享同一套 aimatrix-* Skill（按团队仓路径直读），天然不漂移
 ```
 
 独立专家包价值判定：**通用性 + 单点使用场景 + 同步成本**三条件——PC（项目任务里用上产研高级总监并可召集全团）、毛毛（BRD/PRD/设计稿方法论通用）入选；Bruce/石头/波波的职责深度绑定门禁与基础设施，脱离项目仓库即失效，不注册。
@@ -164,7 +164,7 @@ per-WO 分支 `wo/WO-<id>`；**面域不相交才允许并行**（guard 锁分�
 | 10 | BLOCKING DR 存量与等待时长 | `guard dr scan` | 超 7 天 → 主理人当轮升级通报 |
 | 11 | OPEN-ITEMS 与 DR 台账一致（每条带 DR id） | `aimatrix-inspect open-items --check` | 重跑 `render-open-items.mjs` 同步 |
 | 12 | 每个 App 距上次被巡检的时间 | 台账时间戳 | 超 90 天未巡检的 App 优先排本月 |
-| 13 | **专家团自身链路**：Skill 是否都已正确软链到激活点 | `aimatrix-install.mjs --check`（退出码 1 = 漂移） | 立即重跑 install；若发现有人手改了 `.workbuddy/skills/` 副本 → 记流程事故 |
+| 13 | **专家团自身链路**：激活入口是否正确软链到真源 | `aimatrix-verify-skills.mjs --project <root>`（退出码 1 = 缺失/漂移） | 按团队仓 SKILL.md 安装步骤 ② 重建入口；若发现有人手改了技能目录下的副本 → 记流程事故 |
 
 > 第 12 项是巡检本身也需要被巡检（谁查过、什么时候查的、结论在哪）。
 > 第 13 项防「Skill 写好了但链路没通」——规范写得再好，加载不进来等于零。
@@ -207,8 +207,8 @@ ai-matrix-team/
 └── SKILL.md                      # 安装器技能：agent 读它即知如何接入新项目
 ```
 
-> **唯一真相源**：本团队仓（入库）。目标项目 `.workbuddy/skills/aimatrix-*` 是**软链**、由安装脚本生成，**禁止手改**（见 06/07）。
-> **写完 Skill 必做**：`node scripts/aimatrix-install.mjs --check`（链路不通 = 没交付）。
+> **唯一真相源**：本团队仓（入库）。目标项目的激活入口（如 `.workbuddy/skills/ai-matrix-team/SKILL.md`）是**软链**、按本仓 SKILL.md 安装步骤 ② 生成，**禁止手改**（见 06/07）。
+> **写完 Skill 必做**：`node scripts/aimatrix-verify-skills.mjs --project <root>`（链路不通 = 没交付）。
 
 **SKILL.md 必含章节**（顺序固定，便于 Agent 稳定加载）：
 
