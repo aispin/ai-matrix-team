@@ -20,4 +20,6 @@
 来源: bobika-dev#1 · 2026-10-12 升级前踩到 · 未迁移结构里 wo new 写入 runtime/wo-details/，紧接着 guard check 报「⛔ WO 已归档：.../wo-details/WO-20261012-01.md」，把新建单说成已归档、引导错误。建议检测结构版本并提示「需先跑 migrate-v2」 10-11 · 状态: OPEN · 去向: — · 更新: 2026-10-11
 
 ## I-016 状态词表不一致：wo table start 置 EXECUTING，但 guard check 只认 IMPLEMENTING
-来源: bobika-dev#1 · 2026-10-12 开 WO-20261011-01 时踩到：wo table start 把台账置 EXECUTING（并加锁），紧接着 guard check 报「WO 状态为 EXECUTING（需为 APPROVED/LOCKED/IMPLEMENTING/VERIFYING/BLOCKED_DR 之一）→ 不可写入」，即开单后无法写入。另：wo table 无「回退到 APPROVED」命令，只能手改台账 10-11 · 状态: OPEN · 去向: — · 更新: 2026-10-11
+来源: bobika-dev#1 · 2026-10-12 开 WO-20261011-01 时踩到：wo table start 把台账置 EXECUTING（并加锁），紧接着 guard check 报「WO 状态为 EXECUTING（需为 APPROVED/LOCKED/IMPLEMENTING/VERIFYING/BLOCKED_DR 之一）→ 不可写入」，即开单后无法写入。
+补充（同单复现，定位更准）：工具自身状态机是 **TODO → EXECUTING →（verify）→ VERIFYING → DONE**（verify 在 IMPLEMENTING 下会报「不可 verify」，改回 EXECUTING 才成功）；也就是说 **guard check 的允许集合漏了 EXECUTING**——恰是"正在落码"那个状态被挡在门外。修法建议：check 允许集合并入 EXECUTING（或统一把 start 的落值改为 IMPLEMENTING）。
+另：wo table 无「回退（un-start）」命令，只能手改台账。 · 状态: OPEN · 去向: — · 更新: 2026-10-12
