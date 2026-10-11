@@ -43,6 +43,17 @@ if (!fs.existsSync(path.join(PROJECT, '.ai-matrix-team', 'project.json'))) {
   process.exit(1);
 }
 
+// ---------- ⓪ v2 三表自动迁移（SPEC-20261010-03）：旧项目在启动时静默升级一次 ----------
+try {
+  const mtScript = path.join(TEAM_REPO, 'scripts', 'aimatrix-migrate-v2.mjs');
+  const marker = path.join(PROJECT, '.ai-matrix-team', 'runtime', 'state', 'v2-migrated');
+  if (fs.existsSync(mtScript) && !fs.existsSync(marker)) {
+    const r = spawnSync(process.execPath, [mtScript, '--project', PROJECT, '--auto'], { encoding: 'utf8', env: { ...process.env, NODE_OPTIONS: '' } });
+    if (r.status === 0 && (r.stdout || '').includes('➜')) log('⟳ 台账已自动迁移 v2：\n' + (r.stdout || '').trim());
+    else if (r.status !== 0) log(`⚠ v2 自动迁移失败（服务照常启动）：${((r.stderr || '').split('\n')[0] || '').slice(0, 120)}`);
+  }
+} catch { /* 迁移钩子不阻断启动 */ }
+
 // ---------- ① 生成汇报（可跳过） ----------
 if (!has('--no-report')) {
   const r = spawnSync(process.execPath, [path.join(TEAM_REPO, 'scripts', 'aimatrix-report.mjs'), '--root', PROJECT], {

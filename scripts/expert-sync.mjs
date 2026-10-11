@@ -61,9 +61,9 @@ const SOLO_VERSION = '0.1.5';
 
 // 团队包开场提示语：同时用于 plugin.json 的 quickPrompts 与 README 的「怎么用」，避免两处漂移
 const TEAM_QUICK_PROMPTS = [
-  { zh: '我要接入一个新 App，走完整立项到上线流程', en: 'Onboard a new app — run the full pipeline from business case to release' },
-  { zh: '我要改 packages 下的共享模块，帮我走共享面变更流程', en: 'I need to change a shared package — run the shared-surface change workflow' },
-  { zh: '帮我梳理现在有哪些待我拍板的决策项，再跑一次合规巡检', en: 'List decisions waiting for my call, then run a compliance sweep' },
+  { zh: '告诉我 ai-matrix-team 专家团有什么功能，应该怎么用', en: 'Tell me what the AI Matrix Team can do and how to use it' },
+  { zh: '帮我打开 ai-matrix-team 指挥台', en: 'Open the AI Matrix Team console for me' },
+  { zh: '介绍下 ai-matrix-team 设计师毛毛有什么能力', en: 'Introduce what Mao, the product designer on the AI Matrix Team, can do' },
 ];
 
 // 独立包开场提示语（键为角色 id）：同上，plugin.json 与 README 同源
@@ -222,8 +222,8 @@ function teamPluginJson() {
     avatar: 'avatars/team.png',
     categoryId: '02-Engineering',
     defaultInitPrompt: {
-      zh: '我要接入一个新 App，走完整立项到上线流程',
-      en: 'Onboard a new app — run the full pipeline from business case to release',
+      zh: '告诉我 ai-matrix-team 专家团有什么功能，应该怎么用',
+      en: 'Tell me what the AI Matrix Team can do and how to use it',
     },
     plugin: 'ai-matrix-team',
     tags: [

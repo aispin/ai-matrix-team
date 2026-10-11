@@ -8,3 +8,4 @@
 | DR-20261008-003 | 石头·资深质检工程师（L1 验收发现）· 经 PC 复核裁定 | 团队仓 dashboard/（与 WO-20261008-01 **无因果关系**，本单未触碰） | dashboard 构建门禁不可复现，是否立维护单 | Type 2（可逆——依赖与 lockfile 可重建） | NON-BLOCKING | ANSWERED | 2026-10-08 | 2026-10-10（NON-BLOCKING 默认 +48h） |
 | DR-20261010-001 | PC·team-lead | WO-BOOTSTRAP | 设计稿渲染是否引入 HeroUI+Tailwind 同栈（B2/B3 取舍） | Type 2（可逆） | NON-BLOCKING | ANSWERED | 2026-10-10 | 2026-10-12（NON-BLOCKING +48h 按默认执行） |
 | DR-20261010-002 | PC·team-lead | WO-BOOTSTRAP | 全新视觉出稿支持（模式 A/B/C） | Type 1（品牌 / 视觉口径） | BLOCKING | ANSWERED | 2026-10-10 | 2026-10-17 |
+| DR-20261010-003 | PC·team-lead | WO-BOOTSTRAP / 团队仓 docs + scripts | 单据体系迭代：新增 issues 白板，WO/DR 收敛为单表 | Type 2（可逆——三表均为新增 markdown，git revert 即回退） | NON-BLOCKING | ANSWERED | 2026-10-10 | 2026-10-12（NON-BLOCKING +48h 按默认执行） |

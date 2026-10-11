@@ -1,7 +1,7 @@
 ---
 name: aimatrix-guard
-description: "ai-matrix 机器门禁：面域判定（surface）、写入前校验（check）、串行锁（lock）、DR 扫描（dr scan）、台账格式校验（wo lint）、规范同步提示（sync-check）、无单写入审计（audit）、状态总览（report）。所有角色写受控面前必读必跑。"
-version: 1.0.1
+description: "ai-matrix 机器门禁：面域判定（surface）、写入前校验（check）、串行锁（lock）、DR 扫描（dr scan）、三表单据命令（issues add|normalize|triage|close、wo table add|start|verify|done|block、dr add、archive move|sweep）、WO 详情单（wo new | lint | journal）、无单写入审计（audit）、状态总览（report）。所有角色写受控面前必读必跑。"
+version: 1.1.0
 ---
 
 # aimatrix-guard · 机器门禁（跨角色工具）
@@ -16,8 +16,12 @@ version: 1.0.1
 | 动 C1/C2 前自检 | `… check --wo <WO-id> --paths <paths...>` |
 | 提交前（pre-commit 同款） | `… check --wo <WO-id> --staged` |
 | C1/C2 写入前抢锁 | `… lock acquire --wo <WO-id> --surfaces <s1,s2>` |
+| issues 白板（agent 单写者） | `… issues add --title … --source …` · `… issues normalize`（补编号元数据）· `… issues triage --id I-x --to WO-x` · `… issues close --id I-x`（去向必填） |
+| 开单 / 状态流转（表行） | `… wo table add --title … --brief … [--ref …]` → `start --id --who`（EXECUTING 即锁定）→ `verify` → `done`；卡决策用 `block` |
+| 落 DR（decisions.md 条目块） | `… dr add --title … --opt <方案>… --recommend <序号> [--blocking] [--ref …]` |
 | 进入 VERIFYING 前 | `… dr scan --blocking --wo <WO-id>`（退出码 4 = 停） |
-| 落 WO/DR/交接单后 | `… wo lint <files...>`（退出码 5 = 补字段） |
+| 终态收口 / 防膨胀 | `… archive move --kind wo|dr|issue --id <id>` · `… archive sweep`（终态滞留 48h 报警，退出码 2） |
+| 落 WO 详情单后（L2/受控面） | `… wo new --slug <kebab>` · `… wo lint <files...>`（退出码 5 = 补字段） |
 | 改 ★ 契约类文档后 | `… sync-check`（退出码 6 = 提示同步对应 Skill，不阻塞） |
 | CI / 巡检 | `… audit --since <sha>`（退出码 2 = 无单写入） |
 | 每 Phase 收口 | `… report` |

@@ -147,7 +147,18 @@ function artifacts() {
 }
 
 /* ---------------- 台账解析（与 aimatrix-report.mjs 同口径） ---------------- */
+// v2 三表（SPEC-20261010-03）优先，旧 INDEX.md 回退（迁移前兼容）
 function activeWorkorders() {
+  const wt = path.join(ROOT, '.ai-matrix-team', 'workorders.md');
+  if (fs.existsSync(wt)) {
+    const rows = [];
+    for (const line of fs.readFileSync(wt, 'utf8').split('\n')) {
+      if (!/^\| WO-/.test(line)) continue;
+      const c = line.split('|').map((x) => x.trim()).filter((x) => x !== '');
+      rows.push({ id: c[0], purpose: c[2] || '', executor: c[5] || '', guard: '', status: c[4] || '' });
+    }
+    return rows;
+  }
   if (!existsP('.ai-matrix-team/runtime/workorders/INDEX.md')) return [];
   // 活跃表 = INDEX 中「## 归档单」之前的全部表格行（INDEX 无「## 活跃单」标题，勿按标题找）
   const section = read('.ai-matrix-team/runtime/workorders/INDEX.md').split(/^## 归档单/m)[0] || '';
@@ -173,15 +184,46 @@ function recentClosedWorkorders(n = 5) {
 }
 
 function decisions() {
-  if (!existsP('.ai-matrix-team/runtime/decisions/LEDGER.md')) return { open: [], closedRecent: [] };
   const open = [];
   const closedRecent = [];
-  for (const line of read('.ai-matrix-team/runtime/decisions/LEDGER.md').split('\n')) {
-    if (!/^\| DR-/.test(line)) continue;
-    const c = line.split('|').map((x) => x.trim()).filter((x) => x !== '');
-    const item = { id: c[0], oneLine: c[3] || '', blocking: /BLOCKING/i.test(c[5] || ''), status: c[6] || '', due: c[8] || '' };
-    if (/OPEN/i.test(item.status)) open.push(item);
-    else closedRecent.push(item);
+  // v2：decisions.md h2 条目块（增量真相源）+ archive/ 归档块
+  const dfile = path.join(ROOT, '.ai-matrix-team', 'decisions.md');
+  if (fs.existsSync(dfile)) {
+    let cur = null;
+    for (const line of fs.readFileSync(dfile, 'utf8').split('\n')) {
+      const h = line.match(/^## (DR-\d{8}-\d{3})\s+(.+)$/);
+      if (h) { if (cur) closedRecent.push(cur); cur = { id: h[1], oneLine: h[2], blocking: false, status: 'OPEN', due: '' }; continue; }
+      if (!cur) continue;
+      if (/状态:/.test(line)) {
+        const get = (k) => { const m = line.match(new RegExp(`${k}:\\s*([^·]*)`)); return m ? m[1].trim() : ''; };
+        cur.status = get('状态') || 'OPEN';
+        cur.blocking = /BLOCKING/i.test(get('阻塞') || '') && !/NON/i.test(get('阻塞') || '');
+      }
+    }
+    if (cur) closedRecent.push(cur);
+    for (const it of closedRecent.splice(0)) if (/OPEN/i.test(it.status)) open.push(it); else closedRecent.push(it);
+  }
+  // 归档块 → 最近闭环视图
+  const archDir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'archive');
+  if (fs.existsSync(archDir)) {
+    for (const f of fs.readdirSync(archDir).filter((f) => f.endsWith('.md')).sort().reverse()) {
+      for (const line of fs.readFileSync(path.join(archDir, f), 'utf8').split('\n')) {
+        const h = line.match(/^## DR (DR-\d{8}-\d{3})\s+(.+?)\s*（归档/);
+        if (h) closedRecent.push({ id: h[1], oneLine: h[2], blocking: false, status: 'ANSWERED', due: '' });
+      }
+    }
+  }
+  // 旧 LEDGER 兜底（迁移前项目 / 历史视图），去重
+  if (existsP('.ai-matrix-team/runtime/decisions/LEDGER.md')) {
+    const seen = new Set([...open, ...closedRecent].map((x) => x.id));
+    for (const line of read('.ai-matrix-team/runtime/decisions/LEDGER.md').split('\n')) {
+      if (!/^\| DR-/.test(line)) continue;
+      const c = line.split('|').map((x) => x.trim()).filter((x) => x !== '');
+      if (seen.has(c[0])) continue;
+      const item = { id: c[0], oneLine: c[3] || '', blocking: /BLOCKING/i.test(c[5] || ''), status: c[6] || '', due: c[8] || '' };
+      if (/OPEN/i.test(item.status)) open.push(item);
+      else closedRecent.push(item);
+    }
   }
   return { open, closedRecent: closedRecent.slice(0, 5) };
 }
@@ -424,12 +466,27 @@ const server = http.createServer(async (req, res) => {
         const file = path.join(ROOT, '.ai-matrix-team', 'runtime', 'workorders', sub, `${id}.md`);
         if (fs.existsSync(file)) return json(res, { id, content_md: fs.readFileSync(file, 'utf8') });
       }
+      // v2：表单轻单无详情文件 → 详情单目录，再退回 workorders.md 表行
+      const detail = path.join(ROOT, '.ai-matrix-team', 'runtime', 'wo-details', `${id}.md`);
+      if (fs.existsSync(detail)) return json(res, { id, content_md: fs.readFileSync(detail, 'utf8') });
+      const wt = path.join(ROOT, '.ai-matrix-team', 'workorders.md');
+      if (fs.existsSync(wt)) {
+        const row = fs.readFileSync(wt, 'utf8').split('\n').find((l) => l.startsWith(`| ${id} |`));
+        if (row) return json(res, { id, content_md: `# ${id}\n\n${row}\n` });
+      }
       return send(res, 404, JSON.stringify({ error: '工单不存在' }));
     }
     const drGet = url.pathname.match(new RegExp(`^/api/decisions/(${LEDGER_ID})$`));
     if (drGet && req.method === 'GET') {
       const id = drGet[1];
-      for (const sub of ['open', 'closed']) {
+      // v2 优先：decisions.md 条目块（OPEN 在此）
+      const dfile = path.join(ROOT, '.ai-matrix-team', 'decisions.md');
+      if (fs.existsSync(dfile)) {
+        const text = fs.readFileSync(dfile, 'utf8');
+        const m = text.match(new RegExp(`## ${id} [\\s\\S]*?(?=\\n## |$)`));
+        if (m) return json(res, { id, content_md: m[0] });
+      }
+      for (const sub of ['open', 'closed', 'migrated']) {
         const dir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'decisions', sub);
         if (!fs.existsSync(dir)) continue;
         const hit = fs.readdirSync(dir).find((f) => f.startsWith(id) && f.endsWith('.md'));
@@ -447,6 +504,24 @@ const server = http.createServer(async (req, res) => {
       const choices = Array.isArray(body.choices) ? body.choices.map(String).filter(Boolean).slice(0, 10) : [];
       const note = String(body.note || '').slice(0, 2000).trim();
       if (!choices.length && !note) return send(res, 400, JSON.stringify({ error: '至少勾选一项结论或填写补充说明' }));
+      const now = new Date();
+      const p2 = (n) => String(n).padStart(2, '0');
+      const dateStr = `${now.getFullYear()}-${p2(now.getMonth() + 1)}-${p2(now.getDate())} ${p2(now.getHours())}:${p2(now.getMinutes())}`;
+      const pick = choices.join('；');
+      const conclusion = pick + (note ? ` · 其他：${note}` : '');
+      // v2 优先：decisions.md 条目块 → 回填行直填（用户唯一编辑点）+ 状态置 ANSWERED
+      const dfile = path.join(ROOT, '.ai-matrix-team', 'decisions.md');
+      if (fs.existsSync(dfile) && new RegExp(`^## ${id} `, 'm').test(fs.readFileSync(dfile, 'utf8'))) {
+        const all = fs.readFileSync(dfile, 'utf8').split('\n');
+        let inBlock = false;
+        for (let i = 0; i < all.length; i++) {
+          if (all[i].startsWith('## ')) inBlock = all[i].startsWith(`## ${id} `);
+          else if (inBlock && /^回填:/.test(all[i])) all[i] = `回填: ZEO ${dateStr.slice(5, 10)} ${pick}${note ? `——${note}` : ''}`;
+          else if (inBlock && /状态:/.test(all[i])) all[i] = all[i].replace(/状态:\s*OPEN/i, '状态: ANSWERED').replace(/(更新:\s*)\S+/, `$1${dateStr.slice(0, 10)}`);
+        }
+        fs.writeFileSync(dfile, all.join('\n'));
+        return json(res, { ok: true, content_md: all.join('\n'), file: path.relative(ROOT, dfile) });
+      }
       let hit = null;
       for (const sub of ['open', 'closed']) {
         const dir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'decisions', sub);
@@ -455,11 +530,6 @@ const server = http.createServer(async (req, res) => {
         if (f) { hit = path.join(dir, f); break; }
       }
       if (!hit) return send(res, 404, JSON.stringify({ error: '决定文档不存在' }));
-      const now = new Date();
-      const p2 = (n) => String(n).padStart(2, '0');
-      const dateStr = `${now.getFullYear()}-${p2(now.getMonth() + 1)}-${p2(now.getDate())} ${p2(now.getHours())}:${p2(now.getMinutes())}`;
-      const pick = choices.join('；');
-      const conclusion = pick + (note ? ` · 其他：${note}` : '');
       const lines = fs.readFileSync(hit, 'utf8').split('\n');
       let patched = false;
       const head = lines.findIndex((l) => /^#{1,4}\s/.test(l) && l.includes('答复'));

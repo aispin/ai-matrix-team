@@ -25,7 +25,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { redact } from './aimatrix-redact.mjs';
 
@@ -930,7 +930,7 @@ function cmdLock(sub, args) {
 function cmdDrScan(args) {
   const woId = args.get('--wo');
   const blockingOnly = args.has('--blocking');
-  const drs = scanDrs({ wo: woId, blockingOnly });
+  const drs = scanDrs({ wo: woId, blockingOnly }).concat(scanDrTable({ wo: woId, blockingOnly }));
   const blocking = drs.filter((d) => d.blocking);
   // 精炼铁律（docs/templates/dr.md）：open 单体量上限——创始人要读的就是它，超限直接烧 token
   const DR_MAX = 2.5 * 1024;
@@ -1224,6 +1224,322 @@ function cmdReport() {
 
 // ---------- 参数解析 ----------
 // --project <root> 全局参数：先摘除再分发（PROJECT 也会直接读 process.argv）
+// ===== 单表机制（SPEC-20261010-03）：issues 白板 / workorders 表 / decisions 条目块 =====
+const ISSUES_FILE = () => path.join(PROJECT(), '.ai-matrix-team', 'issues.md');
+const WO_TABLE = () => path.join(PROJECT(), '.ai-matrix-team', 'workorders.md');
+const DR_TABLE = () => path.join(PROJECT(), '.ai-matrix-team', 'decisions.md');
+const ARCHIVE_DIR = () => path.join(RUNTIME(), 'archive');
+const todayStr = () => new Date().toISOString().slice(0, 10);
+const ymStr = () => new Date().toISOString().slice(0, 7);
+
+function readOrCreate(file, header) {
+  if (!exists(file)) {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, header);
+  }
+  return read(file);
+}
+
+// 按 `^## ` 切 h2 条目块；pre = 首个 h2 之前的文件头
+function splitBlocks(file, header) {
+  const text = readOrCreate(file, header);
+  const lines = text.split('\n');
+  const blocks = [];
+  const pre = [];
+  let cur = null;
+  for (const ln of lines) {
+    if (/^## /.test(ln)) { if (cur) blocks.push(cur); cur = { head: ln, lines: [] }; }
+    else if (cur) cur.lines.push(ln);
+    else pre.push(ln);
+  }
+  if (cur) blocks.push(cur);
+  return { pre: pre.join('\n').replace(/\n*$/, '\n'), blocks };
+}
+
+function writeBlocks(file, pre, blocks) {
+  const body = blocks.map((b) => [b.head, ...b.lines].join('\n').replace(/\n*$/, '')).join('\n\n');
+  fs.writeFileSync(file, pre.replace(/\n*$/, '\n\n') + body + '\n');
+}
+
+// 元数据行（含 `状态:` 的第一行）解析/重建
+function parseMeta(b) {
+  const line = b.lines.find((l) => /状态:/.test(l)) || '';
+  const get = (k) => {
+    const m = line.match(new RegExp(`${k}:\\s*([^·]*)`));
+    return m ? m[1].trim() : '';
+  };
+  return { line, get };
+}
+
+function archivePath() {
+  fs.mkdirSync(ARCHIVE_DIR(), { recursive: true });
+  return path.join(ARCHIVE_DIR(), `${ymStr()}.md`);
+}
+
+function archiveAppend(block) {
+  const f = archivePath();
+  if (!exists(f)) fs.writeFileSync(f, '# 归档 · 已闭环单据（append-only）\n\n');
+  fs.appendFileSync(f, block.replace(/\n*$/, '\n\n'));
+}
+
+function requireTableId(id, re, what) {
+  if (!re.test(id || '')) die(EXIT.USAGE, `缺合法 ${what} 编号（--id ${what}-…）`);
+}
+
+// --- issues ---
+const ISSUE_HEADER = '# Issues · 未处理事项白板\n\n> 用户随手记：文末追加 `## 标题` + 一句话即可；agent 一律经 `guard issues add|triage|close|normalize` 写入。\n\n';
+
+function issueBlocks() { return splitBlocks(ISSUES_FILE(), ISSUE_HEADER); }
+
+function nextIssueId(blocks) {
+  let max = 0;
+  for (const b of blocks) { const m = b.head.match(/^## (I-\d+)/); if (m) max = Math.max(max, Number(m[1].slice(2))); }
+  return `I-${String(max + 1).padStart(3, '0')}`;
+}
+
+function cmdIssues(sub, args) {
+  const { pre, blocks } = issueBlocks();
+  if (sub === 'add') {
+    const title = args.get('--title');
+    if (!title) die(EXIT.USAGE, '用法：issues add --title <标题> [--source <来源>]');
+    const id = nextIssueId(blocks);
+    blocks.push({ head: `## ${id} ${title}`, lines: [`来源: ${args.get('--source') || 'agent'} ${todayStr().slice(5)} · 状态: OPEN · 去向: — · 更新: ${todayStr()}`] });
+    writeBlocks(ISSUES_FILE(), pre, blocks);
+    console.log(G(`✅ 已登记 ${id}：${title}`));
+    process.exit(EXIT.OK);
+  }
+  if (sub === 'normalize') {
+    let n = 0;
+    for (const b of blocks) {
+      const { line, get } = parseMeta(b);
+      let head = b.head;
+      if (!/^## I-\d+ /.test(head)) { const t = head.replace(/^##\s*/, ''); head = `## ${nextIssueId(blocks)} ${t}`; n++; }
+      if (!line) { b.lines.unshift(`来源: 手写 ${todayStr().slice(5)} · 状态: OPEN · 去向: — · 更新: ${todayStr()}`); n++; }
+      else if (!/更新:/.test(line)) { b.lines[b.lines.indexOf(line)] = `${line} · 更新: ${todayStr()}`; n++; }
+      b.head = head;
+    }
+    if (n) { writeBlocks(ISSUES_FILE(), pre, blocks); console.log(G(`✅ 规范化 ${n} 处。`)); }
+    else console.log('无草稿条目，白板已规范。');
+    process.exit(EXIT.OK);
+  }
+  if (sub === 'triage') {
+    const id = args.get('--id'); const to = args.get('--to');
+    requireTableId(id, /^I-\d+$/, 'I');
+    if (!to) die(EXIT.USAGE, '用法：issues triage --id I-xxx --to WO-xxx|DR-xxx|不做 [--note <原因>]');
+    const target = to === '不做' ? `不做(${args.get('--note') || '未说明'})` : `→${to}`;
+    const b = blocks.find((x) => x.head.startsWith(`## ${id} `));
+    if (!b) die(EXIT.FORMAT, `⛔ 找不到 ${id}`);
+    const { line, get } = parseMeta(b);
+    const merged = [`来源: ${get('来源') || '—'}`, `状态: TRIAGED`, `去向: ${target}`, `更新: ${todayStr()}`].join(' · ');
+    if (line) b.lines[b.lines.indexOf(line)] = merged; else b.lines.unshift(merged);
+    writeBlocks(ISSUES_FILE(), pre, blocks);
+    console.log(G(`✅ ${id} → TRIAGED（${target}）。收尾后 issues close --id ${id} 归档。`));
+    process.exit(EXIT.OK);
+  }
+  if (sub === 'close') {
+    const id = args.get('--id');
+    requireTableId(id, /^I-\d+$/, 'I');
+    const i = blocks.findIndex((x) => x.head.startsWith(`## ${id} `));
+    if (i < 0) die(EXIT.FORMAT, `⛔ 找不到 ${id}`);
+    const b = blocks[i];
+    const { get } = parseMeta(b);
+    const target = get('去向');
+    if (!target || target === '—') die(EXIT.VIOLATION, `⛔ ${id} 无去向（先 triage 回填 →WO/→DR/不做），不许闭环`);
+    const title = b.head.replace(/^## I-\d+\s*/, '');
+    archiveAppend(`## ISSUE ${id} ${title}（归档 ${todayStr()}）\n${b.lines.join('\n').trim()}`);
+    blocks.splice(i, 1);
+    writeBlocks(ISSUES_FILE(), pre, blocks);
+    console.log(G(`✅ ${id} 已归档（去向 ${target}）。`));
+    process.exit(EXIT.OK);
+  }
+  die(EXIT.USAGE, '用法：issues add --title <t> [--source <s>] | normalize | triage --id I-x --to <目标> | close --id I-x | list');
+}
+
+// --- workorders 表 ---
+const WO_TABLE_HEADER = '# Workorders · 任务表\n\n> agent 经 `guard wo table add|start|verify|done|block` 维护；EXECUTING 即锁定。C1/C2 或 L2 必挂详情单 `runtime/wo-details/<单号>.md`。\n\n| 单号 | 任务名 | 简述 | 关联 | 状态 | 处理者 | 锁定 | 更新 |\n|---|---|---|---|---|---|---|---|\n';
+
+function woRows() {
+  const text = readOrCreate(WO_TABLE(), WO_TABLE_HEADER);
+  const lines = text.split('\n');
+  const head = lines.findIndex((l) => l.startsWith('| 单号'));
+  const rows = [];
+  for (let i = head + 2; i < lines.length; i++) {
+    if (!lines[i].startsWith('|')) break;
+    rows.push({ line: lines[i], c: cells(lines[i]) });
+  }
+  return { lines, head, rows };
+}
+
+function cmdWoTable(sub, args) {
+  const { lines, head, rows } = woRows();
+  const find = (id) => rows.find((r) => r.c[0] === id);
+  const save = () => {
+    const newLines = [...lines];
+    rows.forEach((r, idx) => { newLines[head + 2 + idx] = r.line; });
+    fs.writeFileSync(WO_TABLE(), newLines.join('\n'));
+  };
+  const mutate = (r, patch) => { Object.assign(r.c, patch); r.line = `| ${r.c.join(' | ')} |`; };
+  if (sub === 'add') {
+    const title = args.get('--title');
+    if (!title) die(EXIT.USAGE, '用法：wo table add --title <任务名> --brief <简述≤30字> [--ref <关联>]');
+    const date = todayStr().replace(/-/g, '');
+    let n = rows.filter((r) => r.c[0].startsWith(`WO-${date}`)).length;
+    const arch = archivePath();
+    if (exists(arch)) {
+      const m = read(arch).match(new RegExp(`WO-${date}-(\\d{2})`, 'g'));
+      for (const x of m || []) n = Math.max(n, Number(x.slice(-2)));
+    }
+    n += 1;
+    const id = `WO-${date}-${String(n).padStart(2, '0')}`;
+    const c = [id, title, args.get('--brief') || '—', args.get('--ref') || '—', 'TODO', '—', '—', todayStr()];
+    rows.push({ line: `| ${c.join(' | ')} |`, c });
+    save();
+    console.log(G(`✅ 已开单 ${id}（TODO）。执行前 wo table start --id ${id} --who <角色#呼号>。`));
+    process.exit(EXIT.OK);
+  }
+  if (sub === 'start' || sub === 'verify' || sub === 'done' || sub === 'block') {
+    const id = args.get('--id');
+    requireTableId(id, /^WO-\d{8}-\d{2}$/, 'WO');
+    const r = find(id);
+    if (!r) die(EXIT.FORMAT, `⛔ 表中无 ${id}`);
+    const st = r.c[4];
+    if (sub === 'start') {
+      if (st === 'EXECUTING') die(EXIT.VIOLATION, `⛔ ${id} 已在执行中（处理者 ${r.c[5]}），锁定不可抢占`);
+      if (!['TODO', 'BLOCKED_DR'].includes(st)) die(EXIT.VIOLATION, `⛔ ${id} 状态 ${st} 不可 start`);
+      mutate(r, { 4: 'EXECUTING', 5: args.get('--who') || '—', 6: '🔒', 7: todayStr() });
+    } else if (sub === 'verify') {
+      if (st !== 'EXECUTING') die(EXIT.VIOLATION, `⛔ ${id} 状态 ${st} 不可 verify`);
+      mutate(r, { 4: 'VERIFYING', 7: todayStr() });
+    } else if (sub === 'done') {
+      if (!['EXECUTING', 'VERIFYING', 'BLOCKED_DR'].includes(st)) die(EXIT.VIOLATION, `⛔ ${id} 状态 ${st} 不可 done`);
+      mutate(r, { 4: 'DONE', 6: '—', 7: todayStr() });
+    } else {
+      const dr = args.get('--dr') || '—';
+      if (st === 'DONE') die(EXIT.VIOLATION, `⛔ ${id} 已完成`);
+      mutate(r, { 4: 'BLOCKED_DR', 6: '—', 7: todayStr() });
+      if (dr !== '—' && !r.c[3].includes(dr)) r.c[3] = `${r.c[3]}·${dr}`;
+      r.line = `| ${r.c.join(' | ')} |`;
+    }
+    save();
+    const after = find(id);
+    console.log(G(`✅ ${id} → ${after ? after.c[4] : '?'}`));
+    process.exit(EXIT.OK);
+  }
+  die(EXIT.USAGE, '用法：wo table add|start|verify|done|block');
+}
+
+// --- decisions 条目块 ---
+const DR_TABLE_HEADER = '# Decisions · 决策请求\n\n> agent 产生（`guard dr add`）；用户唯一动作 = 改「回填」行（`ZEO 10-11 选2`）。\n\n';
+
+function drBlocks() { return splitBlocks(DR_TABLE(), DR_TABLE_HEADER); }
+
+function nextDrId(all) {
+  const date = todayStr().replace(/-/g, '');
+  let max = 0;
+  for (const b of all) { const m = b.head.match(new RegExp(`DR-${date}-(\\d{3})`)); if (m) max = Math.max(max, Number(m[1])); }
+  const closedDir = DR_CLOSED();
+  if (exists(closedDir)) for (const f of fs.readdirSync(closedDir)) { const m = f.match(new RegExp(`DR-${date}-(\\d{3})`)); if (m) max = Math.max(max, Number(m[1])); }
+  return `DR-${date}-${String(max + 1).padStart(3, '0')}`;
+}
+
+function cmdDrAdd(args) {
+  const title = args.get('--title');
+  const opts = many(args.get('--opt'));
+  if (!title || opts.length < 2) die(EXIT.USAGE, '用法：dr add --title <问题> --opt <方案1> --opt <方案2> [--opt <方案3>] [--recommend <序号>] [--ref <关联>] [--blocking]');
+  const { pre, blocks } = drBlocks();
+  const id = nextDrId(blocks);
+  const rec = args.get('--recommend') || '—';
+  const lines = ['方案：', ...opts.map((o, i) => `${i + 1}. ${o}`), `推荐: ${rec} · 关联: ${args.get('--ref') || '—'} · 状态: OPEN · 阻塞: ${args.has('--blocking') ? 'BLOCKING' : 'NON-BLOCKING'} · 更新: ${todayStr()}`, '回填: （待答复，直接改本行）'];
+  blocks.push({ head: `## ${id} ${title}`, lines });
+  writeBlocks(DR_TABLE(), pre, blocks);
+  console.log(G(`✅ 已落 DR ${id}（${args.has('--blocking') ? 'BLOCKING' : 'NON-BLOCKING'}）：${title}`));
+  process.exit(EXIT.OK);
+}
+
+// decisions.md 条目块扫描（并回填 decisions table）
+function scanDrTable({ wo, blockingOnly } = {}) {
+  const out = [];
+  if (!exists(DR_TABLE())) return out;
+  const { blocks } = drBlocks();
+  for (const b of blocks) {
+    const m = b.head.match(/^## (DR-\d{8}-\d{3})\s+(.*)$/);
+    if (!m) continue;
+    const meta = b.lines.find((l) => /状态:/.test(l)) || '';
+    const get = (k) => { const mm = meta.match(new RegExp(`${k}:\\s*([^·]*)`)); return mm ? mm[1].trim() : ''; };
+    const status = get('状态') || 'OPEN';
+    const blocking = get('阻塞').includes('BLOCKING') && !/NON/i.test(get('阻塞'));
+    if (status !== 'OPEN') continue;
+    if (blockingOnly && !blocking) continue;
+    if (wo && !get('关联').includes(wo)) continue;
+    out.push({ id: m[1], title: m[2], blocking, relFile: rel(DR_TABLE()), file: DR_TABLE(), isBlock: true, status });
+  }
+  return out;
+}
+
+// --- archive ---
+function cmdArchive(sub, args) {
+  if (sub === 'sweep') {
+    const problems = [];
+    const cutoff = Date.now() - 48 * 3600 * 1000;
+    const ageOf = (d) => { const t = new Date(d).getTime(); return Number.isNaN(t) ? Infinity : Date.now() - t; };
+    const { blocks: iss } = issueBlocks();
+    for (const b of iss) {
+      const { get } = parseMeta(b);
+      if (get('状态') === 'TRIAGED' && ageOf(get('更新')) > 48 * 3600 * 1000) problems.push(`issues: ${b.head.replace(/^##\s*/, '')}（TRIAGED 超 48h 未归档）`);
+      if (get('状态') === 'TRIAGED' && (!get('去向') || get('去向') === '—') && ageOf(get('更新')) > 7 * 24 * 3600 * 1000) problems.push(`issues: ${b.head.replace(/^##\s*/, '')}（TRIAGED 超 7 天无去向）`);
+    }
+    const { rows: wrows } = woRows();
+    for (const r of wrows) {
+      if (r.c[4] === 'DONE' && ageOf(r.c[7]) > 48 * 3600 * 1000) problems.push(`workorders: ${r.c[0]}（DONE 超 48h 未归档）`);
+    }
+    const { blocks: drs } = drBlocks();
+    for (const b of drs) {
+      const meta = b.lines.find((l) => /状态:/.test(l)) || '';
+      const get = (k) => { const mm = meta.match(new RegExp(`${k}:\\s*([^·]*)`)); return mm ? mm[1].trim() : ''; };
+      if (['ANSWERED', 'DEFERRED', 'EXPIRED', 'WITHDRAWN'].includes(get('状态')) && ageOf(get('更新')) > 48 * 3600 * 1000) problems.push(`decisions: ${b.head.replace(/^##\s*/, '')}（${get('状态')} 超 48h 未归档）`);
+    }
+    if (problems.length) {
+      console.error(R(`\n⚠ ${problems.length} 条终态条目滞留活动表：`));
+      for (const p of problems) console.error(`  - ${p}`);
+      console.error('   处置：issues close / archive move --kind <issue|wo|dr> --id <编号>');
+      process.exit(EXIT.VIOLATION);
+    }
+    console.log(G('✅ 无滞留：活动表干净。'));
+    process.exit(EXIT.OK);
+  }
+  if (sub === 'move') {
+    const kind = args.get('--kind'); const id = args.get('--id');
+    if (!['issue', 'wo', 'dr'].includes(kind)) die(EXIT.USAGE, '用法：archive move --kind issue|wo|dr --id <编号>');
+    if (kind === 'wo') {
+      const { lines, head, rows } = woRows();
+      const i = rows.findIndex((r) => r.c[0] === id);
+      if (i < 0) die(EXIT.FORMAT, `⛔ 表中无 ${id}`);
+      const r = rows[i];
+      if (!['DONE'].includes(r.c[4])) die(EXIT.VIOLATION, `⛔ ${id} 状态 ${r.c[4]} 非终态（DONE 才可归档）`);
+      archiveAppend(`## WO ${id} ${r.c[1]}（归档 ${todayStr()}）\n简述: ${r.c[2]} · 关联: ${r.c[3]} · 终态: ${r.c[4]} · 处理者: ${r.c[5]} · 更新: ${r.c[7]}`);
+      rows.splice(i, 1);
+      const out = lines.slice(0, head + 2).concat(rows.map((rr) => rr.line));
+      fs.writeFileSync(WO_TABLE(), out.join('\n') + '\n');
+      console.log(G(`✅ ${id} 已归档。`));
+      process.exit(EXIT.OK);
+    }
+    const file = kind === 'issue' ? ISSUES_FILE() : DR_TABLE();
+    const { pre, blocks } = splitBlocks(file, kind === 'issue' ? ISSUE_HEADER : DR_TABLE_HEADER);
+    const i = blocks.findIndex((b) => b.head.startsWith(`## ${id} `));
+    if (i < 0) die(EXIT.FORMAT, `⛔ 找不到 ${id}`);
+    const b = blocks[i];
+    const title = b.head.replace(/^##\s*[^ ]+\s*/, '');
+    const kindTag = kind === 'issue' ? 'ISSUE' : 'DR';
+    archiveAppend(`## ${kindTag} ${id} ${title}（归档 ${todayStr()}）\n${b.lines.join('\n').trim()}`);
+    blocks.splice(i, 1);
+    writeBlocks(file, pre, blocks);
+    console.log(G(`✅ ${id} 已归档。`));
+    process.exit(EXIT.OK);
+  }
+  die(EXIT.USAGE, '用法：archive move --kind <k> --id <编号> | archive sweep');
+}
+
+
 const rawArgv = process.argv.slice(2);
 const pi = rawArgv.indexOf("--project");
 if (pi >= 0) rawArgv.splice(pi, 2);
@@ -1237,12 +1553,12 @@ for (let i = 0; i < rest.length; i++) {
   if (a === '--staged' || a === '--blocking' || a === '--quiet') { args.set(a, true); continue; }
   if (a.startsWith('--')) {
     if (a === '--json') { args.set(a, true); continue; }
-    if (a === '--paths') {
-      // --paths 后跟 1..N 个路径，直到下一个 --flag
+    if (a === '--paths' || a === '--opt') {
+      // --paths / --opt 后跟 1..N 个值，直到下一个 --flag；--opt 多次出现时累加
       const vals = [];
       let j = i + 1;
       for (; j < rest.length && !rest[j].startsWith('--'); j++) vals.push(rest[j]);
-      args.set(a, vals);
+      args.set(a, a === '--opt' ? (args.get(a) || []).concat(vals) : vals);
       i = j - 1;
       continue;
     }
@@ -1250,6 +1566,20 @@ for (let i = 0; i < rest.length; i++) {
     i++;
   } else positional.push(a);
 }
+
+// ===== 启动钩子：v2 三表自动迁移（SPEC-20261010-03）=====
+// marker（runtime/state/v2-migrated）缺失且有旧单据（open DR / INDEX.md）→ 静默升级一次；
+// 纯新项目 → 写 marker 即走；失败只提示不阻断 guard 主流程。
+try {
+  const mtScript = path.join(TEAM_ROOT, 'scripts', 'aimatrix-migrate-v2.mjs');
+  const projMatrix = path.join(PROJECT(), '.ai-matrix-team');
+  const mtMarker = path.join(projMatrix, 'runtime', 'state', 'v2-migrated');
+  if (fs.existsSync(mtScript) && fs.existsSync(projMatrix) && !fs.existsSync(mtMarker)) {
+    const r = spawnSync(process.execPath, [mtScript, '--project', PROJECT(), '--auto'], { encoding: 'utf8' });
+    if (r.status === 0 && (r.stdout || '').includes('➜')) console.error((r.stdout || '').trim());
+    else if (r.status !== 0) console.error(`⚠ v2 自动迁移失败（不影响本命令）：${((r.stderr || r.stdout || '').trim().split('\n').pop() || '').slice(0, 200)}——可显式运行 aimatrix-migrate-v2.mjs 重试`);
+  }
+} catch { /* 迁移钩子绝不阻断主流程 */ }
 
 try {
   switch (cmd) {
@@ -1260,15 +1590,29 @@ try {
       cmdLock(positional[0], args);
       break;
     case 'dr': {
-      if (positional[0] !== 'scan') die(EXIT.USAGE, '用法：dr scan [--wo <id>] [--blocking]');
-      cmdDrScan(args);
+      if (positional[0] === 'scan') { cmdDrScan(args); break; }
+      if (positional[0] === 'add') { cmdDrAdd(args); break; }
+      die(EXIT.USAGE, '用法：dr scan [--wo <id>] [--blocking] | dr add --title <问题> --opt <方案1> --opt <方案2> [--opt <方案3>] [--recommend <序号>] [--ref <关联>] [--blocking]');
       break;
     }
+    case 'issues':
+      if (!positional.length) die(EXIT.USAGE, '用法：issues <add|normalize|triage|close>');
+      cmdIssues(positional[0], args);
+      break;
+    case 'archive':
+      if (!positional.length) die(EXIT.USAGE, '用法：archive <move|sweep>');
+      cmdArchive(positional[0], args);
+      break;
     case 'wo':
       if (positional[0] === 'new') { cmdWoNew(args); break; }
       if (positional[0] === 'lint') { cmdWoLint(positional.slice(1)); break; }
       if (positional[0] === 'journal') { cmdWoJournal(args); break; }
-      die(EXIT.USAGE, '用法：wo new --slug <kebab> | wo lint <files...> | wo journal --wo <id> --who <who> --what <text>');
+      if (positional[0] === 'table') {
+        if (!positional[1]) die(EXIT.USAGE, '用法：wo table <add|start|verify|done|block>');
+        cmdWoTable(positional[1], args);
+        break;
+      }
+      die(EXIT.USAGE, '用法：wo new --slug <kebab> | wo lint <files...> | wo journal --wo <id> --who <who> --what <text> | wo table <add|start|verify|done|block>');
     case 'handoff': cmdHandoffNew(args); break;
     case 'sync-check': cmdSyncCheck(args); break;
     case 'audit': cmdAudit(args); break;
@@ -1277,7 +1621,7 @@ try {
     case 'stats': cmdStats(); break;
     case 'agents': cmdAgents(); break;
     default:
-      die(EXIT.USAGE, `未知命令 ${cmd ?? ''}。可用：surface | check [--quiet] | lock | dr scan | wo new | wo lint | wo journal | handoff | instances | stats | sync-check | audit | report | agents`);
+      die(EXIT.USAGE, `未知命令 ${cmd ?? ''}。可用：surface | check [--quiet] | lock | dr scan | dr add | issues | wo new | wo table | wo lint | wo journal | archive | handoff | instances | stats | sync-check | audit | report | agents`);
   }
 } catch (e) {
   die(EXIT.USAGE, `guard 异常：${e.stack || e.message}`);

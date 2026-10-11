@@ -1,7 +1,7 @@
 ---
 name: aimatrix-decision
-description: "ai-matrix 决策请求（DR）规范与工具：六类触发判定、DR 生成（new-dr.mjs）、台账同步（ledger-sync.mjs）、OPEN-ITEMS 渲染（render-open-items.mjs）。Agent 遇到只有人能决定的事必须走本流程。"
-version: 1.0.1
+description: "ai-matrix 决策请求（DR）规范与工具：六类触发判定、经 guard dr add 落 decisions.md 条目块、archive move 收口。Agent 遇到只有人能决定的事必须走本流程。"
+version: 1.1.0
 ---
 
 # aimatrix-decision · 人类决策落盘（跨角色工具）
@@ -21,24 +21,32 @@ version: 1.0.1
 
 **不许拿来打扰人的**：栈内自决的技术选择、代码风格、测试粒度、文件组织——自行决定，写进交接单「我已替你决定」。
 
+## 2. 怎么落（v2：decisions.md 条目块）
+
+`guard dr add --title "问题" --opt "方案1" --opt "方案2" --recommend <序号> [--blocking] [--ref <关联单号>]` —— 一条命令写入 `<project>/.ai-matrix-team/decisions.md`，h2 条目块（问题 · 方案有序列表 · 推荐序号 · 状态 · 回填行）。
+
+- **用户唯一编辑点 = 「回填」行**：格式 `ZEO MM-DD 选<序号>`（谁+日期+结论），同时把状态改 `ANSWERED`。
+- 收口：答复落定后 `guard archive move --kind dr --id <DR-id>` 整块移入 `runtime/archive/YYYY-MM.md`（回填原文随行存活）。
+- 长背景可选落 `runtime/dr-details/<DR-id>.md`，条目块内不展开。
+
 ## 3. 硬纪律
 
 1. **BLOCKING 不闭环，相关 WO 不得进入下一阶段**：`guard dr scan --blocking --wo <id>` 退出码 4 即停。
 2. **Type 1 不许沉默通过**：BLOCKING 不因超时自动按默认执行，必须显式答复。
-3. **NON-BLOCKING 48h 无答复按默认执行**，台账标注「按默认执行 + 日期」，结论可被推翻（推翻代价写进 DR）。
-4. 答复必须有**原文留痕**（谁、哪天、选了什么）。
-5. **精炼（省 token 硬纪律）**：DR 只抛「**背景 3–5 句 · 选项（含推荐）· 不做的后果 2–3 句**」；**主文件 ≤2.5KB**。禁止写取证表 / 方案细则 / 铁律清单 / 落地步骤——细则落对应文档并在 §7 引用。`guard dr scan` 对 open 单强制查体量，超限报 ⚠ 并计入违规。**细则写进 DR = 让创始人多读几千字 = 直接违背专家团「不制造 token 爆炸」的目标**。
+3. **NON-BLOCKING 48h 无答复按默认执行**，回填行标注「按默认执行 + 日期」，结论可被推翻（推翻代价写进 DR）。
+4. 答复必须有**原文留痕**（谁、哪天、选了什么）——只改状态不留痕 = 违规。
+5. **精炼（省 token 硬纪律）**：DR 条目块只抛「**背景 3–5 句 · 选项（含推荐）· 不做的后果 2–3 句**」。禁止写取证表 / 方案细则 / 铁律清单 / 落地步骤——细则落 `runtime/dr-details/`。**细则写进条目块 = 让创始人多读几千字 = 直接违背专家团「不制造 token 爆炸」的目标**。
 
 ## 5. 度量目标
 
 DR 闭环率（近 30 天）≥80% · BLOCKING 平均等待 ≤2 天 · 静默假设事故 = 0 · 每周新增 DR ≤8（超标 = 门槛设低，回看触发类型）。
 
-## 按需读：硬步骤 / 与 ADR / OPEN-ITEMS 的边界（不许混）
+## 按需读：硬步骤 / 与 ADR 的边界（不许混）
 
 已外移至 [`references/dr-workflow.md`](references/dr-workflow.md)（保持 SKILL 精简；需要细则时读那一份）。
 
 ## 6. References
 
 - `<team-repo>/docs/04-decision-protocol.md`（规范全文）
-- `<team-repo>/docs/templates/dr.md`（模板）
-- `<team-repo>/scripts/new-dr.mjs` / `ledger-sync.mjs` / `render-open-items.mjs`
+- `<team-repo>/docs/index/04-decision-protocol.md`（索引卡）
+- `guard dr add / dr scan / archive move|sweep`（v2 命令族，用法见 aimatrix-guard SKILL）
