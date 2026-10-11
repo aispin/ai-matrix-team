@@ -659,7 +659,7 @@ function readDirSafe(d) { try { return fs.readdirSync(d); } catch { return []; }
 const one = (v) => (Array.isArray(v) ? v[0] : v) || '';
 const many = (v) => (Array.isArray(v) ? v : v ? [v] : []);
 
-/** v2 单号 = WO-YYYYMMDD-NN（slug 只进标题，不进单号）。取号须同时扫表行、详情单与归档，防重号 */
+/** 编号在任何载体（表行/详情单/归档）出现即视为已消费——取号 = 全源 max+1，永不复用 */
 function nextWoId() {
   const d = new Date();
   const day = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
@@ -670,16 +670,48 @@ function nextWoId() {
   };
   for (const r of woTableRows()) bump(r.c[0]);
   for (const f of [...readDirSafe(WO_DETAILS()), ...readDirSafe(WO_DIR()), ...readDirSafe(path.join(WO_DIR(), 'open')), ...readDirSafe(path.join(WO_DIR(), 'closed'))]) bump(f);
-  const archDir = ARCHIVE_DIR();
-  for (const f of readDirSafe(archDir)) {
-    for (const m of String(read(path.join(archDir, f))).match(new RegExp(`WO-${day}-\\d{2,3}`, 'g')) || []) bump(m);
-  }
+  for (const id of idsInArchive(new RegExp(`WO-${day}-\\d{2,3}`, 'g'))) bump(id);
   return `WO-${day}-${String(max + 1).padStart(2, '0')}`;
 }
 
+const cleanCell = (s, n) => String(s || '').replace(/\|/g, '／').replace(/\s+/g, ' ').trim().slice(0, n) || '—';
+/** 创建即挂牌：详情单落盘必须有表行（幂等）。返回是否新补 */
+function ensureWoRow(id, title, brief, ref) {
+  if (woTableRows().some((r) => r.c[0] === id)) return false;
+  const f = WO_TABLE();
+  const lines = readOrCreate(f, WO_TABLE_HEADER).replace(/\n*$/, '\n').split('\n');
+  while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
+  let last = -1;
+  for (let i = lines.length - 1; i >= 0; i--) if (lines[i].startsWith('|')) { last = i; break; }
+  const row = `| ${id} | ${cleanCell(title, 24)} | ${cleanCell(brief, 30)} | ${cleanCell(ref, 40)} | TODO | — | — | ${todayStr()} |`;
+  if (last < 0) lines.push(row); else lines.splice(last + 1, 0, row);
+  fs.writeFileSync(f, lines.join('\n') + '\n');
+  return true;
+}
+
+/** 孤儿详情单：今日已落盘、但既无表行也未被归档收口（创建即挂牌失败的残留） */
+function detailOrphans(day) {
+  const rows = new Set(woTableRows().map((r) => r.c[0]));
+  let arch = '';
+  const archDir = ARCHIVE_DIR();
+  for (const f of readDirSafe(archDir)) arch += read(path.join(archDir, f));
+  return readDirSafe(WO_DETAILS())
+    .map((f) => (new RegExp(`^WO-${day}-(\\d{2,3})`)).exec(f)?.[0])
+    .filter((id, i, a) => id && a.indexOf(id) === i && !rows.has(id) && !arch.includes(id))
+    .sort();
+}
+
+const warnOrphanDetails = (day) => {
+  const orphans = detailOrphans(day);
+  if (orphans.length) console.error(Y(`⚠ 今日存在未挂牌详情单：${orphans.join('、')}——认领：wo table add --id <单号> --title <任务名> --brief <简述>`));
+  return orphans.length;
+};
+
 function cmdWoNew(args) {
   const slug = one(args.get('--slug')).trim();
-  if (!slug || !/^[a-z0-9-]+$/.test(slug)) die(EXIT.USAGE, '用法：wo new --slug <kebab-case> [--level L0|L1|L2] [--surface C1|C2|C3|F] [--paths "a/**,b/**"] [--purpose "…"]');
+  if (!slug || !/^[a-z0-9-]+$/.test(slug)) die(EXIT.USAGE, '用法：wo new --slug <kebab-case> [--id <WO-YYYYMMDD-NN 绑定已有表行>] [--level L0|L1|L2] [--surface C1|C2|C3|F] [--paths "a/**,b/**"] [--purpose "…"]');
+  const wanted = one(args.get('--id')).trim();
+  if (wanted) requireTableId(wanted, /^WO-\d{8}-\d{2}$/, 'WO');
   const level = one(args.get('--level') || 'L2').toUpperCase();
   const surface = one(args.get('--surface') || 'C2').toUpperCase();
   const paths = many(args.get('--paths')).length ? many(args.get('--paths')).join(',').split(',').map((s) => s.trim()).filter(Boolean) : ['（待填：glob，一行一个）'];
@@ -696,7 +728,7 @@ function cmdWoNew(args) {
   };
   const surfaceRows = () => paths.map((p) => `| ${tierOfPath(p)} | \`${p}\` |`).join('\n');
   const purpose = one(args.get('--purpose')) || '（三行内：改什么 / 为什么现在改 / 依据）';
-  const id = nextWoId();
+  const id = wanted || nextWoId();
   const today = new Date().toISOString().slice(0, 10);
   const body = `# ${id} · 任务单
 
@@ -788,6 +820,11 @@ ${surfaceRows()}
   const file = path.join(dir, `${id}.md`);
   if (fs.existsSync(file)) die(EXIT.USAGE, `已存在：${file}`);
   fs.writeFileSync(file, finalBody);
+  // 创建即挂牌：详情单落盘必须有表行（--id 绑定已有行时幂等跳过）
+  const day = todayStr().replace(/-/g, '');
+  if (ensureWoRow(id, slug, purpose, '—')) console.log(G(`✚ 已补表行 ${id}（TODO，创建即挂牌）`));
+  else console.log(`↷ 表行 ${id} 已在，跳过补行`);
+  warnOrphanDetails(day);
   console.log(`✓ 已生成 ${path.relative(PROJECT(), file)}（${Buffer.byteLength(finalBody)} B）`);
   console.log(G('  下一步：填 §1/§2/§5/§6 → guard wo lint <file> → 团长核准 → 派单'));
   process.exit(EXIT.OK);
@@ -1389,9 +1426,24 @@ const ISSUE_HEADER = '# Issues · 未处理事项白板\n\n> 用户随手记：�
 
 function issueBlocks() { return splitBlocks(ISSUES_FILE(), ISSUE_HEADER); }
 
+/** 归档文本里出现过的编号（全局唯一资源：归档占用即作废）。matchAll 取捕获组（无组回退全匹配） */
+function idsInArchive(re) {
+  const archDir = ARCHIVE_DIR();
+  const out = [];
+  for (const f of readDirSafe(archDir)) {
+    const text = String(read(path.join(archDir, f)));
+    for (const m of text.matchAll(re)) out.push(m[1] ?? m[0]);
+  }
+  return out;
+}
+
 function nextIssueId(blocks) {
+  // 取号唯一器：在册块 + 归档全扫取 max（I-010：归档后不复用编号）
   let max = 0;
-  for (const b of blocks) { const m = b.head.match(/^## (I-\d+)/); if (m) max = Math.max(max, Number(m[1].slice(2))); }
+  const bump = (s) => { const m = /^I-(\d+)$/.exec(String(s || '')); if (m) max = Math.max(max, Number(m[1])); };
+  for (const b of blocks) { const mm = b.head.match(/^## (I-\d+)/); if (mm) bump(mm[1]); }
+  for (const id of idsInArchive(/## ISSUE (I-\d+)/g)) bump(id);
+  for (const id of idsInArchive(/## I-\d+/g).map((s) => s.slice(3))) bump(id);
   return `I-${String(max + 1).padStart(3, '0')}`;
 }
 
@@ -1499,6 +1551,7 @@ function cmdWoTable(sub, args) {
     rows.push({ line: `| ${c.join(' | ')} |`, c });
     save();
     console.log(G(`✅ 已开单 ${id}（TODO）。执行前 wo table start --id ${id} --who <角色#呼号>。`));
+    warnOrphanDetails(todayStr().replace(/-/g, ''));
     process.exit(EXIT.OK);
   }
   if (sub === 'start' || sub === 'verify' || sub === 'done' || sub === 'block') {
@@ -1540,9 +1593,11 @@ function drBlocks() { return splitBlocks(DR_TABLE(), DR_TABLE_HEADER); }
 function nextDrId(all) {
   const date = todayStr().replace(/-/g, '');
   let max = 0;
-  for (const b of all) { const m = b.head.match(new RegExp(`DR-${date}-(\\d{3})`)); if (m) max = Math.max(max, Number(m[1])); }
+  const bump = (s) => { const m = new RegExp(`DR-${date}-(\\d{3})`).exec(String(s || '')); if (m) max = Math.max(max, Number(m[1])); };
+  for (const b of all) bump(b.head);
   const closedDir = DR_CLOSED();
-  if (exists(closedDir)) for (const f of fs.readdirSync(closedDir)) { const m = f.match(new RegExp(`DR-${date}-(\\d{3})`)); if (m) max = Math.max(max, Number(m[1])); }
+  if (exists(closedDir)) for (const f of fs.readdirSync(closedDir)) bump(f);
+  for (const id of idsInArchive(new RegExp(`DR-${date}-\\d{3}`, 'g'))) bump(id); // 归档占用即作废，防复用
   return `DR-${date}-${String(max + 1).padStart(3, '0')}`;
 }
 

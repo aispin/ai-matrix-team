@@ -89,6 +89,7 @@ issues.md + PRD/技术spec（简单需求免spec）
 | 新增 `issues add/triage/normalize` | 白板单写者命令 + lint（去向必填、TRIAGED 超期报警）；`normalize` 为用户手写草稿条目补编号与元数据行 |
 | 新增 `archive move/sweep` | 终态行移入 `archive/YYYY-MM.md`（行自足带留痕）；`sweep` 兜底扫超 48h 未归档行报警 |
 | 新增 `wo table` 系列 | `wo add/start/done/block`，维护 workorders.md 行与锁定列；校验状态机合法迁移 |
+| 统一取号算法 | 编号是一次性资源：任何载体（表行/条目块、详情单目录、归档文本、旧布局）出现即视为已消费，取号 = 全源扫 max+1（WO/Issue/DR 同规）。`wo new` 创建即挂牌（详情单落盘自动补 TODO 表行，幂等）；`wo new --id <行号>` 支持「先表行后详情」绑定；wo 命令收尾检测「今日孤儿详情单」并提示 `wo table add --id <号>` 认领 |
 | `wo new` 保留 | 仅用于需详情单的重单（生成瘦身 wo-details） |
 | `wo lint` 改造 | 校验三字段（白名单/验证/回滚）仅对详情单；表格行校验简述长度与关联引用存在性 |
 | `dr scan` 改造 | 扫 decisions.md 表行替代 `open/*.md`；BLOCKING 语义不变 |
