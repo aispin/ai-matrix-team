@@ -94,6 +94,11 @@ function git(args, { allowFail = false } = {}) {
 // ---------- surfaces ----------
 let SURFACES = null;
 const CONFIG_FILE = () => path.join(PROJECT(), '.ai-matrix-team', 'project.json');
+/** surfaces-default.json 的 wo 块 = 兜底默认（存量项目 surfaces.json 漂移时运行时补齐） */
+function defaultWoBlock() {
+  try { return JSON.parse(read(path.join(__dirname, 'surfaces-default.json'))).wo || null; } catch { return null; }
+}
+
 function surfaces() {
   if (SURFACES) return SURFACES;
   const SURFACES_FILE = surfacesFile();
@@ -102,6 +107,20 @@ function surfaces() {
       SURFACES = JSON.parse(read(SURFACES_FILE));
     } catch (e) {
       die(EXIT.USAGE, `surfaces.json 解析失败：${e.message}`);
+    }
+    // 存量项目副本漂移自愈（内存合并，不改盘）：默认 wo 块新增状态并入，避免老副本缺 TODO/EXECUTING 时 EXECUTING 单 check 恒失败
+    if (!SURFACES_FILE.endsWith('surfaces-default.json')) {
+      const dw = defaultWoBlock();
+      const pw = SURFACES.wo || {};
+      if (dw) {
+        const missing = (dw.statusesActive || []).filter((s) => !(pw.statusesActive || []).includes(s));
+        if (missing.length) console.error(`⚠ surfaces.json wo 块漂移：statusesActive 缺 ${missing.join('/')}——本次运行按默认补齐；跑一次 aimatrix-migrate-v2.mjs 可持久化`);
+        SURFACES.wo = {
+          ...dw, ...pw,
+          statusesActive: [...new Set([...(dw.statusesActive || []), ...(pw.statusesActive || [])])],
+          statusesNeedingLock: [...new Set([...(dw.statusesNeedingLock || []), ...(pw.statusesNeedingLock || [])])],
+        };
+      }
     }
   } else if (exists(CONFIG_FILE())) {
     // 可移植回退：新项目只有 project.json（aimatrix-init 生成；v2.0 前名为 config.json）时，从其 surfaces 段构造规则
@@ -117,6 +136,7 @@ function surfaces() {
           (globs || []).map((g) => ({ tier, patterns: [g], requirement: reqFor[tier] || 'wo+lock', note: noteFor[tier] || '' })),
         ),
         contractDocs: { rules: [{ patterns: ['docs/shared-contracts.md'] }] },
+        wo: defaultWoBlock() || { statusesActive: ['TODO', 'EXECUTING', 'VERIFYING', 'BLOCKED_DR'], statusesNeedingLock: ['VERIFYING'], lockTtlMinutes: 240, lockRenewable: true },
       };
     } catch (e) {
       die(EXIT.USAGE, `project.json 回退构造失败：${e.message}`);
@@ -663,6 +683,18 @@ function cmdWoNew(args) {
   const level = one(args.get('--level') || 'L2').toUpperCase();
   const surface = one(args.get('--surface') || 'C2').toUpperCase();
   const paths = many(args.get('--paths')).length ? many(args.get('--paths')).join(',').split(',').map((s) => s.trim()).filter(Boolean) : ['（待填：glob，一行一个）'];
+  // 面域逐路推断：具体路径按 surfaces 规则实判；glob 路径做段级相交推断；占位/推断不出 → 保留声明 --surface
+  const tierOfPath = (p) => {
+    if (!/^[\w./@*-]+$/.test(p)) return surface;
+    try {
+      if (!/[*?]/.test(p)) return tierOf(p).tier;
+      const s = surfaces();
+      if (s.skip.patterns.some((g) => globsOverlap(normP(g), p))) return s.skip.tier;
+      const hit = s.rules.find((r) => r.patterns.some((g) => globsOverlap(normP(g), p)));
+      return hit ? hit.tier : s.defaultTier;
+    } catch { return surface; }
+  };
+  const surfaceRows = () => paths.map((p) => `| ${tierOfPath(p)} | \`${p}\` |`).join('\n');
   const purpose = one(args.get('--purpose')) || '（三行内：改什么 / 为什么现在改 / 依据）';
   const id = nextWoId();
   const today = new Date().toISOString().slice(0, 10);
@@ -685,7 +717,7 @@ ${purpose}
 
 | 面域 | 路径（glob） |
 |---|---|
-| ${surface} | ${paths.map((p) => `\`${p}\``).join(' · ')} |
+${surfaceRows()}
 
 > 白名单外一律不得改；扩大 → 回团长核准。
 
@@ -747,7 +779,7 @@ ${purpose}
       .replace('| 验收级别 | `L2` |', `| 验收级别 | \`${level}\` |`)
       .replace('| 创建 / 完成 | YYYY-MM-DD / — |', `| 创建 / 完成 | ${today} / — |`)
       .replace('（≤3 行：改什么 / 为什么现在改 / 依据节号。写不进 = 拆单）', purpose)
-      .replace('| C1/C2/C3/F | `（待填）` |', paths.map((p) => `| ${surface} | \`${p}\` |`).join('\n'))
+      .replace('| C1/C2/C3/F | `（待填）` |', surfaceRows())
       .replace(/WO-xxx\.journal\.md/g, `${id}.journal.md`)
     : body;
   // v2：详情单落 runtime/wo-details/（单号不带 slug）
@@ -763,7 +795,8 @@ ${purpose}
 
 function cmdHandoffNew(args) {
   const wo = one(args.get('--wo')).trim();
-  if (!/^WO-\d{8}-\d{2,3}-[a-z0-9-]+$/.test(wo)) die(EXIT.USAGE, '用法：handoff --wo WO-YYYYMMDD-NN-<slug>');
+  // v2 单号 = WO-YYYYMMDD-NN（slug 只进标题）；旧长号兼容
+  if (!/^WO-\d{8}-\d{2,3}(-[a-z0-9-]+)?$/.test(wo)) die(EXIT.USAGE, '用法：handoff --wo WO-YYYYMMDD-NN[-<slug>]');
   const dir = path.join(RUNTIME(), 'handoffs');
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, `${wo}-handoff.md`);
@@ -1360,12 +1393,15 @@ function nextIssueId(blocks) {
 
 function cmdIssues(sub, args) {
   const { pre, blocks } = issueBlocks();
+  // 已有真实条目时清掉迁移播种的占位行，避免白板同时显示「无未处理事项」与 OPEN 条目
+  const preNoPlaceholder = pre.split('\n').filter((l) => !l.includes('（当前无未处理事项）')).join('\n');
+  const write = () => writeBlocks(ISSUES_FILE(), blocks.length ? preNoPlaceholder : pre, blocks);
   if (sub === 'add') {
     const title = args.get('--title');
     if (!title) die(EXIT.USAGE, '用法：issues add --title <标题> [--source <来源>]');
     const id = nextIssueId(blocks);
     blocks.push({ head: `## ${id} ${title}`, lines: [`来源: ${args.get('--source') || 'agent'} ${todayStr().slice(5)} · 状态: OPEN · 去向: — · 更新: ${todayStr()}`] });
-    writeBlocks(ISSUES_FILE(), pre, blocks);
+    write();
     console.log(G(`✅ 已登记 ${id}：${title}`));
     process.exit(EXIT.OK);
   }
@@ -1379,7 +1415,7 @@ function cmdIssues(sub, args) {
       else if (!/更新:/.test(line)) { b.lines[b.lines.indexOf(line)] = `${line} · 更新: ${todayStr()}`; n++; }
       b.head = head;
     }
-    if (n) { writeBlocks(ISSUES_FILE(), pre, blocks); console.log(G(`✅ 规范化 ${n} 处。`)); }
+    if (n) { write(); console.log(G(`✅ 规范化 ${n} 处。`)); }
     else console.log('无草稿条目，白板已规范。');
     process.exit(EXIT.OK);
   }
@@ -1393,7 +1429,7 @@ function cmdIssues(sub, args) {
     const { line, get } = parseMeta(b);
     const merged = [`来源: ${get('来源') || '—'}`, `状态: TRIAGED`, `去向: ${target}`, `更新: ${todayStr()}`].join(' · ');
     if (line) b.lines[b.lines.indexOf(line)] = merged; else b.lines.unshift(merged);
-    writeBlocks(ISSUES_FILE(), pre, blocks);
+    write();
     console.log(G(`✅ ${id} → TRIAGED（${target}）。收尾后 issues close --id ${id} 归档。`));
     process.exit(EXIT.OK);
   }
@@ -1409,7 +1445,7 @@ function cmdIssues(sub, args) {
     const title = b.head.replace(/^## I-\d+\s*/, '');
     archiveAppend(`## ISSUE ${id} ${title}（归档 ${todayStr()}）\n${b.lines.join('\n').trim()}`);
     blocks.splice(i, 1);
-    writeBlocks(ISSUES_FILE(), pre, blocks);
+    write();
     console.log(G(`✅ ${id} 已归档（去向 ${target}）。`));
     process.exit(EXIT.OK);
   }
@@ -1442,16 +1478,19 @@ function cmdWoTable(sub, args) {
   const mutate = (r, patch) => { Object.assign(r.c, patch); r.line = `| ${r.c.join(' | ')} |`; };
   if (sub === 'add') {
     const title = args.get('--title');
-    if (!title) die(EXIT.USAGE, '用法：wo table add --title <任务名> --brief <简述≤30字> [--ref <关联>]');
-    const date = todayStr().replace(/-/g, '');
-    let n = rows.filter((r) => r.c[0].startsWith(`WO-${date}`)).length;
-    const arch = archivePath();
-    if (exists(arch)) {
-      const m = read(arch).match(new RegExp(`WO-${date}-(\\d{2})`, 'g'));
-      for (const x of m || []) n = Math.max(n, Number(x.slice(-2)));
+    if (!title) die(EXIT.USAGE, '用法：wo table add --title <任务名> --brief <简述≤30字> [--ref <关联>] [--id <WO-YYYYMMDD-NN>]');
+    const wanted = args.get('--id');
+    let id;
+    if (wanted) {
+      // --id：认领已存在的详情单号（先 wo new 后补表行的顺序也能对齐，消除两套取号的错位）
+      requireTableId(wanted, /^WO-\d{8}-\d{2}$/, 'WO');
+      if (find(wanted)) die(EXIT.FORMAT, `⛔ ${wanted} 已在表中`);
+      id = wanted;
+    } else {
+      // 取号统一走 nextWoId()（扫表行+详情单+归档取 max），与 wo new 同源，杜绝重号/错位
+      id = nextWoId();
+      if (find(id)) die(EXIT.FORMAT, `⛔ 取号冲突：${id} 已在表中——取号器与表不同步，请人工核查`);
     }
-    n += 1;
-    const id = `WO-${date}-${String(n).padStart(2, '0')}`;
     const c = [id, title, args.get('--brief') || '—', args.get('--ref') || '—', 'TODO', '—', '—', todayStr()];
     rows.push({ line: `| ${c.join(' | ')} |`, c });
     save();
@@ -1619,7 +1658,10 @@ for (let i = 0; i < rest.length; i++) {
       const vals = [];
       let j = i + 1;
       for (; j < rest.length && !rest[j].startsWith('--'); j++) vals.push(rest[j]);
-      args.set(a, a === '--opt' ? (args.get(a) || []).concat(vals) : vals);
+      args.set(a, a === '--opt'
+        ? (args.get(a) || []).concat(vals)
+        // --paths 与 --surfaces 同口径：逐值按逗号切分（check --paths a,b,c 不再整串当一条路径）
+        : (args.get(a) || []).concat(vals).flatMap((v) => String(v).split(',').map((s) => s.trim()).filter(Boolean)));
       i = j - 1;
       continue;
     }
@@ -1639,9 +1681,21 @@ try {
     const mtScript = path.join(TEAM_ROOT, 'scripts', 'aimatrix-migrate-v2.mjs');
     const projMatrix = path.join(softRoot, '.ai-matrix-team');
     const mtMarker = path.join(projMatrix, 'runtime', 'state', 'v2-migrated');
-    if (fs.existsSync(mtScript) && fs.existsSync(projMatrix) && !fs.existsSync(mtMarker)) {
+    // surfaces.json 漂移（默认 wo 块有新增状态 / 残留旧措辞）也触发一次迁移自愈
+    const surfacesDrifted = () => {
+      try {
+        const pf = path.join(projMatrix, 'surfaces.json');
+        if (!fs.existsSync(pf)) return false;
+        const ptxt = fs.readFileSync(pf, 'utf8');
+        if (/资深风控师/.test(ptxt)) return true;
+        const dw = JSON.parse(fs.readFileSync(path.join(TEAM_ROOT, 'scripts', 'surfaces-default.json'), 'utf8')).wo;
+        const pw = JSON.parse(ptxt).wo || {};
+        return (dw?.statusesActive || []).some((s) => !(pw.statusesActive || []).includes(s));
+      } catch { return false; }
+    };
+    if (fs.existsSync(mtScript) && fs.existsSync(projMatrix) && (!fs.existsSync(mtMarker) || surfacesDrifted())) {
       const r = spawnSync(process.execPath, [mtScript, '--project', softRoot, '--auto'], { encoding: 'utf8' });
-      if (r.status === 0 && (r.stdout || '').includes('➜')) console.error((r.stdout || '').trim());
+      if (r.status === 0 && /➜|✎/.test(r.stdout || '')) console.error((r.stdout || '').trim());
       else if (r.status !== 0) console.error(`⚠ v2 自动迁移失败（不影响本命令）：${((r.stderr || r.stdout || '').trim().split('\n').pop() || '').slice(0, 200)}——可显式运行 aimatrix-migrate-v2.mjs 重试`);
     }
   }

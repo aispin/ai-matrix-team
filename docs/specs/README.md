@@ -14,7 +14,7 @@
 |---|---|
 | 文件名 | `SPEC-YYYYMMDD-NN-<slug>.md`（NN 为当日序号，slug 用小写连字符） |
 | 位置 | `docs/specs/`（进行中）；完结后移入 `docs/specs/closed/` |
-| 关联 | 头部必须写明关联 `WO-YYYYMMDD-NN-<slug>` 与 `DR-YYYYMMDD-NNN`（若需拍板） |
+| 关联 | 头部必须写明关联 `WO-YYYYMMDD-NN` 与 `DR-YYYYMMDD-NNN`（若需拍板） |
 
 ## 文档结构（模板骨架）
 

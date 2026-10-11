@@ -110,14 +110,14 @@ stateDiagram-v2
     "schema": 2,
     "holders": [
       {
-        "wo": "WO-YYYYMMDD-NN-<slug>",
+        "wo": "WO-YYYYMMDD-NN",
         "surfaces": ["packages/shared-types", "services/payment"],
         "acquiredAt": "YYYY-MM-DDTHH:mm:ss+08:00",
         "ttlMinutes": 240,
         "renewable": true
       }
     ],
-    "holder": "WO-YYYYMMDD-NN-<slug>",
+    "holder": "WO-YYYYMMDD-NN",
     "surfaces": ["packages/shared-types", "services/payment"],
     "acquiredAt": "YYYY-MM-DDTHH:mm:ss+08:00",
     "ttlMinutes": 240,
@@ -133,9 +133,9 @@ stateDiagram-v2
 - **命令**：
   ```bash
   node <team-repo>/scripts/aimatrix-guard.mjs lock status
-  node <team-repo>/scripts/aimatrix-guard.mjs lock acquire --wo WO-YYYYMMDD-NN-<slug> --surfaces packages/shared-types
-  node <team-repo>/scripts/aimatrix-guard.mjs lock renew  --wo WO-YYYYMMDD-NN-<slug>
-  node <team-repo>/scripts/aimatrix-guard.mjs lock release --wo WO-YYYYMMDD-NN-<slug>
+  node <team-repo>/scripts/aimatrix-guard.mjs lock acquire --wo WO-YYYYMMDD-NN --surfaces packages/shared-types
+  node <team-repo>/scripts/aimatrix-guard.mjs lock renew  --wo WO-YYYYMMDD-NN
+  node <team-repo>/scripts/aimatrix-guard.mjs lock release --wo WO-YYYYMMDD-NN
   ```
 
 ---

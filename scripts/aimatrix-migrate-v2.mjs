@@ -42,6 +42,32 @@ const die = (m) => { console.error('⛔ ' + m); process.exit(1); };
 
 if (!fs.existsSync(M)) die(`${M} 不存在——不是 ai-matrix 项目，拒绝迁移`);
 
+// ---------- 0. surfaces.json 漂移自愈（幂等，AUTO/marker 前置执行）：补齐默认 wo 块 + 旧措辞归一 ----------
+// 存量项目副本落后于 surfaces-default.json（如 statusesActive 缺 TODO/EXECUTING）时，EXECUTING 单 check 恒失败。
+const surfFile = path.join(M, 'surfaces.json');
+const defSurf = new URL('surfaces-default.json', import.meta.url);
+if (fs.existsSync(surfFile) && fs.existsSync(defSurf)) {
+  try {
+    const def = JSON.parse(fs.readFileSync(defSurf, 'utf8'));
+    const proj = JSON.parse(fs.readFileSync(surfFile, 'utf8'));
+    let changed = false;
+    if (def.wo) {
+      const merged = { ...def.wo, ...(proj.wo || {}) };
+      for (const k of ['statusesActive', 'statusesNeedingLock']) {
+        const v = [...new Set([...(def.wo[k] || []), ...((proj.wo || {})[k] || [])])];
+        if (JSON.stringify(v) !== JSON.stringify((proj.wo || {})[k])) { merged[k] = v; changed = true; }
+      }
+      if (!proj.wo) changed = true;
+      proj.wo = merged;
+    }
+    let out = JSON.stringify(proj, null, 2) + '\n';
+    const unworded = out.replace(/资深风控师/g, '团长（风控）');
+    if (unworded !== out) { out = unworded; changed = true; }
+    if (changed && !DRY) fs.writeFileSync(surfFile, out);
+    if (changed) log(`✎ surfaces.json 漂移自愈（wo 块补齐/措辞归一）${DRY ? '（dry-run 未写盘）' : ''}`);
+  } catch (e) { log(`⚠ surfaces.json 自愈失败：${e.message}`); }
+}
+
 // 自动模式：marker 已在且旧布局详情单已清空 → 静默跳过（否则补跑第 4 步的搬迁/规范化）
 const legacyDetailsLeft = () => ['open', 'closed'].some((d) => {
   const dir = path.join(M, 'runtime', 'workorders', d);
