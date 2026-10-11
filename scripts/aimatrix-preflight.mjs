@@ -128,7 +128,7 @@ add('⑤ 工作区', dirty === 0 ? 'pass' : 'warn',
   dirty === 0 ? '干净（无未提交改动）' : `有 ${dirty} 个未提交改动`,
   dirty === 0 ? null : '升级前建议先提交或收纳，避免升级改动与在途改动混在一起');
 
-/* ⑥ 在途工单与未闭环决策单 */
+/* ⑥ 在途工单与未闭环决策单（v2：读三表 workorders.md / decisions.md；旧布局仅作迁移前回落） */
 const woDir = path.join(HOME, 'runtime', 'workorders', 'open');
 const drDir = path.join(HOME, 'runtime', 'decisions', 'open');
 const listMd = (dir) => {
@@ -138,18 +138,50 @@ const fieldOf = (text, field) => {
   const m = text.match(new RegExp(`\\|\\s*${field}\\s*\\|\\s*\\\`?([^|\\\`]+)`));
   return m ? m[1].trim() : '';
 };
+/** workorders.md 表行（迁移前的项目没有表 → 返回空，走旧布局） */
+const tableRows = () => {
+  const text = readText(path.join(HOME, 'workorders.md')) || '';
+  const lines = text.split('\n');
+  const head = lines.findIndex((l) => l.startsWith('| 单号'));
+  if (head < 0) return [];
+  const rows = [];
+  for (let i = head + 2; i < lines.length; i++) {
+    if (!lines[i].startsWith('|')) break;
+    const c = lines[i].split('|').slice(1, -1).map((x) => x.trim());
+    if (c.length >= 5) rows.push(c);
+  }
+  return rows;
+};
+/** decisions.md 条目块中状态为 OPEN 的 DR */
+const tableDrs = () => {
+  const text = readText(path.join(HOME, 'decisions.md')) || '';
+  const out = [];
+  for (const chunk of text.split(/^## /m).slice(1)) {
+    const head = chunk.split('\n')[0].trim();
+    const meta = chunk.split('\n').find((l) => /状态:/.test(l)) || '';
+    const status = ((meta.match(/状态:\s*([^·]*)/) || [])[1] || 'OPEN').trim().toUpperCase();
+    if (status !== 'OPEN') continue;
+    out.push({ file: head.split(/\s+/)[0], status, blocking: /BLOCKING/.test(meta) && !/NON-BLOCKING/i.test(meta) });
+  }
+  return out;
+};
 
-const openWos = listMd(woDir).map((f) => {
-  const t = readText(path.join(woDir, f)) || '';
-  return { file: f.replace(/\.md$/, ''), status: fieldOf(t, '状态') || '未知' };
-});
+const rows = tableRows();
+const openWos = rows.length
+  ? rows.map((c) => ({ file: c[0], status: c[4] || '未知' }))
+  : listMd(woDir).map((f) => {
+    const t = readText(path.join(woDir, f)) || '';
+    return { file: f.replace(/\.md$/, ''), status: fieldOf(t, '状态') || '未知' };
+  });
 const openBlocking = [];
-const openDr = listMd(drDir).map((f) => {
-  const t = readText(path.join(drDir, f)) || '';
-  const status = (fieldOf(t, '状态') || 'OPEN').toUpperCase();
-  const blocking = /BLOCKING/.test(t) && !/NON-BLOCKING/.test(t.split('影响')[1] || t);
-  return { file: f.replace(/\.md$/, ''), status, blocking: status === 'OPEN' && blocking };
-});
+const openDr = rows.length
+  ? tableDrs()
+  : listMd(drDir).map((f) => {
+    const t = readText(path.join(drDir, f)) || '';
+    const status = (fieldOf(t, '状态') || 'OPEN').toUpperCase();
+    const blocking = /BLOCKING/.test(t) && !/NON-BLOCKING/.test(t.split('影响')[1] || t);
+    return { file: f.replace(/\.md$/, ''), status, blocking: status === 'OPEN' && blocking };
+  });
 
 const inFlight = openWos.filter((w) => !/DONE/i.test(w.status));
 openDr.forEach((d) => { if (d.blocking) openBlocking.push(d); });

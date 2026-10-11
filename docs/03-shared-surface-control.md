@@ -94,8 +94,9 @@ stateDiagram-v2
   DONE --> [*]: 释放锁并归档
 ```
 
-- **存放**：`<project>/.ai-matrix-team/runtime/workorders/WO-*.md`；归档移 `<project>/.ai-matrix-team/runtime/workorders/closed/`
-- **索引**：`<project>/.ai-matrix-team/runtime/workorders/INDEX.md`（活跃 WO 一览：id / 面域 / 持有人 / 锁 / 关联 DR / 状态）
+- **活动表**：`<project>/.ai-matrix-team/workorders.md`（一行一单；agent 只经 `guard wo table add|start|verify|done|block` 改行，`EXECUTING` 即锁定）
+- **详情单**：`<project>/.ai-matrix-team/runtime/wo-details/<WO-id>.md`（只放该单的路径白名单 / 验证命令 / 回滚，供 `guard check` 取白名单；C1/C2 或 L2 必挂）
+- **归档**：终态行经 `guard archive move --kind wo --id` 移入 `<project>/.ai-matrix-team/runtime/archive/YYYY-MM.md`（月文件，append-only）
 
 ---
 
@@ -217,10 +218,11 @@ stateDiagram-v2
     aimatrix-guard｜aimatrix-decision（跨角色工具）
 
 <project>/.ai-matrix-team/          项目薄层（项目仓入库；runtime/state/ 除外）
+├── issues.md / workorders.md / decisions.md   单据三表（唯一增量真相源）
 ├── project.json                    项目档案（init 生成：apps/面域/规范绑定/术语表）
 ├── surfaces.json                   面域规则（可覆盖团队默认；与 docs/03 §1 同源）
 └── runtime/                        运行台账（入库）
-    ├── workorders/  ├── decisions/  ├── handoffs/  └── reviews/
+    ├── wo-details/  ├── archive/  ├── handoffs/  └── reviews/
 <project>/.ai-matrix-team/runtime/state/   机器写（lock.json / guard.log / instances.json），gitignore
 
 <project>/<平台技能目录>/ai-matrix-team/   ← 激活入口（真目录 + 文件级软链；平台目录见团队仓 SKILL.md 安装步骤 ②），**不入库、禁止手改**

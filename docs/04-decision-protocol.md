@@ -12,11 +12,11 @@
 
 | 东西 | 时态 | 放哪 | 谁写 |
 |---|---|---|---|
-| **DR**（Decision Request） | **待决策**（现在时） | `<project>/.ai-matrix-team/runtime/decisions/open/DR-*.md` | Agent 提，人答 |
+| **DR**（Decision Request） | **待决策**（现在时） | `<project>/.ai-matrix-team/decisions.md` h2 条目块（长背景可挂 `runtime/dr-details/`） | Agent 提，人答 |
 | **ADR**（Architecture Decision Record） | **已决策**（过去时） | `docs/decisions/ADR-*` | Bruce（结论落地后） |
 | **OPEN-ITEMS.md** | 叙述式待办清单 | `apps/<app>/docs/OPEN-ITEMS.md` | 由 DR 台账驱动生成/同步 |
 
-**流向**：DR 被答复 → 结论回填 BRD/PRD/TDD 或升格为 ADR → DR 移入 `closed/` → LEDGER 标 ✅ → OPEN-ITEMS 同步。
+**流向**：DR 被答复 → 结论回填 BRD/PRD/TDD 或升格为 ADR → 条目移入 `runtime/archive/YYYY-MM.md` → OPEN-ITEMS 同步。
 
 ---
 
@@ -103,7 +103,7 @@ decisions/
 
 1. **聊天一句话**：「DR-20261005-001 按默认」/ 「选方案 B」→ Agent 回填并关闭。
 2. **直接编辑 DR 文件**：在「答复」段写下结论 → Agent 下次扫到即生效。
-3. **操盘台页面**（可选增强，二期）：勾选选项后写回 `decisions/open/*.json`。
+3. **操盘台页面**：勾选选项后回填 `decisions.md` 对应条目的「回填」行。
 
 > 答复必须有**原文留痕**（谁、哪天、选了什么），不许只留结论不留依据。
 

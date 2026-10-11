@@ -173,6 +173,20 @@ function activeWorkorders() {
 }
 
 function recentClosedWorkorders(n = 5) {
+  // v2：已归档 WO 在 runtime/archive/YYYY-MM.md 的 `## WO <id> <任务名>（归档 …）` 块里
+  const archDir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'archive');
+  if (fs.existsSync(archDir)) {
+    const out = [];
+    for (const f of fs.readdirSync(archDir).filter((x) => x.endsWith('.md')).sort().reverse()) {
+      for (const line of fs.readFileSync(path.join(archDir, f), 'utf8').split('\n')) {
+        const m = line.match(/^## WO (WO-\d{8}-\d{2})\s*(.*?)（归档/);
+        if (m) out.push({ id: m[1], purpose: (m[2] || '').trim() });
+      }
+      if (out.length >= n) break;
+    }
+    if (out.length) return out.slice(-n).reverse();
+  }
+  // 迁移前回落：旧布局 closed/ 每单一个文件
   const dir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'workorders', 'closed');
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir).filter((f) => f.startsWith('WO-') && f.endsWith('.md')).sort().reverse().slice(0, n)
@@ -306,8 +320,8 @@ function pipeline() {
  * 供优化决策参考，不冒充精确计量。日期取文件 mtime（日志取文件名日期）。
  */
 const TOKEN_KINDS = [
-  { kind: 'wo', label: '工单', dirs: ['.ai-matrix-team/runtime/workorders/open', '.ai-matrix-team/runtime/workorders/closed'], re: /^WO-.*\.md$/ },
-  { kind: 'journal', label: '工单日志', dirs: ['.ai-matrix-team/runtime/workorders/open', '.ai-matrix-team/runtime/workorders/closed'], re: /^WO-.*\.journal\.md$/ },
+  { kind: 'wo', label: '工单', dirs: ['.ai-matrix-team/runtime/wo-details', '.ai-matrix-team/runtime/workorders/open', '.ai-matrix-team/runtime/workorders/closed'], re: /^WO-.*\.md$/ },
+  { kind: 'journal', label: '工单日志', dirs: ['.ai-matrix-team/runtime/wo-details', '.ai-matrix-team/runtime/workorders/open', '.ai-matrix-team/runtime/workorders/closed'], re: /^WO-.*\.journal\.md$/ },
   { kind: 'dr', label: '决策单', dirs: ['.ai-matrix-team/runtime/decisions/open', '.ai-matrix-team/runtime/decisions/closed'], re: /^DR-.*\.md$/ },
   { kind: 'handoff', label: '交接单', dirs: ['.ai-matrix-team/runtime/handoffs'], re: /.+\.md$/ },
   { kind: 'review', label: '质检报告', dirs: ['.ai-matrix-team/runtime/reviews'], re: /.+\.md$/ },
@@ -546,29 +560,31 @@ const server = http.createServer(async (req, res) => {
       fs.writeFileSync(hit, lines.join('\n'));
       return json(res, { ok: true, content_md: lines.join('\n'), file: path.relative(ROOT, hit) });
     }
-    // 删除归档工单（创始人需求：防台账文件累积）。双保险：文件名白名单 + 仅限 closed/ 目录。
-    const del = url.pathname.match(/^\/api\/workorders\/(WO-\d{8}-[A-Za-z0-9-]+)$/);
+    // 删除已归档工单（创始人需求：防台账累积）。文件名白名单 + 只认归档产物。
+    // v2：归档 = runtime/archive/YYYY-MM.md 的 h2 块（月文件 append-only，此处是唯一例外：创始人显式删除）；
+    // 详情单 runtime/wo-details/<id>.md 一并清掉；旧布局 closed/<id>.md 兼容。
+    const del = url.pathname.match(/^\/api\/workorders\/(WO-\d{8}-\d{2}(?:-[A-Za-z0-9-]+)?)$/);
     if (del && req.method === 'DELETE') {
       const id = del[1];
-      const dir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'workorders', 'closed');
-      const file = path.join(dir, `${id}.md`);
-      if (!fs.existsSync(file)) return send(res, 404, JSON.stringify({ error: '归档单不存在或已删除' }));
-      fs.unlinkSync(file);
-      // 同步摘除 INDEX.md 归档行；归档表清空时补占位行
-      const idxPath = path.join(ROOT, '.ai-matrix-team', 'runtime', 'workorders', 'INDEX.md');
-      if (fs.existsSync(idxPath)) {
-        const lines = fs.readFileSync(idxPath, 'utf8').split('\n');
-        const kept = lines.filter((l) => !l.startsWith(`| ${id} |`));
-        const archStart = kept.findIndex((l) => l.startsWith('## 归档单'));
-        let hasRow = false;
-        for (let i = archStart; i < kept.length; i++) if (/^\| WO-/.test(kept[i])) { hasRow = true; break; }
-        if (!hasRow && archStart >= 0) {
-          for (let i = archStart; i < kept.length; i++) {
-            if (kept[i].startsWith('|---')) { kept.splice(i + 1, 0, '| （暂无归档单） | | |'); break; }
-          }
+      let removed = false;
+      const archDir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'archive');
+      if (fs.existsSync(archDir)) {
+        for (const f of fs.readdirSync(archDir).filter((x) => x.endsWith('.md'))) {
+          const p = path.join(archDir, f);
+          const text = fs.readFileSync(p, 'utf8');
+          const re = new RegExp(`^## WO ${id} [\\s\\S]*?(?=\\n## |\\s*$)`);
+          if (!re.test(text)) continue;
+          fs.writeFileSync(p, text.replace(re, '').replace(/\n{3,}/g, '\n\n'));
+          removed = true;
         }
-        fs.writeFileSync(idxPath, kept.join('\n'));
       }
+      for (const sub of ['closed', 'open']) {
+        const file = path.join(ROOT, '.ai-matrix-team', 'runtime', 'workorders', sub, `${id}.md`);
+        if (fs.existsSync(file)) { fs.unlinkSync(file); removed = true; }
+      }
+      const detail = path.join(ROOT, '.ai-matrix-team', 'runtime', 'wo-details', `${id}.md`);
+      if (fs.existsSync(detail)) { fs.unlinkSync(detail); removed = true; }
+      if (!removed) return send(res, 404, JSON.stringify({ error: '归档单不存在或已删除' }));
       return json(res, { ok: true, deleted: id });
     }
     // 静态 + SPA 回退

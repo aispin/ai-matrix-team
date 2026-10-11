@@ -72,7 +72,7 @@ $G audit --since HEAD~5
 |---|---|---|
 | `project.json` 项目档案、`surfaces.json` 面域规则 | ✅ | 稳定配置，派单与门禁依据 |
 | `runtime/decisions/`（DR 台账） | ✅ | 结论性审计资产，评审即 PR review |
-| `runtime/workorders/`（WO 单 + journal） | ✅ | 谁在哪个单改了什么，blame 可查 |
+| `issues.md` / `workorders.md` / `decisions.md`（三表）+ `runtime/wo-details/`（详情单与 journal） | ✅ | 谁在哪个单改了什么，blame 可查 |
 | `runtime/handoffs/`（交接单） | ✅ | 「随时回查审计」的载体 |
 | `runtime/reviews/`（QA 复检 / 巡检） | ✅ | 放行依据，必须留痕 |
 | `runtime/state/`（lock.json、guard.log、instances.json） | ❌ | 易失运行态：本机路径、会话 id、高频刷新 |

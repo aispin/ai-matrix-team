@@ -84,7 +84,7 @@
     ]
   },
   "wo": {
-    "statusesActive": ["APPROVED", "LOCKED", "IMPLEMENTING", "VERIFYING", "BLOCKED_DR"],
+    "statusesActive": ["APPROVED", "LOCKED", "IMPLEMENTING", "TODO", "EXECUTING", "VERIFYING", "BLOCKED_DR"],
     "statusesNeedingLock": ["APPROVED", "LOCKED", "IMPLEMENTING", "VERIFYING"],
     "lockTtlMinutes": 240,
     "lockRenewable": true

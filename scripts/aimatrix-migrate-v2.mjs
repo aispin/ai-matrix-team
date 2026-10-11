@@ -42,8 +42,12 @@ const die = (m) => { console.error('⛔ ' + m); process.exit(1); };
 
 if (!fs.existsSync(M)) die(`${M} 不存在——不是 ai-matrix 项目，拒绝迁移`);
 
-// 自动模式：marker 已在 → 静默跳过
-if (AUTO && fs.existsSync(MARKER)) process.exit(0);
+// 自动模式：marker 已在且旧布局详情单已清空 → 静默跳过（否则补跑第 4 步的搬迁/规范化）
+const legacyDetailsLeft = () => ['open', 'closed'].some((d) => {
+  const dir = path.join(M, 'runtime', 'workorders', d);
+  return fs.existsSync(dir) && fs.readdirSync(dir).some((f) => /^WO-\d{8}-\d{2}.*\.md$/.test(f));
+});
+if (AUTO && fs.existsSync(MARKER) && !legacyDetailsLeft()) process.exit(0);
 
 // 自动模式：判定是否需要迁移（有旧单据才动；纯新项目写 marker 即走）
 const hasLegacy =
@@ -188,7 +192,76 @@ if (fs.existsSync(indexFile)) {
   }
 }
 
-log(`\n小结：DR 迁移 ${drMigrated} · WO 迁移 ${woMigrated} · WO 归档 ${woArchived}${DRY ? '（dry-run 未写盘）' : ''}`);
+// ---------- 4. 单号规范化 + 详情单搬迁（v2 消费端切表：workorders.md 为唯一真相源） ----------
+// 旧布局：详情单在 runtime/workorders/{open,closed}/，单号形如 WO-YYYYMMDD-NN-<slug>。
+// v2：单号只认 WO-YYYYMMDD-NN（guard wo table 的格式门禁），详情单落 runtime/wo-details/<单号>.md。
+const WO_TABLE = path.join(M, 'workorders.md');
+const DETAILS = path.join(M, 'runtime', 'wo-details');
+const shortId = (s) => (String(s).match(/^WO-\d{8}-\d{2}/) || [String(s)])[0];
+const detailStatus = (file) => ((read(file).match(/\|\s*\*{0,2}状态\*{0,2}\s*\|\s*`?([A-Z_]+)`?/) || [])[1] || '—');
+// 旧状态词表 → v2 状态机（TODO → EXECUTING → VERIFYING → DONE / BLOCKED_DR）；
+// 不归一到 v2，`wo table` 的状态门禁会拒收（done 只认 EXECUTING/VERIFYING/BLOCKED_DR）。
+const V2_STATUS = { IMPLEMENTING: 'EXECUTING', LOCKED: 'EXECUTING', APPROVED: 'TODO', DRAFT: 'TODO' };
+let idFixed = 0, stFixed = 0, moved = 0, adopted = 0, doneLeft = 0;
+
+// 表在内存里改完、最后一次性写盘：dry-run 与真实运行看到同一份中间态（否则 dry 会误判「表里没有」）
+const tableLines = (fs.existsSync(WO_TABLE) ? read(WO_TABLE) : SKELETONS['workorders.md']).split('\n');
+const hasRow = (id) => tableLines.some((l) => l.startsWith(`| ${id} |`));
+{
+  const head = tableLines.findIndex((l) => l.startsWith('| 单号'));
+  if (head >= 0) {
+    for (let i = head + 2; i < tableLines.length; i++) {
+      if (!tableLines[i].startsWith('|')) break;
+      const c = tableLines[i].split('|').slice(1, -1).map((x) => x.trim());
+      if (/^WO-\d{8}-\d{2}-/.test(c[0])) {
+        const short = shortId(c[0]);
+        const slug = c[0].slice(short.length).replace(/^-/, '');
+        c[0] = short;
+        if (slug && (!c[1] || c[1] === '—' || c[1] === '旧单迁移')) c[1] = slug;
+        idFixed++;
+      }
+      if (V2_STATUS[c[4]]) { c[4] = V2_STATUS[c[4]]; stFixed++; }
+      tableLines[i] = `| ${c.join(' | ')} |`;
+    }
+    if (idFixed) log(`➜ 表行单号规范化 ${idFixed} 行 → WO-YYYYMMDD-NN`);
+    if (stFixed) log(`➜ 表行状态归一 ${stFixed} 行 → v2 状态机`);
+  }
+}
+
+for (const d of ['open', 'closed']) {
+  const dir = path.join(M, 'runtime', 'workorders', d);
+  if (!fs.existsSync(dir)) continue;
+  for (const f of fs.readdirSync(dir).sort()) {
+    if (!/^WO-\d{8}-\d{2}.*\.md$/.test(f)) continue;
+    const id = shortId(f);
+    if (f.endsWith('.journal.md')) {
+      const to = path.join(DETAILS, `${id}.journal.md`);
+      if (fs.existsSync(to)) { log(`↷ ${f} 已有 ${id}.journal.md，跳过`); continue; }
+      if (!DRY) { fs.mkdirSync(DETAILS, { recursive: true }); fs.renameSync(path.join(dir, f), to); }
+      log(`➜ 执行日志 ${f} → runtime/wo-details/${id}.journal.md`);
+      continue;
+    }
+    const to = path.join(DETAILS, `${id}.md`);
+    if (fs.existsSync(to)) { log(`↷ ${f} 已有 ${id}.md，跳过`); continue; }
+    const status = detailStatus(path.join(dir, f));
+    if (!DRY) { fs.mkdirSync(DETAILS, { recursive: true }); fs.renameSync(path.join(dir, f), to); }
+    moved++;
+    // open/ 里没进表的单：非 DONE 补一行（③ 收口的输入，否则 report 看不见）；
+    // DONE 只搬详情单不补行——完单不该被塞回活动表。
+    if (d !== 'open' || hasRow(id)) continue;
+    if (status === 'DONE') { doneLeft++; log(`➜ 已完工单 ${id}（不补行，只搬详情单）`); continue; }
+    const slug = f.slice(id.length).replace(/^-/, '').replace(/\.md$/, '');
+    // 表尾可能带空行；补行必须紧贴表格（parser 遇首个非 | 行即停，隔空行 = 补行不可见）
+    while (tableLines.length && tableLines[tableLines.length - 1].trim() === '') tableLines.pop();
+    tableLines.push(`| ${id} | ${slug || '旧单迁移'} | 旧详情单迁移 | — | ${V2_STATUS[status] || status} | — | — | ${today} |`);
+    adopted++;
+    log(`➜ 补行 ${id}（${status}）`);
+  }
+}
+
+if (!DRY && (idFixed || stFixed || adopted)) fs.writeFileSync(WO_TABLE, tableLines.join('\n'));
+
+log(`\n小结：DR 迁移 ${drMigrated} · WO 迁移 ${woMigrated} · WO 归档 ${woArchived} · 单号规范化 ${idFixed} · 状态归一 ${stFixed} · 详情单搬迁 ${moved}（补行 ${adopted} · 已完工单留档 ${doneLeft}）${DRY ? '（dry-run 未写盘）' : ''}`);
 
 // 收尾写 marker：自动模式不重复迁移
 if (!DRY) { fs.mkdirSync(path.dirname(MARKER), { recursive: true }); fs.writeFileSync(MARKER, today); }

@@ -54,6 +54,17 @@ const LOCK_LABEL = lbl('lock', '占用');
 
 // ---------- 台账解析 ----------
 function activeWorkorders() {
+  // v2：workorders.md 活动表是唯一增量真相源；旧 INDEX.md 作迁移前回落
+  const wt = path.join(ROOT, '.ai-matrix-team', 'workorders.md');
+  if (fs.existsSync(wt)) {
+    const rows = [];
+    for (const line of fs.readFileSync(wt, 'utf8').split('\n')) {
+      if (!/^\| WO-/.test(line) || line.startsWith('| 单号')) continue;
+      const c = line.split('|').map((x) => x.trim()).filter((x) => x !== '');
+      rows.push({ id: c[0], purpose: c[2] || '', executor: c[5] || '', status: c[4] || '' });
+    }
+    return rows;
+  }
   const idx = path.join(ROOT, '.ai-matrix-team', 'runtime', 'workorders', 'INDEX.md');
   if (!fs.existsSync(idx)) return [];
   const table = read('.ai-matrix-team/runtime/workorders/INDEX.md');
@@ -71,6 +82,18 @@ function activeWorkorders() {
 }
 
 function archivedWorkorders() {
+  // v2：归档落 runtime/archive/YYYY-MM.md 的 `## WO <id> <任务名>（归档 …）` 块
+  const archDir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'archive');
+  if (fs.existsSync(archDir)) {
+    const out = [];
+    for (const f of fs.readdirSync(archDir).filter((x) => x.endsWith('.md')).sort().reverse()) {
+      for (const line of fs.readFileSync(path.join(archDir, f), 'utf8').split('\n')) {
+        const m = line.match(/^## WO (WO-\d{8}-\d{2})\s*(.*?)（归档/);
+        if (m) out.push({ id: m[1], purpose: (m[2] || '').trim() });
+      }
+    }
+    if (out.length) return out;
+  }
   const dir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'workorders', 'closed');
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir).filter((f) => f.startsWith('WO-') && f.endsWith('.md')).map((f) => {
@@ -81,6 +104,26 @@ function archivedWorkorders() {
 }
 
 function openDecisions() {
+  // v2：decisions.md h2 条目块（增量真相源）；旧 decisions/open/ 作迁移前回落
+  const dfile = path.join(ROOT, '.ai-matrix-team', 'decisions.md');
+  if (fs.existsSync(dfile)) {
+    const rows = [];
+    for (const chunk of fs.readFileSync(dfile, 'utf8').split(/^## /m).slice(1)) {
+      const head = chunk.split('\n')[0].trim();
+      const m = head.match(/^(DR-\d{8}-\d{3})\s*(.*)$/);
+      if (!m) continue;
+      const meta = chunk.split('\n').find((l) => /状态:/.test(l)) || '';
+      const status = ((meta.match(/状态:\s*([^·]*)/) || [])[1] || 'OPEN').trim();
+      if (!/OPEN/i.test(status)) continue;
+      rows.push({
+        id: m[1],
+        oneLine: m[2].trim(),
+        blocking: /BLOCKING/.test(meta) && !/NON-BLOCKING/i.test(meta),
+        due: '',
+      });
+    }
+    if (rows.length) return rows;
+  }
   // D3：实时扫 decisions/open/ 目录——LEDGER 仅 ledger-sync 时重建，并发会话新落的 DR 会漏
   const dir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'decisions', 'open');
   if (!fs.existsSync(dir)) return [];

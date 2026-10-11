@@ -1,6 +1,7 @@
 {
-  "generatedAt": "2026-10-08T02:13:45.245Z",
+  "generatedAt": "2026-10-11T10:01:56.989Z",
   "generator": "aimatrix-init.mjs v1",
+  "engineVersion": "0.7.0",
   "project": {
     "name": "ai-matrix-team",
     "description": "",
@@ -32,7 +33,9 @@
     ]
   },
   "ci": {
-    "workflows": []
+    "workflows": [
+      "ci.yml"
+    ]
   },
   "surfaces": {
     "C1": [
@@ -98,6 +101,5 @@
       "label": "已完工单",
       "desc": "干完并验收过的任务"
     }
-  },
-  "engineVersion": "0.5.1"
+  }
 }

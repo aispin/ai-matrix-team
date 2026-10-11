@@ -47,6 +47,7 @@ function PROJECT() {
 }
 const RUNTIME = () => path.join(PROJECT(), '.ai-matrix-team', 'runtime');
 const WO_DIR = () => path.join(RUNTIME(), 'workorders');
+const WO_DETAILS = () => path.join(RUNTIME(), 'wo-details'); // v2：详情单唯一落点（白名单/验证/回滚）
 const DR_OPEN = () => path.join(RUNTIME(), 'decisions', 'open');
 const DR_CLOSED = () => path.join(RUNTIME(), 'decisions', 'closed');
 const STATE_DIR = () => path.join(RUNTIME(), 'state');
@@ -165,9 +166,8 @@ const CONTROLLED = new Set(['C1', 'C2']);
 
 // ---------- WO / DR 解析 ----------
 function findWoFile(id) {
-  if (!exists(WO_DIR())) return null;
-  for (const d of ['.', 'open', 'closed']) {
-    const dir = path.join(WO_DIR(), d);
+  // v2：详情单落 runtime/wo-details/（SPEC-20261010-03）；旧布局 workorders/{.,open,closed} 仅作迁移前兼容
+  for (const dir of [WO_DETAILS(), ...['.', 'open', 'closed'].map((d) => path.join(WO_DIR(), d))]) {
     if (!exists(dir)) continue;
     for (const f of fs.readdirSync(dir)) {
       // 排除 .journal.md——否则同前缀的日志文件会被当成 WO 主文件，
@@ -183,10 +183,26 @@ function cells(line) {
   return line.split('|').map((c) => c.trim()).filter((c) => c !== '' && !/^-+$/.test(c));
 }
 
+/** v2 表行（只读、不建文件）：workorders.md 不存在或未成表 = 迁移前的项目 */
+function woTableRows() {
+  const f = WO_TABLE();
+  if (!exists(f)) return [];
+  const lines = read(f).split('\n');
+  const head = lines.findIndex((l) => l.startsWith('| 单号'));
+  if (head < 0) return [];
+  const rows = [];
+  for (let i = head + 2; i < lines.length; i++) {
+    if (!lines[i].startsWith('|')) break;
+    rows.push({ line: lines[i], c: cells(lines[i]) });
+  }
+  return rows;
+}
+
 function parseWo(id) {
+  const row = woTableRows().find((r) => r.c[0] === id) || null;
   const file = findWoFile(id);
-  if (!file) return null;
-  const text = read(file);
+  if (!row && !file) return null;
+  const text = file ? read(file) : '';
   const statusM = text.match(/\|\s*\*{0,2}状态\*{0,2}\s*\|\s*`?([A-Z_]+)`?/);
   const execM = text.match(/\|\s*\*{0,2}执行(角色)?\*{0,2}\s*\|\s*([^|\n]+)\|/);
   const wlSection = text.split(/^##\s*2\..*$/m)[1]?.split(/^##\s/m)[0] || '';
@@ -207,16 +223,20 @@ function parseWo(id) {
     if (!/^\s*\|/.test(line)) continue;
     for (const m of line.match(/DR-\d{8}-\d{3}/g) || []) drLines.push(m);
   }
-  const drs = [...new Set(drLines)];
+  const fileDrs = [...new Set(drLines)];
+  // v2：表行是唯一真相源（状态/处理者/关联）；详情单只供白名单三字段。无表行时回落详情单（迁移前兼容）。
+  const rowDrs = row ? [...new Set((row.c[3] || '').match(/DR-\d{8}-\d{3}/g) || [])] : [];
+  const inDetails = file ? file.startsWith(WO_DETAILS() + path.sep) : false;
   return {
     id,
     file,
-    relFile: rel(file),
-    closed: file.includes(`${path.sep}closed${path.sep}`),
-    status: statusM ? statusM[1] : null,
-    executor: execM ? execM[2].replace(/`/g, '').trim() : null,
+    relFile: file ? rel(file) : null,
+    // 归档判定：表行在 = 未归档；旧布局看 closed/；详情单在 wo-details/ 而表里没有行（且表在用）= 已归档
+    closed: row ? false : (file && !inDetails ? file.includes(`${path.sep}closed${path.sep}`) : woTableRows().length > 0),
+    status: row ? (row.c[4] || null) : (statusM ? statusM[1] : null),
+    executor: row ? (row.c[5] && row.c[5] !== '—' ? row.c[5] : null) : (execM ? execM[2].replace(/`/g, '').trim() : null),
     globs: [...globs],
-    drs,
+    drs: rowDrs.length ? rowDrs : fileDrs,
   };
 }
 
@@ -438,17 +458,26 @@ function readInstances() {
   try { return JSON.parse(fs.readFileSync(INSTANCES_FILE(), 'utf8')); } catch { return []; }
 }
 function activeWos() {
-  const out = [];
+  const out = new Map();
+  const key = (id) => (String(id || '').match(/^WO-\d{8}-\d{2}/) || [id])[0];
+  // v2：workorders.md 是唯一真相源——除 DONE 外都算在途（含 TODO，尚未开工也要可见）
+  for (const r of woTableRows()) {
+    if (r.c[4] === 'DONE') continue;
+    const wo = parseWo(r.c[0]);
+    if (wo) out.set(key(wo.id), wo);
+  }
+  // 迁移前兼容：旧布局按详情单状态（同一单号已被表覆盖则不重复计入）
   for (const d of ['.', 'open']) {
     const dir = path.join(WO_DIR(), d);
     if (!exists(dir)) continue;
     for (const f of fs.readdirSync(dir)) {
       if (!/^WO-\d{8}-\d{2}-.*\.md$/.test(f)) continue;
       const wo = parseWo(path.basename(f, '.md'));
-      if (wo && wo.status && surfaces().wo.statusesActive.includes(wo.status)) out.push(wo);
+      if (!wo || !wo.status || !surfaces().wo.statusesActive.includes(wo.status)) continue;
+      if (!out.has(key(wo.id))) out.set(key(wo.id), wo);
     }
   }
-  return out;
+  return [...out.values()];
 }
 /** 两条规则：① 同角色同呼号挂在多张在办单 → 撞号；② 执行字段带了呼号但 instances.json 未登记 */
 function checkInstances() {
@@ -480,13 +509,13 @@ function cmdWoJournal(args) {
   const who = args.get('--who');
   const what = args.get('--what');
   if (!woId || !who || !what) die(EXIT.USAGE, '用法：wo journal --wo <id> --who <角色#呼号> --what "<动作与结果>"');
-  const dirs = [path.join(WO_DIR(), 'open'), path.join(WO_DIR(), 'closed')];
+  const dirs = [WO_DETAILS(), path.join(WO_DIR(), 'open'), path.join(WO_DIR(), 'closed')];
   let woFile = null;
   for (const d of dirs) {
     const hit = fs.readdirSync(d).filter((f) => /^WO-.*\.md$/.test(f) && !f.endsWith('.journal.md') && f.startsWith(woId));
     if (hit.length) { woFile = path.join(d, hit[0]); break; }
   }
-  if (!woFile) die(EXIT.USAGE, '找不到 WO：' + woId + '（open/closed 均无前缀匹配）');
+  if (!woFile) die(EXIT.USAGE, '找不到 WO：' + woId + '（wo-details/ 与旧布局 open/closed 均无前缀匹配）');
   const journal = woFile.replace(/\.md$/, '.journal.md');
   if (!exists(journal)) {
     fs.writeFileSync(journal, [
@@ -530,16 +559,16 @@ function cmdStats() {
     ['角色 SKILL.md', skillSizes.length + ' 个 / ' + kb(sum(skillSizes))],
     ['治理文档 01-08', docSizes.length + ' 篇 / ' + kb(sum(docSizes))],
     ['索引卡', idxSizes.length + ' 张 / ' + kb(sum(idxSizes))],
-    ['WO open / closed', count(path.join(RUNTIME(), 'workorders', 'open'), /^WO-.*\.md$/) + ' / ' + count(path.join(RUNTIME(), 'workorders', 'closed'), /^WO-.*\.md$/) + ' 张'],
+    ['WO 表行（v2）', woTableRows().length + ' 行 · 在途 ' + activeWos().length + ' 单'],
+    ['WO 详情单', count(WO_DETAILS(), /^WO-.*\.md$/) + ' 张 · 旧布局 open ' + count(path.join(RUNTIME(), 'workorders', 'open'), /^WO-.*\.md$/) + ' 张'],
     ['DR open', count(path.join(RUNTIME(), 'decisions', 'open'), /^DR-.*\.md$/) + ' 张'],
     ['WO journal', (() => {
-      const woRoot = path.join(RUNTIME(), 'workorders');
-      const js = [...ls(path.join(woRoot, 'open')), ...ls(path.join(woRoot, 'closed'))].filter((f) => f.endsWith('.journal.md'));
-      return js.length + ' 个 / ' + kb(sum(js.map((f) => size(path.join(woRoot, exists(path.join(woRoot, 'open', f)) ? 'open' : 'closed', f)))));
+      const dirs = [WO_DETAILS(), path.join(RUNTIME(), 'workorders', 'open'), path.join(RUNTIME(), 'workorders', 'closed')];
+      const js = dirs.flatMap((d) => ls(d).filter((f) => f.endsWith('.journal.md')).map((f) => path.join(d, f)));
+      return js.length + ' 个 / ' + kb(sum(js.map(size)));
     })()],
-    ['WO 主文件最大 3 张（open）', (() => {
-      const woRoot = path.join(RUNTIME(), 'workorders');
-      const es = ls(path.join(woRoot, 'open')).filter((f) => /^WO-.*\.md$/.test(f) && !f.endsWith('.journal.md')).map((f) => ({ f, b: size(path.join(woRoot, 'open', f)) })).sort((a, b) => b.b - a.b).slice(0, 3);
+    ['WO 详情单最大 3 张', (() => {
+      const es = ls(WO_DETAILS()).filter((f) => /^WO-.*\.md$/.test(f) && !f.endsWith('.journal.md')).map((f) => ({ f, b: size(path.join(WO_DETAILS(), f)) })).sort((a, b) => b.b - a.b).slice(0, 3);
       return es.map((e) => e.f.slice(0, 20) + '…' + kb(e.b)).join(' · ') || '—';
     })()],
     ['instances 登记', String(readInstances().length) + ' 条'],
@@ -610,16 +639,22 @@ function readDirSafe(d) { try { return fs.readdirSync(d); } catch { return []; }
 const one = (v) => (Array.isArray(v) ? v[0] : v) || '';
 const many = (v) => (Array.isArray(v) ? v : v ? [v] : []);
 
-function nextWoId(slug) {
+/** v2 单号 = WO-YYYYMMDD-NN（slug 只进标题，不进单号）。取号须同时扫表行、详情单与归档，防重号 */
+function nextWoId() {
   const d = new Date();
   const day = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
-  const names = [...readDirSafe(path.join(WO_DIR(), 'open')), ...readDirSafe(path.join(WO_DIR(), 'closed'))];
   let max = 0;
-  for (const f of names) {
-    const m = /^WO-(\d{8})-(\d{2,3})-/.exec(f);
-    if (m && m[1] === day) max = Math.max(max, Number(m[2]));
+  const bump = (s) => {
+    const m = new RegExp(`^WO-${day}-(\\d{2,3})`).exec(String(s || ''));
+    if (m) max = Math.max(max, Number(m[1]));
+  };
+  for (const r of woTableRows()) bump(r.c[0]);
+  for (const f of [...readDirSafe(WO_DETAILS()), ...readDirSafe(WO_DIR()), ...readDirSafe(path.join(WO_DIR(), 'open')), ...readDirSafe(path.join(WO_DIR(), 'closed'))]) bump(f);
+  const archDir = ARCHIVE_DIR();
+  for (const f of readDirSafe(archDir)) {
+    for (const m of String(read(path.join(archDir, f))).match(new RegExp(`WO-${day}-\\d{2,3}`, 'g')) || []) bump(m);
   }
-  return `WO-${day}-${String(max + 1).padStart(2, '0')}-${slug}`;
+  return `WO-${day}-${String(max + 1).padStart(2, '0')}`;
 }
 
 function cmdWoNew(args) {
@@ -629,7 +664,7 @@ function cmdWoNew(args) {
   const surface = one(args.get('--surface') || 'C2').toUpperCase();
   const paths = many(args.get('--paths')).length ? many(args.get('--paths')).join(',').split(',').map((s) => s.trim()).filter(Boolean) : ['（待填：glob，一行一个）'];
   const purpose = one(args.get('--purpose')) || '（三行内：改什么 / 为什么现在改 / 依据）';
-  const id = nextWoId(slug);
+  const id = nextWoId();
   const today = new Date().toISOString().slice(0, 10);
   const body = `# ${id} · 任务单
 
@@ -700,14 +735,14 @@ ${purpose}
 - [ ] 交接单已落盘（≤15 行）
 - [ ] 共享锁已释放
 - [ ] 术语缩写自检（无裸用缩写）
-- [ ] 归档至 \`runtime/workorders/closed/\`
+- [ ] 归档：\`guard archive move --kind wo --id <单号>\`（活动表 → \`runtime/archive/YYYY-MM.md\`）
 `;
   // 单一真相源：模板存在则以 docs/templates/wo.md 为准（内嵌骨架仅作兜底，防双份漂移）
   const tplFile = path.join(TEAM_ROOT, 'docs/templates/wo.md');
   const tpl = exists(tplFile) ? read(tplFile) : null;
   const finalBody = tpl
     ? tpl
-      .replace(/^# WO-YYYYMMDD-NN-<slug> · 任务单$/m, `# ${id} · 任务单`)
+      .replace(/^# WO-YYYYMMDD-NN-<slug> · 任务单$/m, `# ${id} · ${slug}`)
       .replace(/WO-YYYYMMDD-NN-<slug>/g, id)
       .replace('| 验收级别 | `L2` |', `| 验收级别 | \`${level}\` |`)
       .replace('| 创建 / 完成 | YYYY-MM-DD / — |', `| 创建 / 完成 | ${today} / — |`)
@@ -715,7 +750,8 @@ ${purpose}
       .replace('| C1/C2/C3/F | `（待填）` |', paths.map((p) => `| ${surface} | \`${p}\` |`).join('\n'))
       .replace(/WO-xxx\.journal\.md/g, `${id}.journal.md`)
     : body;
-  const dir = path.join(WO_DIR(), 'open');
+  // v2：详情单落 runtime/wo-details/（单号不带 slug）
+  const dir = WO_DETAILS();
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, `${id}.md`);
   if (fs.existsSync(file)) die(EXIT.USAGE, `已存在：${file}`);
@@ -816,7 +852,7 @@ function cmdCheck(args) {
   }
   const wo = parseWo(woId);
   if (!wo) {
-    console.error(R(`⛔ 找不到 WO：${woId}（<project>/.ai-matrix-team/runtime/workorders/ 下无此单）`));
+    console.error(R(`⛔ 找不到 WO：${woId}（workorders.md 表行与 runtime/wo-details/ 均无此单）`));
     process.exit(EXIT.NOLOCK);
   }
   if (wo.closed) {
@@ -1088,14 +1124,15 @@ function cmdAudit(args) {
   }
 
   const allWoFiles = [];
-  for (const d of ['.', 'open', 'closed']) {
-    const dir = path.join(WO_DIR(), d);
+  for (const dir of [WO_DETAILS(), ...['.', 'open', 'closed'].map((d) => path.join(WO_DIR(), d))]) {
     if (!exists(dir)) continue;
     for (const f of fs.readdirSync(dir)) {
-      if (/^WO-\d{8}-\d{2}-.*\.md$/.test(f)) allWoFiles.push(path.join(dir, f));
+      if (/^WO-\d{8}-\d{2}.*\.md$/.test(f) && !f.endsWith('.journal.md')) allWoFiles.push(path.join(dir, f));
     }
   }
-  const wos = allWoFiles.map((f) => parseWo(path.basename(f, '.md'))).filter(Boolean);
+  // v2：白名单覆盖判定既要看表行（轻单一行即单），也要看详情单
+  const woIds = [...new Set([...woTableRows().map((r) => r.c[0]), ...allWoFiles.map((f) => path.basename(f, '.md'))])];
+  const wos = woIds.map((id) => parseWo(id)).filter(Boolean);
 
   const checkPaths = (files, msgRef) => {
     for (const raw of files) {
@@ -1103,8 +1140,9 @@ function cmdAudit(args) {
       const { tier } = tierOf(p);
       if (!CONTROLLED.has(tier)) continue;
       // 提交信息引用了某个真实存在的 WO 且该 WO 白名单覆盖此路径 → 有单
-      const refIds = [...new Set((msgRef || '').match(/WO-\d{8}-\d{2}-[\w-]+/g) || [])];
-      const viaMsg = refIds.some((id) => wos.some((w) => w.id === id && woCovers(w, p)));
+      const refIds = [...new Set((msgRef || '').match(/WO-\d{8}-\d{2}(?:-[\w-]+)?/g) || [])];
+      const same = (a, b) => (String(a).match(/^WO-\d{8}-\d{2}/) || [a])[0] === (String(b).match(/^WO-\d{8}-\d{2}/) || [b])[0];
+      const viaMsg = refIds.some((id) => wos.some((w) => same(w.id, id) && woCovers(w, p)));
       const viaWo = wos.some((w) => woCovers(w, p));
       if (viaMsg || viaWo) { coveredSeen.push(p); continue; }
       violations.push({ path: p, tier, msg: (msgRef || '').split('\t')[0] || '(未提交改动)' });
@@ -1238,7 +1276,7 @@ function cmdReport() {
   if (!instanceWarns.length) console.log(G('  通过：无撞号、无未登记呼号。'));
   for (const w of instanceWarns) console.error(Y(`  ⚠ ${w}`));
   console.log(T('\n== 未闭环 DR =='));
-  const drs = scanDrs({});
+  const drs = [...scanDrs({}), ...scanDrTable({})]; // v2：条目块（decisions.md）也是真相源，不能只看旧 open/ 目录
   const b = drs.filter((d) => d.blocking);
   console.log(`  BLOCKING ${b.length} · NON-BLOCKING ${drs.length - b.length}`);
   for (const d of drs) console.log(`  ${d.blocking ? '⛔' : '·'} ${d.id} ${d.title}`);
