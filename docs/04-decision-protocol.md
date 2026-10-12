@@ -12,7 +12,7 @@
 
 | 东西 | 时态 | 放哪 | 谁写 |
 |---|---|---|---|
-| **DR**（Decision Request） | **待决策**（现在时） | `<project>/.ai-matrix-team/decisions.md` h2 条目块（长背景可挂 `runtime/dr-details/`） | Agent 提，人答 |
+| **DR**（Decision Request） | **待决策**（现在时） | `<project>/.aimt/decisions.md` h2 条目块（长背景可挂 `runtime/dr-details/`） | Agent 提，人答 |
 | **ADR**（Architecture Decision Record） | **已决策**（过去时） | `docs/decisions/ADR-*` | Bruce（结论落地后） |
 | **OPEN-ITEMS.md** | 叙述式待办清单 | `apps/<app>/docs/OPEN-ITEMS.md` | 由 DR 台账驱动生成/同步 |
 
@@ -81,7 +81,7 @@ stateDiagram-v2
 ## 5. 落盘与命名
 
 ```text
-<project>/.ai-matrix-team/
+<project>/.aimt/
 ├── decisions.md                  # 决策条目块（唯一增量真相源）
 └── runtime/
     ├── dr-details/DR-*.md        # 长背景（可选）
@@ -122,7 +122,7 @@ stateDiagram-v2
 | B. 需要你提供（凭据/资源） | D2（BLOCKING） |
 | C. 需要你做技术选型 | D3 |
 | D. 我已替你决定、你可推翻 | 非 DR（写进交接单即可；若可推翻代价高 → 升级为 D3） |
-| F. 风险登记 | 非 DR（进 `<project>/.ai-matrix-team/runtime/reviews/` 或交接单「遗留风险」） |
+| F. 风险登记 | 非 DR（进 `<project>/.aimt/runtime/reviews/` 或交接单「遗留风险」） |
 
 ---
 

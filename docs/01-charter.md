@@ -76,7 +76,7 @@
 |---|---|---|
 | **T1** | **无 WO 不动受控面**：改 `packages/*`、`services/*`、根 `docs/**`、`infra/`、`scripts/`、`matrix.config.schema.json` 之前必须有活跃 WO，且共享面锁在手 | `aimatrix-guard check` 退出码 2/3 |
 | **T2** | **BLOCKING DR 不闭环不推进**：当前任务关联的 Type 1 / BLOCKING 决策未获人类答复，不得进入下一阶段（绝不靠沉默默认通过） | `aimatrix-guard dr scan --blocking` 退出码 4 |
-| **T3** | **交付必有交接单**：任何 WO 收尾都要产出 `<project>/.ai-matrix-team/runtime/handoffs/WO-xxx-handoff.md`（改了什么 / 怎么验证 / 怎么回滚 / 遗留 DR） | 主理人收口时检查 |
+| **T3** | **交付必有交接单**：任何 WO 收尾都要产出 `<project>/.aimt/runtime/handoffs/WO-xxx-handoff.md`（改了什么 / 怎么验证 / 怎么回滚 / 遗留 DR） | 主理人收口时检查 |
 | **T4** | **禁止裸用缩写术语**：一切对外/跨人交付物（BRD/PRD/TDD/设计稿/评审报告/交接单/汇报）禁止使用未经释义的行业缩写（如 KYB、KYC、OTP、SLA）；确需使用（含字段名、单据号、UI 文案）时，**必须在文档头部附「术语缩写释义表」**（缩写 | 全称 | 中文释义，至少覆盖全文出现的每一个缩写）。本团队内部标准缩写（WO/DR/AC/TDD 等，见 §6 术语表）除外 | PC 派单时把关 + 石头巡检抽查 |
 
 ### 4.3 严禁行为

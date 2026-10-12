@@ -2,7 +2,7 @@
 /**
  * aimatrix-guard — ai-matrix 共享面机器门禁（零第三方依赖，Node 22 直跑）
  *
- * 规则源：<project>/.ai-matrix-team/surfaces.json（缺省回退 <team-repo>/scripts/surfaces-default.json；与 docs/03-shared-surface-control.md §1 同源）
+ * 规则源：<project>/.aimt/surfaces.json（缺省回退 <team-repo>/scripts/surfaces-default.json；与 docs/03-shared-surface-control.md §1 同源）
  * 退出码：0 通过 · 1 用法/环境错误 · 2 越权/无单写入 · 3 缺 WO 或缺锁/锁冲突
  * 4 存在未闭环 BLOCKING DR · 5 台账格式不合规 · 6 sync-check 提示（不阻塞）
  *
@@ -32,20 +32,22 @@ import { redact } from './aimatrix-redact.mjs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEAM_ROOT = path.resolve(__dirname, '..'); // 团队仓根（本脚本位于 <team-repo>/scripts/）
 
-// ---------- 项目根解析（两仓解耦：--project / AIM_PROJECT_ROOT / 含 .ai-matrix-team 的 cwd） ----------
+// ---------- 项目根解析（两仓解耦：--project / AIM_PROJECT_ROOT / 含 .aimt 的 cwd） ----------
 let _PROJECT;
 function PROJECT() {
   if (_PROJECT) return _PROJECT;
   const i = process.argv.indexOf('--project');
   const cand = i > 0 && process.argv[i + 1] ? path.resolve(process.argv[i + 1])
     : process.env.AIM_PROJECT_ROOT ? path.resolve(process.env.AIM_PROJECT_ROOT)
+    : fs.existsSync(path.join(process.cwd(), '.aimt')) ? process.cwd()
+    // 旧布局兼容：含 .ai-matrix-team/ 的项目根也认（启动钩子会自动改名迁移）
     : fs.existsSync(path.join(process.cwd(), '.ai-matrix-team')) ? process.cwd()
     : null;
-  if (!cand) die(EXIT.USAGE, '⛔ 未定位到项目根：传 --project <root>、设 AIM_PROJECT_ROOT，或在含 .ai-matrix-team/ 的项目根运行');
+  if (!cand) die(EXIT.USAGE, '⛔ 未定位到项目根：传 --project <root>、设 AIM_PROJECT_ROOT，或在含 .aimt/ 的项目根运行');
   _PROJECT = cand;
   return cand;
 }
-const RUNTIME = () => path.join(PROJECT(), '.ai-matrix-team', 'runtime');
+const RUNTIME = () => path.join(PROJECT(), '.aimt', 'runtime');
 const WO_DIR = () => path.join(RUNTIME(), 'workorders');
 const WO_DETAILS = () => path.join(RUNTIME(), 'wo-details'); // v2：详情单唯一落点（白名单/验证/回滚）
 const DR_OPEN = () => path.join(RUNTIME(), 'decisions', 'open');
@@ -55,11 +57,11 @@ const LOCK_FILE = () => path.join(STATE_DIR(), 'lock.json');
 const LOG_FILE = () => path.join(STATE_DIR(), 'guard.log');
 /** 项目薄层 surfaces 覆盖团队默认 */
 function surfacesFile() {
-  const proj = path.join(PROJECT(), '.ai-matrix-team', 'surfaces.json');
+  const proj = path.join(PROJECT(), '.aimt', 'surfaces.json');
   return exists(proj) ? proj : path.join(__dirname, 'surfaces-default.json');
 }
-/** 兼容历史单据/规则里的 .skills/ 前缀 → 项目薄层 .ai-matrix-team/ */
-const normP = (p) => p.startsWith('.skills/') ? '.ai-matrix-team/' + p.slice(8) : p;
+/** 兼容历史单据/规则里的 .skills/ 前缀 → 项目薄层 .aimt/ */
+const normP = (p) => p.startsWith('.skills/') ? '.aimt/' + p.slice(8) : p;
 
 const EXIT = { OK: 0, USAGE: 1, VIOLATION: 2, NOLOCK: 3, DR: 4, FORMAT: 5, SYNC: 6, PROJECT: 7 };
 
@@ -93,7 +95,7 @@ function git(args, { allowFail = false } = {}) {
 
 // ---------- surfaces ----------
 let SURFACES = null;
-const CONFIG_FILE = () => path.join(PROJECT(), '.ai-matrix-team', 'project.json');
+const CONFIG_FILE = () => path.join(PROJECT(), '.aimt', 'project.json');
 /** surfaces-default.json 的 wo 块 = 兜底默认（存量项目 surfaces.json 漂移时运行时补齐） */
 function defaultWoBlock() {
   try { return JSON.parse(read(path.join(__dirname, 'surfaces-default.json'))).wo || null; } catch { return null; }
@@ -129,7 +131,7 @@ function surfaces() {
       const reqFor = { S: 'special', C1: 'wo+lock', C2: 'wo+lock', C3: 'wo-cross-app', F: 'free', T: 'template' };
       const noteFor = { S: '特殊面', C1: '共享核心：WO + 守卫核准 + 共享锁', C2: '公共区：WO + 守卫核准 + 共享锁', C3: 'App 私有受控：跨 App 影响须开单', F: '自由面：直接改', T: '台账面：套模板即可写' };
       SURFACES = {
-        skip: { tier: 'T', patterns: ['.ai-matrix-team/runtime/state/**'], note: '运行态机器写' },
+        skip: { tier: 'T', patterns: ['.aimt/runtime/state/**'], note: '运行态机器写' },
         defaultTier: 'C2',
         defaultNote: '未匹配路径从严按 C2 处理',
         rules: Object.entries(cfg.surfaces || {}).flatMap(([tier, globs]) =>
@@ -605,7 +607,7 @@ function cmdStats() {
       const idxOne = idxSizes.length ? Math.round(idx / idxSizes.length) : 0;
       const skillAvg = skillSizes.length ? Math.round(sum(skillSizes) / skillSizes.length) : 0;
       const memAvg = memSizes.length ? Math.round(sum(memSizes) / memSizes.length) : 0;
-      const profilePath = path.join(PROJECT(), '.ai-matrix-team', 'project.json');
+      const profilePath = path.join(PROJECT(), '.aimt', 'project.json');
       let profileRel = 0;
       try {
         const pj = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
@@ -1320,8 +1322,8 @@ function cmdAgents() {
 /**
  * guard role — 智能判定当前身处什么仓（「升级≠发版」的机器判据）
  * 判据（按序）：① 仓根有 members/team-lead.md + scripts/expert-sync.mjs → team-repo；
- *             ② 仓根有 .ai-matrix-team/ → project；③ 两者皆非 → unknown。
- * 注意：团队仓自身也有 .ai-matrix-team/（自管理），故 team-repo 判据必须在先。
+ *             ② 仓根有 .aimt/ → project；③ 两者皆非 → unknown。
+ * 注意：团队仓自身也有 .aimt/（自管理），故 team-repo 判据必须在先。
  * 退出码：0 = team-repo（可发版）· 7 = project（只有升级，严禁 expert-sync）· 1 = unknown
  */
 function cmdRole() {
@@ -1332,7 +1334,7 @@ function cmdRole() {
     console.log(G(`role: team-repo（${root}）→ 可发版：VERSION 升 + expert-sync 全链 + guard agents 体检`));
     process.exit(EXIT.OK);
   }
-  if (exists(path.join(root, '.ai-matrix-team'))) {
+  if (exists(path.join(root, '.aimt'))) {
     console.log(Y(`role: project（${root}）→ 只有升级：preflight → git pull 团队仓 → v2 迁移；严禁 expert-sync / VERSION 升版`));
     process.exit(EXIT.PROJECT);
   }
@@ -1366,9 +1368,9 @@ function cmdReport() {
 // ---------- 参数解析 ----------
 // --project <root> 全局参数：先摘除再分发（PROJECT 也会直接读 process.argv）
 // ===== 单表机制（SPEC-20261010-03）：issues 白板 / workorders 表 / decisions 条目块 =====
-const ISSUES_FILE = () => path.join(PROJECT(), '.ai-matrix-team', 'issues.md');
-const WO_TABLE = () => path.join(PROJECT(), '.ai-matrix-team', 'workorders.md');
-const DR_TABLE = () => path.join(PROJECT(), '.ai-matrix-team', 'decisions.md');
+const ISSUES_FILE = () => path.join(PROJECT(), '.aimt', 'issues.md');
+const WO_TABLE = () => path.join(PROJECT(), '.aimt', 'workorders.md');
+const DR_TABLE = () => path.join(PROJECT(), '.aimt', 'decisions.md');
 const ARCHIVE_DIR = () => path.join(RUNTIME(), 'archive');
 const todayStr = () => new Date().toISOString().slice(0, 10);
 const ymStr = () => new Date().toISOString().slice(0, 7);
@@ -1777,25 +1779,27 @@ for (let i = 0; i < rest.length; i++) {
 // 纯新项目 → 写 marker 即走；失败只提示不阻断 guard 主流程。
 try {
   // 软解析项目根（同 PROJECT() 的候选序，但解析不到 → null，不 die）：钩子在任意 cwd 都不得阻断
-  const sr = () => { const p = process.argv.indexOf('--project'); return p > 0 && process.argv[p + 1] ? path.resolve(process.argv[p + 1]) : process.env.AIM_PROJECT_ROOT ? path.resolve(process.env.AIM_PROJECT_ROOT) : fs.existsSync(path.join(process.cwd(), '.ai-matrix-team')) ? process.cwd() : null; };
+  const sr = () => { const p = process.argv.indexOf('--project'); const c = p > 0 && process.argv[p + 1] ? path.resolve(process.argv[p + 1]) : process.env.AIM_PROJECT_ROOT ? path.resolve(process.env.AIM_PROJECT_ROOT) : process.cwd(); return fs.existsSync(path.join(c, '.aimt')) || fs.existsSync(path.join(c, '.ai-matrix-team')) ? c : null; };
   const softRoot = sr();
   if (softRoot) {
     const mtScript = path.join(TEAM_ROOT, 'scripts', 'aimatrix-migrate-v2.mjs');
-    const projMatrix = path.join(softRoot, '.ai-matrix-team');
+    const projMatrix = path.join(softRoot, '.aimt');
+    const legacyMatrix = path.join(softRoot, '.ai-matrix-team');
     const mtMarker = path.join(projMatrix, 'runtime', 'state', 'v2-migrated');
-    // surfaces.json 漂移（默认 wo 块有新增状态 / 残留旧措辞）也触发一次迁移自愈
+    // surfaces.json 漂移（默认 wo 块有新增状态 / 残留旧措辞 / 残留旧目录名模式）也触发一次迁移自愈
     const surfacesDrifted = () => {
       try {
         const pf = path.join(projMatrix, 'surfaces.json');
         if (!fs.existsSync(pf)) return false;
         const ptxt = fs.readFileSync(pf, 'utf8');
-        if (/资深风控师/.test(ptxt)) return true;
+        if (/资深风控师/.test(ptxt) || /\.ai-matrix-team/.test(ptxt)) return true;
         const dw = JSON.parse(fs.readFileSync(path.join(TEAM_ROOT, 'scripts', 'surfaces-default.json'), 'utf8')).wo;
         const pw = JSON.parse(ptxt).wo || {};
         return (dw?.statusesActive || []).some((s) => !(pw.statusesActive || []).includes(s));
       } catch { return false; }
     };
-    if (fs.existsSync(mtScript) && fs.existsSync(projMatrix) && (!fs.existsSync(mtMarker) || surfacesDrifted())) {
+    // 触发：新目录缺 v2 marker / surfaces 漂移 / 旧目录还在（未做 .aimt 改名迁移）
+    if (fs.existsSync(mtScript) && (fs.existsSync(projMatrix) || fs.existsSync(legacyMatrix)) && (!fs.existsSync(mtMarker) || surfacesDrifted() || fs.existsSync(legacyMatrix))) {
       const r = spawnSync(process.execPath, [mtScript, '--project', softRoot, '--auto'], { encoding: 'utf8' });
       if (r.status === 0 && /➜|✎/.test(r.stdout || '')) console.error((r.stdout || '').trim());
       else if (r.status !== 0) console.error(`⚠ v2 自动迁移失败（不影响本命令）：${((r.stderr || r.stdout || '').trim().split('\n').pop() || '').slice(0, 200)}——可显式运行 aimatrix-migrate-v2.mjs 重试`);

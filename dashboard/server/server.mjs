@@ -13,7 +13,7 @@
  * GET /api/tokens 词元消费估算：单据/回执/日志按字节估 token（CJK≈1/字，余 4 字节/token），
  * 按天/周/月分桶 + 类别汇总 + 会话列表（instances.json，按关联 WO 归集）
  * 静态：托管 ../dist（PWA 构建产物），SPA 回退到 index.html。
- * 数据源：.ai-matrix-team/runtime/ 台账文件（唯一真相源）+ data/dashboard.db（汇报库）。
+ * 数据源：.aimt/runtime/ 台账文件（唯一真相源）+ data/dashboard.db（汇报库）。
  */
 import fs from 'node:fs';
 import http from 'node:http';
@@ -32,9 +32,9 @@ const PORT = Number(getArg('--port', 4780));
 const DIST = path.join(__dirname, '..', 'dist');
 const ABOUT = JSON.parse(fs.readFileSync(path.join(__dirname, 'about.json'), 'utf8'));
 // 项目档案：正式名 project.json（v2.0 起）；旧名 config.json 兜底（老项目不崩，提示对齐）
-const CFG_PATH = ['project.json', 'config.json'].map((f) => path.join(ROOT, '.ai-matrix-team', f)).find((p) => fs.existsSync(p));
+const CFG_PATH = ['project.json', 'config.json'].map((f) => path.join(ROOT, '.aimt', f)).find((p) => fs.existsSync(p));
 if (!CFG_PATH) {
-  console.error(`✗ 缺项目档案：${path.join(ROOT, '.ai-matrix-team', 'project.json')}`);
+  console.error(`✗ 缺项目档案：${path.join(ROOT, '.aimt', 'project.json')}`);
   console.error(`   先跑：node <team-repo>/scripts/aimatrix-init.mjs --project ${ROOT}`);
   process.exit(1);
 }
@@ -46,7 +46,7 @@ const _dbSlug = String(CONFIG.project?.name || 'project').replace(/[^\w.-]+/g, '
 const DB = path.join(TEAM_ROOT, 'dashboard', 'data', 'db', `${_dbSlug}.db`);
 
 // harness 适配层（DR-20261005-003）：实例/会话数据经适配器取得，WorkBuddy 细节不进主逻辑。
-// 先注入项目根（修登记表路径偏移：登记表实际落在 <项目根>/.ai-matrix-team/runtime/state/instances.json）
+// 先注入项目根（修登记表路径偏移：登记表实际落在 <项目根>/.aimt/runtime/state/instances.json）
 setProjectRoot(ROOT);
 const HARNESS = await resolveHarness(CONFIG.harness?.id || process.env.AIMATRIX_HARNESS);
 const harnessInstances = () => { try { return HARNESS.instances() || []; } catch { return []; } };
@@ -149,7 +149,7 @@ function artifacts() {
 /* ---------------- 台账解析（与 aimatrix-report.mjs 同口径） ---------------- */
 // v2 三表（SPEC-20261010-03）优先，旧 INDEX.md 回退（迁移前兼容）
 function activeWorkorders() {
-  const wt = path.join(ROOT, '.ai-matrix-team', 'workorders.md');
+  const wt = path.join(ROOT, '.aimt', 'workorders.md');
   if (fs.existsSync(wt)) {
     const rows = [];
     for (const line of fs.readFileSync(wt, 'utf8').split('\n')) {
@@ -159,9 +159,9 @@ function activeWorkorders() {
     }
     return rows;
   }
-  if (!existsP('.ai-matrix-team/runtime/workorders/INDEX.md')) return [];
+  if (!existsP('.aimt/runtime/workorders/INDEX.md')) return [];
   // 活跃表 = INDEX 中「## 归档单」之前的全部表格行（INDEX 无「## 活跃单」标题，勿按标题找）
-  const section = read('.ai-matrix-team/runtime/workorders/INDEX.md').split(/^## 归档单/m)[0] || '';
+  const section = read('.aimt/runtime/workorders/INDEX.md').split(/^## 归档单/m)[0] || '';
   const rows = [];
   for (const line of section.split('\n')) {
     if (!/^\| WO-/.test(line)) continue;
@@ -174,7 +174,7 @@ function activeWorkorders() {
 
 function recentClosedWorkorders(n = 5) {
   // v2：已归档 WO 在 runtime/archive/YYYY-MM.md 的 `## WO <id> <任务名>（归档 …）` 块里
-  const archDir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'archive');
+  const archDir = path.join(ROOT, '.aimt', 'runtime', 'archive');
   if (fs.existsSync(archDir)) {
     const out = [];
     for (const f of fs.readdirSync(archDir).filter((x) => x.endsWith('.md')).sort().reverse()) {
@@ -187,7 +187,7 @@ function recentClosedWorkorders(n = 5) {
     if (out.length) return out.slice(-n).reverse();
   }
   // 迁移前回落：旧布局 closed/ 每单一个文件
-  const dir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'workorders', 'closed');
+  const dir = path.join(ROOT, '.aimt', 'runtime', 'workorders', 'closed');
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir).filter((f) => f.startsWith('WO-') && f.endsWith('.md')).sort().reverse().slice(0, n)
     .map((f) => {
@@ -201,7 +201,7 @@ function decisions() {
   const open = [];
   const closedRecent = [];
   // v2：decisions.md h2 条目块（增量真相源）+ archive/ 归档块
-  const dfile = path.join(ROOT, '.ai-matrix-team', 'decisions.md');
+  const dfile = path.join(ROOT, '.aimt', 'decisions.md');
   if (fs.existsSync(dfile)) {
     let cur = null;
     for (const line of fs.readFileSync(dfile, 'utf8').split('\n')) {
@@ -218,7 +218,7 @@ function decisions() {
     for (const it of closedRecent.splice(0)) if (/OPEN/i.test(it.status)) open.push(it); else closedRecent.push(it);
   }
   // 归档块 → 最近闭环视图
-  const archDir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'archive');
+  const archDir = path.join(ROOT, '.aimt', 'runtime', 'archive');
   if (fs.existsSync(archDir)) {
     for (const f of fs.readdirSync(archDir).filter((f) => f.endsWith('.md')).sort().reverse()) {
       for (const line of fs.readFileSync(path.join(archDir, f), 'utf8').split('\n')) {
@@ -228,9 +228,9 @@ function decisions() {
     }
   }
   // 旧 LEDGER 兜底（迁移前项目 / 历史视图），去重
-  if (existsP('.ai-matrix-team/runtime/decisions/LEDGER.md')) {
+  if (existsP('.aimt/runtime/decisions/LEDGER.md')) {
     const seen = new Set([...open, ...closedRecent].map((x) => x.id));
-    for (const line of read('.ai-matrix-team/runtime/decisions/LEDGER.md').split('\n')) {
+    for (const line of read('.aimt/runtime/decisions/LEDGER.md').split('\n')) {
       if (!/^\| DR-/.test(line)) continue;
       const c = line.split('|').map((x) => x.trim()).filter((x) => x !== '');
       if (seen.has(c[0])) continue;
@@ -248,7 +248,7 @@ function decisions() {
  * 无锁 → null。分片后 N≥2 是常态：消费方据此**列出全部在持单**，不得只显主 holder、不得低报。
  */
 function lockState() {
-  const f = path.join(ROOT, '.ai-matrix-team/runtime/state/lock.json');
+  const f = path.join(ROOT, '.aimt/runtime/state/lock.json');
   if (!fs.existsSync(f)) return null;
   let raw;
   try { raw = JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return null; }
@@ -261,7 +261,7 @@ function lockState() {
 }
 
 function latestInspection() {
-  const dir = path.join(ROOT, '.ai-matrix-team/runtime/reviews');
+  const dir = path.join(ROOT, '.aimt/runtime/reviews');
   if (!fs.existsSync(dir)) return null;
   const files = fs.readdirSync(dir).filter((f) => f.includes('巡检') && f.endsWith('.md')).sort();
   if (!files.length) return null;
@@ -320,11 +320,11 @@ function pipeline() {
  * 供优化决策参考，不冒充精确计量。日期取文件 mtime（日志取文件名日期）。
  */
 const TOKEN_KINDS = [
-  { kind: 'wo', label: '工单', dirs: ['.ai-matrix-team/runtime/wo-details', '.ai-matrix-team/runtime/workorders/open', '.ai-matrix-team/runtime/workorders/closed'], re: /^WO-.*\.md$/ },
-  { kind: 'journal', label: '工单日志', dirs: ['.ai-matrix-team/runtime/wo-details', '.ai-matrix-team/runtime/workorders/open', '.ai-matrix-team/runtime/workorders/closed'], re: /^WO-.*\.journal\.md$/ },
-  { kind: 'dr', label: '决策单', dirs: ['.ai-matrix-team/runtime/decisions/open', '.ai-matrix-team/runtime/decisions/closed'], re: /^DR-.*\.md$/ },
-  { kind: 'handoff', label: '交接单', dirs: ['.ai-matrix-team/runtime/handoffs'], re: /.+\.md$/ },
-  { kind: 'review', label: '质检报告', dirs: ['.ai-matrix-team/runtime/reviews'], re: /.+\.md$/ },
+  { kind: 'wo', label: '工单', dirs: ['.aimt/runtime/wo-details', '.aimt/runtime/workorders/open', '.aimt/runtime/workorders/closed'], re: /^WO-.*\.md$/ },
+  { kind: 'journal', label: '工单日志', dirs: ['.aimt/runtime/wo-details', '.aimt/runtime/workorders/open', '.aimt/runtime/workorders/closed'], re: /^WO-.*\.journal\.md$/ },
+  { kind: 'dr', label: '决策单', dirs: ['.aimt/runtime/decisions/open', '.aimt/runtime/decisions/closed'], re: /^DR-.*\.md$/ },
+  { kind: 'handoff', label: '交接单', dirs: ['.aimt/runtime/handoffs'], re: /.+\.md$/ },
+  { kind: 'review', label: '质检报告', dirs: ['.aimt/runtime/reviews'], re: /.+\.md$/ },
   { kind: 'log', label: '工作日志', dirs: ['.workbuddy/memory'], re: /^\d{4}-\d{2}-\d{2}\.md$/ },
 ];
 function estimateTokens(text) {
@@ -477,13 +477,13 @@ const server = http.createServer(async (req, res) => {
     if (woGet && req.method === 'GET') {
       const id = woGet[1];
       for (const sub of ['closed', 'open']) {
-        const file = path.join(ROOT, '.ai-matrix-team', 'runtime', 'workorders', sub, `${id}.md`);
+        const file = path.join(ROOT, '.aimt', 'runtime', 'workorders', sub, `${id}.md`);
         if (fs.existsSync(file)) return json(res, { id, content_md: fs.readFileSync(file, 'utf8') });
       }
       // v2：表单轻单无详情文件 → 详情单目录，再退回 workorders.md 表行
-      const detail = path.join(ROOT, '.ai-matrix-team', 'runtime', 'wo-details', `${id}.md`);
+      const detail = path.join(ROOT, '.aimt', 'runtime', 'wo-details', `${id}.md`);
       if (fs.existsSync(detail)) return json(res, { id, content_md: fs.readFileSync(detail, 'utf8') });
-      const wt = path.join(ROOT, '.ai-matrix-team', 'workorders.md');
+      const wt = path.join(ROOT, '.aimt', 'workorders.md');
       if (fs.existsSync(wt)) {
         const row = fs.readFileSync(wt, 'utf8').split('\n').find((l) => l.startsWith(`| ${id} |`));
         if (row) return json(res, { id, content_md: `# ${id}\n\n${row}\n` });
@@ -494,14 +494,14 @@ const server = http.createServer(async (req, res) => {
     if (drGet && req.method === 'GET') {
       const id = drGet[1];
       // v2 优先：decisions.md 条目块（OPEN 在此）
-      const dfile = path.join(ROOT, '.ai-matrix-team', 'decisions.md');
+      const dfile = path.join(ROOT, '.aimt', 'decisions.md');
       if (fs.existsSync(dfile)) {
         const text = fs.readFileSync(dfile, 'utf8');
         const m = text.match(new RegExp(`## ${id} [\\s\\S]*?(?=\\n## |$)`));
         if (m) return json(res, { id, content_md: m[0] });
       }
       for (const sub of ['open', 'closed', 'migrated']) {
-        const dir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'decisions', sub);
+        const dir = path.join(ROOT, '.aimt', 'runtime', 'decisions', sub);
         if (!fs.existsSync(dir)) continue;
         const hit = fs.readdirSync(dir).find((f) => f.startsWith(id) && f.endsWith('.md'));
         if (hit) return json(res, { id, content_md: fs.readFileSync(path.join(dir, hit), 'utf8') });
@@ -524,7 +524,7 @@ const server = http.createServer(async (req, res) => {
       const pick = choices.join('；');
       const conclusion = pick + (note ? ` · 其他：${note}` : '');
       // v2 优先：decisions.md 条目块 → 回填行直填（用户唯一编辑点）+ 状态置 ANSWERED
-      const dfile = path.join(ROOT, '.ai-matrix-team', 'decisions.md');
+      const dfile = path.join(ROOT, '.aimt', 'decisions.md');
       if (fs.existsSync(dfile) && new RegExp(`^## ${id} `, 'm').test(fs.readFileSync(dfile, 'utf8'))) {
         const all = fs.readFileSync(dfile, 'utf8').split('\n');
         let inBlock = false;
@@ -538,7 +538,7 @@ const server = http.createServer(async (req, res) => {
       }
       let hit = null;
       for (const sub of ['open', 'closed']) {
-        const dir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'decisions', sub);
+        const dir = path.join(ROOT, '.aimt', 'runtime', 'decisions', sub);
         if (!fs.existsSync(dir)) continue;
         const f = fs.readdirSync(dir).find((x) => x.startsWith(id) && x.endsWith('.md'));
         if (f) { hit = path.join(dir, f); break; }
@@ -567,7 +567,7 @@ const server = http.createServer(async (req, res) => {
     if (del && req.method === 'DELETE') {
       const id = del[1];
       let removed = false;
-      const archDir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'archive');
+      const archDir = path.join(ROOT, '.aimt', 'runtime', 'archive');
       if (fs.existsSync(archDir)) {
         for (const f of fs.readdirSync(archDir).filter((x) => x.endsWith('.md'))) {
           const p = path.join(archDir, f);
@@ -579,10 +579,10 @@ const server = http.createServer(async (req, res) => {
         }
       }
       for (const sub of ['closed', 'open']) {
-        const file = path.join(ROOT, '.ai-matrix-team', 'runtime', 'workorders', sub, `${id}.md`);
+        const file = path.join(ROOT, '.aimt', 'runtime', 'workorders', sub, `${id}.md`);
         if (fs.existsSync(file)) { fs.unlinkSync(file); removed = true; }
       }
-      const detail = path.join(ROOT, '.ai-matrix-team', 'runtime', 'wo-details', `${id}.md`);
+      const detail = path.join(ROOT, '.aimt', 'runtime', 'wo-details', `${id}.md`);
       if (fs.existsSync(detail)) { fs.unlinkSync(detail); removed = true; }
       if (!removed) return send(res, 404, JSON.stringify({ error: '归档单不存在或已删除' }));
       return json(res, { ok: true, deleted: id });
@@ -610,7 +610,7 @@ const onListening = () => {
   announced = true;
   const url = `http://127.0.0.1:${port}`;
   console.log(`OK ${url}`);
-  console.log(`   项目：${CONFIG.project.name} · 台账：${ROOT}/.ai-matrix-team/runtime · 汇报库：${path.relative(ROOT, DB)}`);
+  console.log(`   项目：${CONFIG.project.name} · 台账：${ROOT}/.aimt/runtime · 汇报库：${path.relative(ROOT, DB)}`);
 };
 server.on('error', (e) => {
   if (e.code === 'EADDRINUSE' && port < PORT + 20) {

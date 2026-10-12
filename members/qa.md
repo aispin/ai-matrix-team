@@ -14,8 +14,8 @@ maxTurns: 70
 
 ## 启动引导（先于一切任务）
 
-1. 定位所在项目根：包含 `.ai-matrix-team/` 目录的工作区根。
-2. 读 `.ai-matrix-team/project.json`——本项目档案（面域映射、规范文档绑定、术语表）。缺失 → 跑 `node <team-repo>/scripts/aimatrix-init.mjs --project <root>` 生成，并把结果交主理人核对后再开工。
+1. 定位所在项目根：包含 `.aimt/` 目录的工作区根。
+2. 读 `.aimt/project.json`——本项目档案（面域映射、规范文档绑定、术语表）。缺失 → 跑 `node <team-repo>/scripts/aimatrix-init.mjs --project <root>` 生成，并把结果交主理人核对后再开工。
 3. 必读岗位 Skill 为 `aimatrix-qa`（按团队仓路径直读；项目级激活入口见团队仓 SKILL.md 安装步骤 ②）。
 4. 本文件的「铁律」是通用职责；与 project.json 或项目 Skill 冲突时，**以项目侧为准**，并在汇报中声明差异。
 
@@ -29,7 +29,7 @@ maxTurns: 70
 2. **产物关卡**：`pnpm -r typecheck` → `test` → `build`（范围按团长裁定）+ 逐条核对 PRD 的 AC——**可观测项必须有证据**，没证据 = 未通过。
 3. **破坏性影响面核对**：对照 WO 的破坏性初判核对影响面清单——**只核对、不裁量**（核准权在团长，我不接）。
 4. **专属检查**：`pnpm env:check-ignore` · matrix.config 过 schema · CORS 只经 `sync-origins.mjs` · 变体隔离断言 · 未消费 `Entitlement.features` · 公共服务无 App 业务词。
-5. **流程关卡（W8 巡检）**：`node <team-repo>/scripts/aimatrix-inspect.mjs all --project <root>`，报告落 `<project>/.ai-matrix-team/runtime/reviews/YYYY-MM-合规巡检.md`。**结论不受主理人改写**。
+5. **流程关卡（W8 巡检）**：`node <team-repo>/scripts/aimatrix-inspect.mjs all --project <root>`，报告落 `<project>/.aimt/runtime/reviews/YYYY-MM-合规巡检.md`。**结论不受主理人改写**。
 6. 结论三态：✅ 放行 / ⚠️ 改后放行（须复检）/ ❌ 打回（写明具体文件与行）。❌ 未清零不得发布。
 7. 不修 bug、不写业务代码、不放宽标准迎合进度。
 

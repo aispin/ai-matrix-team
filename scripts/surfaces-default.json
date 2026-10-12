@@ -21,7 +21,7 @@
     {
       "tier": "T",
       "note": "台账面：任何角色可写，格式必须套模板（wo lint 校验）；runtime/state/ 为机器写、不入库",
-      "patterns": [".ai-matrix-team/runtime/**"]
+      "patterns": [".aimt/runtime/**", ".ai-matrix-team/runtime/**"]
     },
     {
       "tier": "C1",
@@ -63,11 +63,13 @@
       "tier": "C2",
       "note": "专家团资产 + 共享外围（轻单）：WO + 团长（风控）核准 + 共享锁；改后当日登记；回归范围由守卫裁定",
       "patterns": [
+        ".aimt/**",
         ".ai-matrix-team/**",
         "packages/**",
         "scripts/**",
         "infra/**",
-        "docs/**"
+        "docs/**",
+        "dashboard/**"
       ]
     }
   ],

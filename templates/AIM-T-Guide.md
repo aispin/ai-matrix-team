@@ -2,7 +2,7 @@
 
 > **AIM-T 是什么**：**AIM-T = AI Matrix Team**——一套独立维护的「交付专家团」，提供岗位技能、引擎脚本与治理规范，用来给项目做**研发流程规范化管理**。本文档统一简称 **AIM-T**（不再写作 `ai-matrix-team` 或"团队仓"）。
 >
-> **本文件的身份**：这是 **AIM-T 官方范本**。项目接入 AIM-T 时，本文件被带到 `<项目>/.ai-matrix-team/AIM-T-Guide.md`。
+> **本文件的身份**：这是 **AIM-T 官方范本**。项目接入 AIM-T 时，本文件被带到 `<项目>/.aimt/AIM-T-Guide.md`。
 > ⚠️ **该副本由 AIM-T 维护**：升级 AIM-T 时会被覆盖，**项目不得就地修改**；项目自己的补充写在**项目侧的研发流程文档**里（见 §10）。
 >
 > 记号：`$AIMT` = AIM-T 所在目录（真源仓绝对路径）；`$PROJECT` = 接入项目根目录。
@@ -31,7 +31,7 @@ AIM-T 是**独立于项目**的真源仓（仓库名 `ai-matrix-team`，工程�
 
 **与项目的关系（三条硬规矩）**：
 
-1. **AIM-T 是工具的唯一真源**；项目侧 `.ai-matrix-team/` 只放**项目数据**（面域规则、工单台账、决策台账、问题白板、执行记录），**不回流 AIM-T**。
+1. **AIM-T 是工具的唯一真源**；项目侧 `.aimt/` 只放**项目数据**（面域规则、工单台账、决策台账、问题白板、执行记录），**不回流 AIM-T**。
 2. **岗位技能不进任何平台的技能列表**：agent 按 `$AIMT/aimatrix-<role>/SKILL.md` 直读；平台只暴露**一个激活入口**（§6）。
 3. **同一个 AIM-T 在本机可能有多份副本**（真源仓 + 各客户端用的 clone）——升级时最容易踩的坑（§8 坑 1）。
 
@@ -42,7 +42,7 @@ AIM-T 是**独立于项目**的真源仓（仓库名 `ai-matrix-team`，工程�
 ### 2.1 项目侧（接入后自动出现）
 
 ```text
-<项目>/.ai-matrix-team/
+<项目>/.aimt/
 ├── AIM-T-Guide.md      # 本文件（AIM-T 维护、升级覆盖；勿改）
 ├── project.json        # 项目档案（生成物：仓库结构、workspace globs、引擎版本）
 ├── surfaces.json       # 面域规则（C1/C2/C3/F → 路径 glob → 写入要求）
@@ -102,7 +102,7 @@ $AIMT/
 | **C2 共享外围** | 跨模块共享的文档/配置 | **WO + 团长（风控）核准 + 串行锁 + 改后当日登记** |
 | **C1 全局受控** | 全局契约 / 对外承诺 | 最严：WO + INTENT + 团长核准；破坏性变更**先登记后改** |
 
-判定真源 = `.ai-matrix-team/surfaces.json`；改面域规则本身属 C2。
+判定真源 = `.aimt/surfaces.json`；改面域规则本身属 C2。
 
 **白名单写法注意**：`wo new --paths` 与详情单 §2 里的路径**必须含 `/` 或 `*`**；**根级文件（如 `README.md`、`AGENTS.md`）要写成 `*.md` 这类 glob**，否则会被解析丢弃、`check` 报越权（AIM-T issue I-017）。
 
@@ -144,7 +144,7 @@ node $AIMT/scripts/aimatrix-migrate-v2.mjs --project $PROJECT --auto   # ② 确
 
 - **必须显式带 `--dry` 或 `--auto`**（不带模式参数一律拒绝执行，防误触）。
 - **迁移前先提交工作区**（否则升级改动与在途改动混在一起，无法 review）。
-- 迁移会改 `.ai-matrix-team/` 结构（详情单收拢、台账归一、档案补记引擎版本）→ 迁移后再跑 5.1 的 ③④⑤。
+- 迁移会改 `.aimt/` 结构（详情单收拢、台账归一、档案补记引擎版本）→ 迁移后再跑 5.1 的 ③④⑤。
 
 ### 5.3 升级后回归清单
 
@@ -183,7 +183,7 @@ https://github.com/<所有者>/<仓库>/issues/new?title=<URL编码标题>&body=
 
 > 仓库地址以 AIM-T 仓的 `origin` 为准：`git -C $AIMT remote get-url origin`（换仓库只改这段 URL）。生成后**贴给用户**，一句话说明"点开确认即可提交"。
 
-**无论 A / B / C，都要在本项目留痕**：在项目 `.ai-matrix-team/issues.md` 记一条「已上报 AIM-T（渠道 A/B/C + 编号或链接）」，避免"只在会话里说一句"就丢失；AIM-T 发版后按 5.1 更新副本。
+**无论 A / B / C，都要在本项目留痕**：在项目 `.aimt/issues.md` 记一条「已上报 AIM-T（渠道 A/B/C + 编号或链接）」，避免"只在会话里说一句"就丢失；AIM-T 发版后按 5.1 更新副本。
 
 ## 6. 三家 agent client 的接入差异
 
@@ -214,7 +214,7 @@ node $AIMT/scripts/aimatrix-guard.mjs report         # 2) 在途 WO / 未闭环 
 node $AIMT/scripts/aimatrix-guard.mjs surface <路径…>  # 3) 判面域
 # 4) 需要授权：开单 → 取锁 → 校验
 node $AIMT/scripts/aimatrix-guard.mjs wo new --slug <kebab> --level L2 --surface C2 --paths "<glob,…>" --purpose "…"
-node $AIMT/scripts/aimatrix-guard.mjs wo lint .ai-matrix-team/runtime/wo-details/WO-….md
+node $AIMT/scripts/aimatrix-guard.mjs wo lint .aimt/runtime/wo-details/WO-….md
 node $AIMT/scripts/aimatrix-guard.mjs wo table start --id WO-… --who "<角色#呼号>"
 node $AIMT/scripts/aimatrix-guard.mjs lock acquire --wo WO-…
 node $AIMT/scripts/aimatrix-guard.mjs check --wo WO-… --paths <路径…>
@@ -246,7 +246,7 @@ node $AIMT/scripts/aimatrix-guard.mjs lock release --wo WO-…
 | `SKILL.md` | 安装器：接入、升级、体检的权威步骤 |
 | `docs/01-charter.md` … `08-portability.md` | 治理规范正文（章程 / 角色 / 共享面 / 决策 / 流程 / 落地 / 平台 / 移植） |
 | `docs/index/` | 实操细则（WO 填单须知、评审标准等，先读索引卡） |
-| `templates/` | 范本（本文件；项目接入时带入 `.ai-matrix-team/`） |
+| `templates/` | 范本（本文件；项目接入时带入 `.aimt/`） |
 
 ## 10. 项目侧补充写在哪
 

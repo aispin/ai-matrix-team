@@ -261,7 +261,7 @@ for p in dashboard/server/harness/index.mjs dashboard/server/harness/codex.mjs d
 # V4 路径穿越复现 —— ⚠️ 务必在 /tmp 下跑（它会在当前目录写脏），跑完立即清理
 #    修复前期望：先打印 "✅ 项目档案已落盘"（=越权模块已被执行，缺陷坐实），再打印 "降级到 -> generic"
 #    修复后期望：直接打印 "降级到 -> generic"，无落盘副作用
-cd /tmp && env -u NODE_OPTIONS $NODE -e "import('$H').then(m=>m.resolveHarness('../../../scripts/aimatrix-init')).then(h=>console.log('降级到 ->',h.id))" ; rm -rf /tmp/.ai-matrix-team
+cd /tmp && env -u NODE_OPTIONS $NODE -e "import('$H').then(m=>m.resolveHarness('../../../scripts/aimatrix-init')).then(h=>console.log('降级到 ->',h.id))" ; rm -rf /tmp/.aimt
 
 # V5 冷启动性能（AC-13）—— 期望：两行中位数接近，比值 <1.5x（实测 26ms / 26ms = 1.00x）
 for h in workbuddy nope-not-exist; do printf '%-16s ' "$h"; env -u NODE_OPTIONS $NODE -e "
@@ -283,9 +283,9 @@ t.sort((a,b)=>a-b);console.log('中位',t[2].toFixed(0),'ms')"; done
 
 **P2 · 登记表路径偏移** —— **属实**，研发推荐：**合并进本单修**。
 
-- 核对结论：`INSTANCES_FILE` 实测解析为 `<团队仓>/runtime/state/instances.json`，而规范口径与实际登记位置是 `<项目>/.ai-matrix-team/runtime/state/instances.json`——**差一个 `.ai-matrix-team` 层级，属实**。根因：这条相对路径写成于团队 home 还在 `.skills/` 的年代（当时 `dashboard/` 挂在 `<项目>/.skills/` 下，`../../../` 正好指向 `<项目>/.skills/runtime`），后来 `dashboard/` 迁到团队仓根，它没跟着改。
+- 核对结论：`INSTANCES_FILE` 实测解析为 `<团队仓>/runtime/state/instances.json`，而规范口径与实际登记位置是 `<项目>/.aimt/runtime/state/instances.json`——**差一个 `.aimt` 层级，属实**。根因：这条相对路径写成于团队 home 还在 `.skills/` 的年代（当时 `dashboard/` 挂在 `<项目>/.skills/` 下，`../../../` 正好指向 `<项目>/.skills/runtime`），后来 `dashboard/` 迁到团队仓根，它没跟着改。
 - ⚠️ 但它**直接影响本次交付价值**：两个新适配器都读这个错路径，真实登记数据跑不进来，届时 REQ-1 在真实数据下不成立，只能用夹具验证 AC-3 / AC-5。
-- 选项 A（推荐）：修。`readInstancesFile` 改为优先读 `<项目根>/.ai-matrix-team/runtime/state/instances.json`（项目根由 `server.mjs` 在解析 harness 前注入一次），并**回退保留旧路径**以保兼容。涉及 `index.mjs` + `server.mjs` 各一处。
+- 选项 A（推荐）：修。`readInstancesFile` 改为优先读 `<项目根>/.aimt/runtime/state/instances.json`（项目根由 `server.mjs` 在解析 harness 前注入一次），并**回退保留旧路径**以保兼容。涉及 `index.mjs` + `server.mjs` 各一处。
 - 选项 B：不修，退为独立 DR。本次只交付适配器并显式标注这笔技术债，AC-3 / AC-5 用夹具验证。
 
 **P3 · `docs/08-portability.md` 纳入白名单（AC-8 前置）** —— 研发推荐：**纳入**（PC 已执行扩单）。
@@ -294,7 +294,7 @@ t.sort((a,b)=>a-b);console.log('中位',t[2].toFixed(0),'ms')"; done
 
 ## 8. 关联
 
-- 工单：`WO-20261008-01-multi-harness-adapter`（`.ai-matrix-team/runtime/workorders/closed/`）
+- 工单：`WO-20261008-01-multi-harness-adapter`（`.aimt/runtime/workorders/closed/`）
 - 待拍板：`DR-20261008-001`（本规格核准）· `DR-20261008-002`（门禁 `findWoFile` 缺陷）
 - 规范：`docs/08-portability.md §5`（可移植性与 harness 适配层）· `docs/03-shared-surface-control.md`（面域分级）
 - 规格库：`docs/specs/README.md`

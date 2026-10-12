@@ -10,7 +10,8 @@
  * 无旧单据（纯新项目）→ 写 marker 后跳过；有旧单据 → 静默迁移。
  *
  * 动作：
- *  1. 补齐 .ai-matrix-team/{issues,workorders,decisions}.md 骨架（已存在则跳过）
+ *  0. 目录改名迁移：`.ai-matrix-team/` → `.aimt/`（原子 rename，幂等；surfaces.json 旧目录名模式重写）
+ *  1. 补齐 .aimt/{issues,workorders,decisions}.md 骨架（已存在则跳过）
  *  2. runtime/decisions/open/DR-*.md → decisions.md h2 条目块（状态原样保留）；
  *     原文件移入 runtime/decisions/migrated/（退出 dr scan 扫描范围，只读留档）
  *  3. runtime/workorders/INDEX.md 活跃行 → workorders.md（状态映射；
@@ -26,7 +27,7 @@ const pi = argv.indexOf('--project');
 const ROOT = pi >= 0 ? path.resolve(argv[pi + 1]) : process.cwd();
 const DRY = argv.includes('--dry');
 const AUTO = argv.includes('--auto');
-const M = path.join(ROOT, '.ai-matrix-team');
+const M = path.join(ROOT, '.aimt');
 const MARKER = path.join(M, 'runtime', 'state', 'v2-migrated');
 const today = new Date().toISOString().slice(0, 10);
 const read = (p) => (fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '');
@@ -49,6 +50,18 @@ const SKELETONS = {
 const log = (...a) => console.log(...a);
 const die = (m) => { console.error('⛔ ' + m); process.exit(1); };
 
+// ---------- -1. 目录改名迁移（.ai-matrix-team → .aimt）：同盘原子 rename，幂等 ----------
+const LEGACY = path.join(ROOT, '.ai-matrix-team');
+if (fs.existsSync(LEGACY)) {
+  if (fs.existsSync(M)) {
+    log(`⚠ 新旧目录并存（.aimt 与 .ai-matrix-team）——保留 .aimt，旧目录未动，请人工核对后删除`);
+  } else if (DRY) {
+    log('✎ 目录改名 .ai-matrix-team → .aimt（dry-run 未执行）');
+  } else {
+    fs.renameSync(LEGACY, M);
+    log('✎ 目录已改名：.ai-matrix-team → .aimt');
+  }
+}
 if (!fs.existsSync(M)) die(`${M} 不存在——不是 ai-matrix 项目，拒绝迁移`);
 
 // ---------- 0. surfaces.json 漂移自愈（幂等，AUTO/marker 前置执行）：补齐默认 wo 块 + 旧措辞归一 ----------
@@ -72,6 +85,8 @@ if (fs.existsSync(surfFile) && fs.existsSync(defSurf)) {
     let out = JSON.stringify(proj, null, 2) + '\n';
     const unworded = out.replace(/资深风控师/g, '团长（风控）');
     if (unworded !== out) { out = unworded; changed = true; }
+    const renamed = out.replace(/\.ai-matrix-team/g, '.aimt');
+    if (renamed !== out) { out = renamed; changed = true; }
     if (changed && !DRY) fs.writeFileSync(surfFile, out);
     if (changed) log(`✎ surfaces.json 漂移自愈（wo 块补齐/措辞归一）${DRY ? '（dry-run 未写盘）' : ''}`);
   } catch (e) { log(`⚠ surfaces.json 自愈失败：${e.message}`); }
@@ -220,7 +235,7 @@ if (fs.existsSync(indexFile)) {
       }
     }
     if (!DRY) {
-      const banner = idxText.replace(/^# 任务单索引（活跃）/, '# 任务单索引（已冻结 · 已迁移 v2）\n\n> ⚠ 本表已于 ' + today + ' 迁移至 `.ai-matrix-team/workorders.md`（SPEC-20261010-03），**只读留存**，勿再更新；活跃单以 workorders.md 为准。');
+      const banner = idxText.replace(/^# 任务单索引（活跃）/, '# 任务单索引（已冻结 · 已迁移 v2）\n\n> ⚠ 本表已于 ' + today + ' 迁移至 `.aimt/workorders.md`（SPEC-20261010-03），**只读留存**，勿再更新；活跃单以 workorders.md 为准。');
       fs.writeFileSync(indexFile, banner);
     }
     log('✎ INDEX.md 已冻结（只读留存）');

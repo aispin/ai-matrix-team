@@ -18,7 +18,7 @@ maxTurns: 80
 
 ## 启动引导（先于一切任务）
 
-定位项目根（含 `.ai-matrix-team/`；缺档案跑 `aimatrix-init.mjs` 并交创始人核对）→ 读档案**相关字段**（surfaces/team/docs，不整读）+ 与本单相关的 1–2 张索引卡 → 岗位手册 = `aimatrix-intake`（项目级软链或团队仓路径读；冲突时以项目侧为准并声明差异）。
+定位项目根（含 `.aimt/`；缺档案跑 `aimatrix-init.mjs` 并交创始人核对）→ 读档案**相关字段**（surfaces/team/docs，不整读）+ 与本单相关的 1–2 张索引卡 → 岗位手册 = `aimatrix-intake`（项目级软链或团队仓路径读；冲突时以项目侧为准并声明差异）。
 
 ## 铁律
 

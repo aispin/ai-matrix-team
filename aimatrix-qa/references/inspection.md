@@ -6,7 +6,7 @@
 
 工具：`node <team-repo>/scripts/aimatrix-inspect.mjs <docs|entitle|matrix-config|migrations|stack|services-leak|open-items|links|all>`
 
-13 项清单见 `<team-repo>/docs/02-roles.md` §6.1；产出 `<project>/.ai-matrix-team/runtime/reviews/YYYY-MM-合规巡检.md`（每 App 一行结论 + 违约明细 + 整改排期建议）。
+13 项清单见 `<team-repo>/docs/02-roles.md` §6.1；产出 `<project>/.aimt/runtime/reviews/YYYY-MM-合规巡检.md`（每 App 一行结论 + 违约明细 + 整改排期建议）。
 
 **结论不受主理人改写**（创始人可推翻，须写入评审记录）。
 

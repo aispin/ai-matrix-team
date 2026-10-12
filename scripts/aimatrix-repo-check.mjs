@@ -80,7 +80,7 @@ const TRACE = [
   [/本轮(?!闭环)/, '过程用语残留'],
 ];
 const exempt = (rel) =>
-  rel.startsWith('.ai-matrix-team/') ||
+  rel.startsWith('.aimt/') ||
   rel.startsWith('docs/templates/') ||
   rel.startsWith('docs/specs/') ||
   rel.startsWith('dashboard/data/') ||

@@ -33,7 +33,7 @@ WO（白名单 + 验证方式）· TDD 或 PRD 相关章节 · 相关契约现�
 
 **架构速断（动码前 ≤15 分钟，留痕 WO §9）**：① TDD 增量修订（改哪节记哪节）② ADR 登记（有真实取舍才记）③ 破坏性自查（命中 charter §4A.3 例外清单 → 升级独立风控）。双 dev 并行走 per-WO 分支，规则见 02-roles §5.1。
 
-**输出纪律（Ponytail 决策阶梯 · lite）**——开关 `<project>/.ai-matrix-team/project.json` `outputDiscipline.ponytail`（默认 true；false 时本节不生效）。落笔前依次过：
+**输出纪律（Ponytail 决策阶梯 · lite）**——开关 `<project>/.aimt/project.json` `outputDiscipline.ponytail`（默认 true；false 时本节不生效）。落笔前依次过：
 1. **跳过**：这个改动真的需要吗？（没有它任务是否已可完成）
 2. **复用**：仓库里已有同能力代码/组件？先复用。
 3. **标准库**：语言/框架原生能做？不引依赖、不写包装。

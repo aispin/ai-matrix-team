@@ -52,7 +52,7 @@ Landing page (capabilities & crew, live): **https://aispin.github.io/ai-matrix-t
 
 ## For source readers
 
-This repo is decoupled from specific projects: the governance engine, role sources, seat skills and the console live here; WO/DR ledgers, project profiles and surface rules live in the target project's thin `.ai-matrix-team/` layer. Onboarding details are in [`SKILL.md`](SKILL.md).
+This repo is decoupled from specific projects: the governance engine, role sources, seat skills and the console live here; WO/DR ledgers, project profiles and surface rules live in the target project's thin `.aimt/` layer. Onboarding details are in [`SKILL.md`](SKILL.md).
 
 ```text
 ├── SKILL.md            installer skill (the agent reads this to onboard/upgrade/check)

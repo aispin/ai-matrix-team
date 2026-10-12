@@ -14,7 +14,7 @@ version: 2.1.0
 
 ## 分支判断（先于一切步骤）
 
-- 目标项目已存在 `<PROJECT>/.ai-matrix-team/` → **跳过下方「安装步骤」，直接走「升级 / 体检」**：体检全绿即接入完成；有漂移按脚本提示跑对应 `--fix` 对齐后复检。已接入项目禁止重跑全新安装覆盖。
+- 目标项目已存在 `<PROJECT>/.aimt/` → **跳过下方「安装步骤」，直接走「升级 / 体检」**：体检全绿即接入完成；有漂移按脚本提示跑对应 `--fix` 对齐后复检。已接入项目禁止重跑全新安装覆盖。
 - 不存在 → 按下方「安装步骤」全新接入。
 
 ## 团队构成（五席）
@@ -38,7 +38,7 @@ version: 2.1.0
 TEAM=<本仓库绝对路径>          # 即本 SKILL.md 所在目录；clone 到任意位置均可，不要求与项目同级
 PROJECT=<目标项目绝对路径>
 
-# ① 生成项目档案（扫描项目结构 → <PROJECT>/.ai-matrix-team/project.json）
+# ① 生成项目档案（扫描项目结构 → <PROJECT>/.aimt/project.json）
 node $TEAM/scripts/aimatrix-init.mjs --project $PROJECT
 
 # ② 激活入口（按目标平台执行其一）
@@ -81,7 +81,7 @@ node $TEAM/scripts/expert-sync.mjs                                 # 重新同�
 ## 纪律（硬规则）
 
 1. **成员真源唯一**：改成员定义只改 `members/<role>.md`，然后跑 `expert-sync.mjs`；**严禁手改任何包内实例文件**。
-2. **项目数据不入团队仓**：WO/DR 台账、项目档案、面域规则都在 `<project>/.ai-matrix-team/`；团队仓只放引擎与规范。
+2. **项目数据不入团队仓**：WO/DR 台账、项目档案、面域规则都在 `<project>/.aimt/`；团队仓只放引擎与规范。
 3. **CLI 一律带 `--project <root>`**（或环境变量 `AIM_PROJECT_ROOT`）；团队引擎不硬编码任何项目路径。
 4. **WorkBuddy watcher 陷阱**：专家包源目录新建文件可能数秒内被清——以 cache 安装快照为准，体检脚本已内置降级检查。
 5. **激活入口是软链不是副本**：真相源要跟着 git 走（可 review / 可回滚 / 可被巡检读）；复制会产生两份漂移副本。

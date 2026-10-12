@@ -3,7 +3,7 @@
  * aimatrix-inspect — 合规巡检 CLI（W8，石头用；零第三方依赖）。
  * 子命令：docs | entitle | matrix-config | migrations | stack | services-leak | open-items | links | all
  * 退出码：0 全过 · 1 有 FAIL（P0 见各项说明）· 2 有 WARN
- * 报告落盘建议：.ai-matrix-team/runtime/reviews/YYYY-MM-合规巡检.md（人工补叙述后归档）
+ * 报告落盘建议：.aimt/runtime/reviews/YYYY-MM-合规巡检.md（人工补叙述后归档）
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -11,14 +11,14 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// ---------- 项目根解析（--project / AIM_PROJECT_ROOT / 含 .ai-matrix-team 的 cwd） ----------
+// ---------- 项目根解析（--project / AIM_PROJECT_ROOT / 含 .aimt 的 cwd） ----------
 let _PROJECT;
 function PROJECT() {
   if (_PROJECT) return _PROJECT;
   const i = process.argv.indexOf('--project');
   const cand = i > 0 && process.argv[i + 1] ? path.resolve(process.argv[i + 1])
     : process.env.AIM_PROJECT_ROOT ? path.resolve(process.env.AIM_PROJECT_ROOT)
-    : fs.existsSync(path.join(process.cwd(), '.ai-matrix-team')) ? process.cwd()
+    : fs.existsSync(path.join(process.cwd(), '.aimt')) ? process.cwd()
     : process.cwd();
   _PROJECT = cand;
   return cand;
@@ -195,7 +195,7 @@ function chkSecrets() {
 
 // ---- 11. open-items 一致性 ----
 function chkOpenItems() {
-  const ledger = path.join(REPO_ROOT, '.ai-matrix-team', 'runtime', 'decisions', 'LEDGER.md');
+  const ledger = path.join(REPO_ROOT, '.aimt', 'runtime', 'decisions', 'LEDGER.md');
   if (!fs.existsSync(ledger)) { record('11.OPEN-ITEMS 与 DR 台账一致', 'WARN', 'LEDGER 不存在'); return; }
   const bad = [];
   for (const app of listApps()) {
@@ -218,7 +218,7 @@ function chkOpenItems() {
 
 // ---- 12. 巡检时效 ----
 function chkSweepFreshness() {
-  const dir = path.join(REPO_ROOT, '.ai-matrix-team', 'runtime', 'reviews');
+  const dir = path.join(REPO_ROOT, '.aimt', 'runtime', 'reviews');
   let last = null;
   if (fs.existsSync(dir)) {
     for (const f of fs.readdirSync(dir)) {
@@ -262,5 +262,5 @@ if (cmd === 'all') {
 const fail = results.filter((r) => r.status === 'FAIL').length;
 const warn = results.filter((r) => r.status === 'WARN').length;
 console.log(`\n== 巡检小结：PASS ${results.length - fail - warn} · WARN ${warn} · FAIL ${fail} ==`);
-console.log('报告落盘：.ai-matrix-team/runtime/reviews/YYYY-MM-合规巡检.md（人工补叙述后归档）');
+console.log('报告落盘：.aimt/runtime/reviews/YYYY-MM-合规巡检.md（人工补叙述后归档）');
 process.exit(fail ? 1 : warn ? 2 : 0);

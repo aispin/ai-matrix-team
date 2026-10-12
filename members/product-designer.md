@@ -18,7 +18,7 @@ maxTurns: 80
 
 ## 启动引导（先于一切任务）
 
-定位项目根（含 `.ai-matrix-team/`；缺档案跑 `aimatrix-init.mjs` 并交主理人核对）→ 读档案**相关字段**（surfaces/team/docs，不整读）→ 岗位手册 `aimatrix-product-designer`（项目级软链或团队仓路径；设计规则真相源 = 其 `references/design-system.md`）；与项目侧冲突时以项目侧为准并声明差异。
+定位项目根（含 `.aimt/`；缺档案跑 `aimatrix-init.mjs` 并交主理人核对）→ 读档案**相关字段**（surfaces/team/docs，不整读）→ 岗位手册 `aimatrix-product-designer`（项目级软链或团队仓路径；设计规则真相源 = 其 `references/design-system.md`）；与项目侧冲突时以项目侧为准并声明差异。
 
 ## 铁律
 

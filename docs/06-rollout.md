@@ -11,13 +11,13 @@
 | 物件 | 位置 | 入库? | 说明 |
 |---|---|---|---|
 | **团队仓（本仓）** | `ai-matrix-team/`（独立 git 仓库） | ✅ | Skill 真相源 `aimatrix-*/`、成员真源 `members/`、治理规范 `docs/`、CLI `scripts/`、操盘台 `dashboard/` |
-| **项目薄层** | `<project>/.ai-matrix-team/` | ✅（state 除外） | `project.json`（项目档案：apps/面域/workspace）+ `runtime/{workorders,decisions,handoffs,reviews}` 运行台账 |
-| **运行态（锁/日志）** | `<project>/.ai-matrix-team/runtime/state/` | ❌ | 机器写；`lock.json` / `guard.log`（gitignore） |
+| **项目薄层** | `<project>/.aimt/` | ✅（state 除外） | `project.json`（项目档案：apps/面域/workspace）+ `runtime/{workorders,decisions,handoffs,reviews}` 运行台账 |
+| **运行态（锁/日志）** | `<project>/.aimt/runtime/state/` | ❌ | 机器写；`lock.json` / `guard.log`（gitignore） |
 | **Skill 激活入口** | `<project>/<平台技能目录>/ai-matrix-team/SKILL.md` → 团队仓 `SKILL.md`（平台目录见团队仓 SKILL.md 步骤 ②：`.agents/skills/` / `.workbuddy/skills/` / `.claude/skills/`，Codex 走 AGENTS.md 壳） | ❌ | **软链、按 SKILL.md 步骤 ② 生成、禁止手改**；`aimatrix-verify-skills.mjs` 校验 |
 | **专家包（源）** | `~/.workbuddy/plugins/marketplaces/my-experts/plugins/<pkg>/` | ❌ | 由 `expert-sync.mjs` 从 `members/` + 包元数据配置生成，**禁止手改** |
 | **专家包（安装快照）** | `~/.workbuddy/plugins/cache/my-experts/<pkg>/<ver>/` | ❌ | WorkBuddy 实际加载处；重装 = cache 落位 + installed_plugins.json 对齐 |
 
-**项目耦合配置化**：团队引擎不写死任何项目路径——项目档案放 `<project>/.ai-matrix-team/project.json`，CLI 一律 `--project <root>`（或环境变量 `AIM_PROJECT_ROOT`）指定项目；hooks 由项目侧 `package.json` scripts / `.workbuddy` hooks 指向团队仓 CLI。
+**项目耦合配置化**：团队引擎不写死任何项目路径——项目档案放 `<project>/.aimt/project.json`，CLI 一律 `--project <root>`（或环境变量 `AIM_PROJECT_ROOT`）指定项目；hooks 由项目侧 `package.json` scripts / `.workbuddy` hooks 指向团队仓 CLI。
 
 ---
 
@@ -60,13 +60,13 @@ $G dr scan --blocking --wo WO-<date>-<seq>-demo
 $G audit --since HEAD~5
 ```
 
-演练结论写进 `<project>/.ai-matrix-team/runtime/reviews/门禁演练.md`。
+演练结论写进 `<project>/.aimt/runtime/reviews/门禁演练.md`。
 
 ---
 
 ## 4. 薄层与 git：台账进库白名单 + 脱敏红线（DR-20261009-004）
 
-`.ai-matrix-team/` 的核心价值是**可审计**，而审计的前提是台账活在版本历史里，不是活在一台机器上。因此薄层默认**分层进 git**，由 `aimatrix-init.mjs` 自动写入并维护 `.gitignore` 管理块：
+`.aimt/` 的核心价值是**可审计**，而审计的前提是台账活在版本历史里，不是活在一台机器上。因此薄层默认**分层进 git**，由 `aimatrix-init.mjs` 自动写入并维护 `.gitignore` 管理块：
 
 | 内容 | 进 git？ | 理由 |
 |---|---|---|
@@ -81,11 +81,11 @@ $G audit --since HEAD~5
 
 ```gitignore
 # ── ai-matrix-team 薄层（init 管理）：审计台账进库，runtime/state 易失运行态不进 ──
-.ai-matrix-team/runtime/state/
+.aimt/runtime/state/
 # ── ai-matrix-team 薄层结束 ──
 ```
 
-若项目 `.gitignore` 里存在对 `.ai-matrix-team` 的**整目录 ignore**，init 会移除它并替换为上述分层块；`init --check` 会把「管理块缺失 / 整目录仍被 ignore」判为漂移（退出码 1）。
+若项目 `.gitignore` 里存在对 `.aimt` 的**整目录 ignore**，init 会移除它并替换为上述分层块；`init --check` 会把「管理块缺失 / 整目录仍被 ignore」判为漂移（退出码 1）。
 
 ### 4.1 脱敏红线（public 项目必须，private 项目建议）
 

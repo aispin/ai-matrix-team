@@ -31,7 +31,7 @@ flowchart LR
 |---|---|---|---|
 | P0 意图收集 | PC | WO（立项单）+ 面域初判 + 拟物名/App ID 待定 | 三要素明确：赛道 / 定位 / 目标人群 |
 | P1 BRD | 毛毛 | `<App>_BRD_v1.0_CN.md` | `brd-standard.md` §8 准出清单全过 |
-| P2 立项评审 | PC（Bruce 咨询） | `<project>/.ai-matrix-team/runtime/reviews/<App>-立项评审.md` | 共享面影响已初判；技术可行性有结论 |
+| P2 立项评审 | PC（Bruce 咨询） | `<project>/.aimt/runtime/reviews/<App>-立项评审.md` | 共享面影响已初判；技术可行性有结论 |
 | **P2.5 人类决策** | 创始人 | — | **Type 1 必须显式签字**（定价/永久免费/合规口径） |
 | P3 PRD | 毛毛（**同 P1 同一人**） | `<App>_PRD_v1.0_CN.md` + 验收清单 | 每条需求有可观测 AC；BRD 结论以章节号引用而非复制 |
 | P3.5 设计 | 毛毛（**与 P4 并行**） | `apps/<app>/docs/design/` 可交互视觉稿（单份：双主题可点击） | 四阶段两闸门已过：需求摘要确认、状态矩阵八态列全；**出稿模式已判定**（A 延续 / B 视觉换新 / C 全新方向，见 `aimatrix-product-designer/references/design-draft.md` §10） |
@@ -103,7 +103,7 @@ flowchart TD
 
 | 步骤 | 谁 | 动作 | 门禁 |
 |---|---|---|---|
-| ① 发布评审 | PC + 石头 + 波波 | `<project>/.ai-matrix-team/runtime/reviews/<App>-发布评审.md`：QA 结论、DR 清零、回滚方案 | QA ✅（⚠️ 需创始人确认）· BLOCKING DR 全闭环 |
+| ① 发布评审 | PC + 石头 + 波波 | `<project>/.aimt/runtime/reviews/<App>-发布评审.md`：QA 结论、DR 清零、回滚方案 | QA ✅（⚠️ 需创始人确认）· BLOCKING DR 全闭环 |
 | ② 部署 | 波波 | `cloudbase-deploy-function.mjs` / 前端按 `matrix.config.json` 托管 | 部署后 healthcheck |
 | ③ env / CORS | 波波 | `sync-env.mjs` + `sync-origins.mjs`（**禁止手改** `ALLOWED_ORIGINS`） | `pnpm env:check-ignore` |
 | ④ 迁移 | 波波 | `--dry-run` → 确认 → 执行（需云凭据 → DR 授权） | 幂等可重跑 |
@@ -117,7 +117,7 @@ flowchart TD
 ## W6 · 事故与回滚
 
 **触发**：线上报错、服务不可用、webhook 漏单、数据异常。
-**Phase**：① **先止损**（波波 执行回滚 / 开关降级；生产热修可**先修后补单**，24h 内补 WO 标 `EXCEPTION`）→ ② 石头 复现与定位（保留证据：日志/请求 id/时间点）→ ③ Bruce 根因与修复方案（必要时 ADR）→ ④ Bruce 修复 + 补测试（**回归测试即契约**，不许改测试迎合）→ ⑤ PC 事故记录进 `<project>/.ai-matrix-team/runtime/reviews/` + 交接单 + 若暴露流程漏洞则修订本文。
+**Phase**：① **先止损**（波波 执行回滚 / 开关降级；生产热修可**先修后补单**，24h 内补 WO 标 `EXCEPTION`）→ ② 石头 复现与定位（保留证据：日志/请求 id/时间点）→ ③ Bruce 根因与修复方案（必要时 ADR）→ ④ Bruce 修复 + 补测试（**回归测试即契约**，不许改测试迎合）→ ⑤ PC 事故记录进 `<project>/.aimt/runtime/reviews/` + 交接单 + 若暴露流程漏洞则修订本文。
 **DR**：涉及对外补偿、资金、用户沟通口径 → D1/D2 BLOCKING（**不许 Agent 自行向用户承诺赔偿**）。
 
 ---
@@ -142,7 +142,7 @@ flowchart TD
 ```mermaid
 flowchart LR
   A["① 脚本扫描<br/>aimatrix-inspect"] --> B["② 人工判定<br/>脚本查不了的检查项"]
-  B --> C["③ 出报告<br/><project>/.ai-matrix-team/runtime/reviews/YYYY-MM-合规巡检.md"]
+  B --> C["③ 出报告<br/><project>/.aimt/runtime/reviews/YYYY-MM-合规巡检.md"]
   C --> D["④ 主理人开整改 WO<br/>PC"]
   D --> E["⑤ 优先级冲突?<br/>是 → 落 DR 交人拍"]
   E -->|否| F["⑥ 整改实施 走 W3/W4"]
@@ -153,7 +153,7 @@ flowchart LR
 |---|---|---|---|
 | ① 扫描 | 石头 | `node <team-repo>/scripts/aimatrix-inspect.mjs all --json`（13 项清单见 [`02`](02-roles.md) §6.1）<br/>外加 `aimatrix-verify-skills.mjs --project <root>`（专家团自身链路） | 脚本退出码 0 = 全通过；非 0 列出违约项 |
 | ② 人工判定 | 石头 | 补查脚本查不了的项（BRD 准出质量、配置合理性），写明证据 | 每项有「证据或 N/A」，不许空判 |
-| ③ 报告 | 石头 | `<project>/.ai-matrix-team/runtime/reviews/YYYY-MM-合规巡检.md`：每 App 一行结论 + 违约明细 + 建议排期 | **结论不受主理人改写** |
+| ③ 报告 | 石头 | `<project>/.aimt/runtime/reviews/YYYY-MM-合规巡检.md`：每 App 一行结论 + 违约明细 + 建议排期 | **结论不受主理人改写** |
 | ④ 开单 | PC | 每个违约项开整改 WO（标 `AUDIT`），P0 红线当轮修 | WO 模板三件套齐 |
 | ⑤/⑦ 优先级 | 创始人 | 多个 App 同时违约时，由人定先修谁（DR：NON-BLOCKING 带建议默认） | 7 天内未答复 → 按石头建议排期执行 |
 | ⑥ 整改 | Bruce/各角色 | 按违约面域走 W3（受控面）或 W4（App 内） | 复检通过方可关单 |

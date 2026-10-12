@@ -3,7 +3,7 @@
  * aimatrix-init.mjs — 专家团「首次引导」扫描器
  *
  * 用途：专家团接入一个新项目时，扫描项目目录结构，分析后落
- * `<project>/.ai-matrix-team/project.json`（项目档案）。此后 guard / 巡检 / dashboard /
+ * `<project>/.aimt/project.json`（项目档案）。此后 guard / 巡检 / dashboard /
  * 各角色 Agent 均以该文件为初始化依据，实现专家团与具体项目解耦。
  *
  * 用法：
@@ -31,7 +31,7 @@ const getArg = (name) => {
 const ROOT = path.resolve(getArg('--project') || getArg('--root') || process.env.AIM_PROJECT_ROOT || process.cwd());
 const FORCE = argv.includes('--force');
 const CHECK = argv.includes('--check');
-const CONFIG = path.join(ROOT, '.ai-matrix-team', 'project.json');
+const CONFIG = path.join(ROOT, '.aimt', 'project.json');
 
 /* ---------- 探测工具 ---------- */
 const exists = (p) => fs.existsSync(path.join(ROOT, p));
@@ -99,7 +99,7 @@ function buildProfile() {
     C2: ['scripts/**', 'infra/**', 'docs/**'],
     C3: ['apps/*/matrix.config.json', 'apps/*/.env.example', 'apps/*/docs/**'],
     F: ['apps/*/src/**', 'apps/*/public/**', 'apps/*/scripts/**', 'apps/*/packages/*/src/**'],
-    T: ['.ai-matrix-team/runtime/**'],
+    T: ['.aimt/runtime/**'],
   };
 
   return {
@@ -120,10 +120,10 @@ function buildProfile() {
     team: {
       name: 'ai-matrix-team',
       repo: TEAM_ROOT,
-      home: '.ai-matrix-team',
-      gateRules: '.ai-matrix-team/surfaces.json', // 已有 surfaces.json 的项目沿用；新项目由本档案 surfaces 段生成
+      home: '.aimt',
+      gateRules: '.aimt/surfaces.json', // 已有 surfaces.json 的项目沿用；新项目由本档案 surfaces 段生成
       docsDir: 'docs',
-      runtimeDir: '.ai-matrix-team/runtime',
+      runtimeDir: '.aimt/runtime',
     },
     terms: {
       // 大白话术语表：dashboard 与汇报模式使用；可按项目自定义
@@ -140,17 +140,17 @@ function buildProfile() {
 
 /* ---------- 薄层 git 管控（DR-20261009-004：台账进库，易失运行态不进） ---------- */
 const GI_MARK = '# ── ai-matrix-team 薄层（init 管理）：审计台账进库，runtime/state 易失运行态不进 ──';
-const GI_BLOCK = [GI_MARK, '.ai-matrix-team/runtime/state/', '# ── ai-matrix-team 薄层结束 ──', ''].join('\n');
+const GI_BLOCK = [GI_MARK, '.aimt/runtime/state/', '# ── ai-matrix-team 薄层结束 ──', ''].join('\n');
 const giText = () => { const p = path.join(ROOT, '.gitignore'); return { p, text: fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '' }; };
 const giOk = (t) => t.includes(GI_MARK);
-const giBlanket = (t) => t.split('\n').some((l) => { const s = l.trim(); return s === '.ai-matrix-team' || s === '.ai-matrix-team/'; });
+const giBlanket = (t) => t.split('\n').some((l) => { const s = l.trim(); return s === '.aimt' || s === '.aimt/'; });
 
 function ensureGitignore() {
   const { p, text } = giText();
   let lines = text.split('\n');
   if (giBlanket(text)) {
-    lines = lines.filter((l) => { const s = l.trim(); return !(s === '.ai-matrix-team' || s === '.ai-matrix-team/'); });
-    console.log('   已移除 .ai-matrix-team 整目录 ignore —— 改为分层管控（台账进库，state/ 不进）');
+    lines = lines.filter((l) => { const s = l.trim(); return !(s === '.aimt' || s === '.aimt/'); });
+    console.log('   已移除 .aimt 整目录 ignore —— 改为分层管控（台账进库，state/ 不进）');
   }
   let next = lines.join('\n');
   if (!giOk(next)) next = (next === '' || next.endsWith('\n')) ? next + GI_BLOCK : next + '\n' + GI_BLOCK;
@@ -194,7 +194,7 @@ if (CHECK) {
   // 薄层 git 管控漂移：台账进库策略被破坏（管理块缺失 / 整目录仍被 ignore）
   const gi = giText();
   if (!giOk(gi.text) || giBlanket(gi.text)) {
-    console.error('⚠️ .gitignore 未按「台账进库 / state 不进」分层管控 .ai-matrix-team —— 重跑 init 补管理块');
+    console.error('⚠️ .gitignore 未按「台账进库 / state 不进」分层管控 .aimt —— 重跑 init 补管理块');
     process.exit(1);
   }
   if (stale && !FORCE) {

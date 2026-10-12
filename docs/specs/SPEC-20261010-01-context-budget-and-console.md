@@ -1,7 +1,7 @@
 # SPEC-20261010-01 · 上下文成本治理与操盘台可用性
 
 > 关联 WO：无（团队仓自身迭代，无目标项目在办单）
-> 关联 DR：[`DR-20261010-001`](../../.ai-matrix-team/runtime/decisions/closed/DR-20261010-001-设计稿渲染是否引入-HeroUI-Tailwin.md)（渲染链路选型，已闭环「维持 B1」）· [`DR-20261010-002`](../../.ai-matrix-team/runtime/decisions/closed/DR-20261010-002-脱离既有设计系统的-全新视觉-出稿支持-模式-A.md)（全新视觉出稿通道，已闭环）
+> 关联 DR：[`DR-20261010-001`](../../.aimt/runtime/decisions/closed/DR-20261010-001-设计稿渲染是否引入-HeroUI-Tailwin.md)（渲染链路选型，已闭环「维持 B1」）· [`DR-20261010-002`](../../.aimt/runtime/decisions/closed/DR-20261010-002-脱离既有设计系统的-全新视觉-出稿支持-模式-A.md)（全新视觉出稿通道，已闭环）
 > 定位：本次迭代的**唯一设计真相源**；与代码冲突时以本文为准并回写代码。
 > 说明：本迭代需求在会话内逐项拍定（选型类走两项 DR 留痕），本文为**事后合稿**——规格口径以落地后的实测值为准（AC 全部实跑过）。
 
@@ -222,7 +222,7 @@ AC9 实测值（隔离页读 `getComputedStyle(documentElement).getPropertyValue
 
 ## 8. 关联
 
-- 决策单：[`DR-20261010-001`](../../.ai-matrix-team/runtime/decisions/closed/DR-20261010-001-设计稿渲染是否引入-HeroUI-Tailwin.md)（渲染链路选型）· [`DR-20261010-002`](../../.ai-matrix-team/runtime/decisions/closed/DR-20261010-002-脱离既有设计系统的-全新视觉-出稿支持-模式-A.md)（全新视觉通道）· 台账 [`LEDGER.md`](../../.ai-matrix-team/runtime/decisions/LEDGER.md)
+- 决策单：[`DR-20261010-001`](../../.aimt/runtime/decisions/closed/DR-20261010-001-设计稿渲染是否引入-HeroUI-Tailwin.md)（渲染链路选型）· [`DR-20261010-002`](../../.aimt/runtime/decisions/closed/DR-20261010-002-脱离既有设计系统的-全新视觉-出稿支持-模式-A.md)（全新视觉通道）· 台账 [`LEDGER.md`](../../.aimt/runtime/decisions/LEDGER.md)
 - 规范真相源：[`design-draft-spec.md`](../../aimatrix-product-designer/references/design-draft-spec.md)（草稿字段与三级处置）· [`design-draft.md`](../../aimatrix-product-designer/references/design-draft.md)（出稿模式与样式规范）· [`portability-map.md`](../../aimatrix-product-designer/references/portability-map.md)（稿→实现搬运与令牌差异）· [`design-system.md`](../../aimatrix-product-designer/references/design-system.md)（设计系统基座）
 - 单据规范：`docs/templates/dr.md` · `docs/templates/wo.md` · `docs/index/09-wo.md`（面向 agent 的写单须知）
 - 操作手册：`aimatrix-intake/references/reporting.md`（操盘台开关台）

@@ -27,7 +27,7 @@
  * 3. 新接入 harness：登记表条目写 `harness: '<id>'`，并新增 ./<id>.mjs 实现同契约。
  *
  * 登记表（gitignore 运行态，spawn 者登记 / 收工注销）：
- * 主径：<项目根>/.ai-matrix-team/runtime/state/instances.json（项目根由 server.mjs 注入本模块）
+ * 主径：<项目根>/.aimt/runtime/state/instances.json（项目根由 server.mjs 注入本模块）
  * 回退：<团队仓>/runtime/state/instances.json（团队仓尚未随新目录结构迁移时的旧位置）
  * 条目：[{ callsign: 'PC哥#1', session: '会话名', wo: 'WO-…', startedAt: ISO, harness?: 'workbuddy' }]
  */
@@ -61,7 +61,7 @@ function projectRootDir() {
  */
 export function instancesFilePath() {
   const root = projectRootDir();
-  const projectFile = root ? path.join(root, '.ai-matrix-team', 'runtime', 'state', 'instances.json') : null;
+  const projectFile = root ? path.join(root, '.aimt', 'runtime', 'state', 'instances.json') : null;
   if (projectFile && fs.existsSync(projectFile)) return projectFile;
   return LEGACY_INSTANCES_FILE;
 }

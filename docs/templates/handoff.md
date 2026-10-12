@@ -8,7 +8,7 @@
 | 完成日期 | YYYY-MM-DD |
 | 产研高级总监 | PC |
 | 参与角色 | PC / 毛毛 / Bruce / 石头 / 波波（勾选） |
-| 关联评审 | `<project>/.ai-matrix-team/runtime/reviews/xxx.md` |
+| 关联评审 | `<project>/.aimt/runtime/reviews/xxx.md` |
 
 ## 1. 一句话结论
 

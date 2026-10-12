@@ -36,7 +36,7 @@ const getArg = (name) => {
 const ROOT = path.resolve(getArg('--project') || getArg('--root') || process.env.AIM_PROJECT_ROOT || process.cwd());
 const FIX = argv.includes('--fix');
 
-const HOME = path.join(ROOT, '.ai-matrix-team');
+const HOME = path.join(ROOT, '.aimt');
 const CONFIG = path.join(HOME, 'project.json');
 
 /* ---------- 小工具 ---------- */
@@ -73,7 +73,7 @@ let vLine = '';
 let vHint = null;
 if (!profile) {
   vLevel = 'fail';
-  vLine = '项目档案不存在（.ai-matrix-team/project.json）';
+  vLine = '项目档案不存在（.aimt/project.json）';
   vHint = `跑：node ${path.join(TEAM_ROOT, 'scripts', 'aimatrix-init.mjs')} --project ${ROOT}`;
 } else if (!archiveVersion) {
   vLevel = FIX ? 'pass' : 'fail';

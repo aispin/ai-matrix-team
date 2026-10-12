@@ -52,4 +52,4 @@ version: 1.1.0
 
 - `<team-repo>/docs/03-shared-surface-control.md`（面域/权限/锁/门禁全文）
 - `<team-repo>/scripts/surfaces.json`（规则源，与 03 §1 同源）
-- `<project>/.ai-matrix-team/runtime/reviews/P1-门禁演练.md`（退出码实测基线）
+- `<project>/.aimt/runtime/reviews/P1-门禁演练.md`（退出码实测基线）

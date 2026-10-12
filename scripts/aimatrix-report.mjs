@@ -23,11 +23,11 @@ const getArg = (n) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] :
 const ROOT = (() => {
   const given = getArg('--root') || getArg('--project');
   if (given) return path.resolve(given);
-  // 从脚本位置向上找最近的 .ai-matrix-team（含 config.json 或 project.json）——兼容两种布局：
-  // 目标项目 <project>/.ai-matrix-team/scripts/ 与团队仓 <repo>/scripts/
+  // 从脚本位置向上找最近的 .aimt（含 config.json 或 project.json）——兼容两种布局：
+  // 目标项目 <project>/.aimt/scripts/ 与团队仓 <repo>/scripts/
   let d = __dirname;
   for (let i = 0; i < 6; i++) {
-    const m = path.join(d, '.ai-matrix-team');
+    const m = path.join(d, '.aimt');
     if (fs.existsSync(path.join(m, 'config.json')) || fs.existsSync(path.join(m, 'project.json'))) return d;
     const up = path.dirname(d);
     if (up === d) break;
@@ -42,9 +42,9 @@ const rel = (p) => path.relative(ROOT, p);
 
 // ---------- 项目档案 ----------
 // config.json（aimatrix-init 生成）优先；团队仓自身只有 project.json（字段为其超集）→ 回退
-const CONFIG_PATH = exists('.ai-matrix-team/config.json')
-  ? path.join(ROOT, '.ai-matrix-team', 'config.json')
-  : path.join(ROOT, '.ai-matrix-team', 'project.json');
+const CONFIG_PATH = exists('.aimt/config.json')
+  ? path.join(ROOT, '.aimt', 'config.json')
+  : path.join(ROOT, '.aimt', 'project.json');
 const cfg = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
 const T = cfg.terms || {};
 const lbl = (k, fallback) => T[k]?.label || fallback;
@@ -55,7 +55,7 @@ const LOCK_LABEL = lbl('lock', '占用');
 // ---------- 台账解析 ----------
 function activeWorkorders() {
   // v2：workorders.md 活动表是唯一增量真相源；旧 INDEX.md 作迁移前回落
-  const wt = path.join(ROOT, '.ai-matrix-team', 'workorders.md');
+  const wt = path.join(ROOT, '.aimt', 'workorders.md');
   if (fs.existsSync(wt)) {
     const rows = [];
     for (const line of fs.readFileSync(wt, 'utf8').split('\n')) {
@@ -65,9 +65,9 @@ function activeWorkorders() {
     }
     return rows;
   }
-  const idx = path.join(ROOT, '.ai-matrix-team', 'runtime', 'workorders', 'INDEX.md');
+  const idx = path.join(ROOT, '.aimt', 'runtime', 'workorders', 'INDEX.md');
   if (!fs.existsSync(idx)) return [];
-  const table = read('.ai-matrix-team/runtime/workorders/INDEX.md');
+  const table = read('.aimt/runtime/workorders/INDEX.md');
   // 只解析活跃表：取「## 归档单」分界之前的内容（INDEX 无「## 活跃单」标题，避免归档行混入）
   const section = table.split(/^## 归档单/m)[0];
   if (!section) return [];
@@ -83,7 +83,7 @@ function activeWorkorders() {
 
 function archivedWorkorders() {
   // v2：归档落 runtime/archive/YYYY-MM.md 的 `## WO <id> <任务名>（归档 …）` 块
-  const archDir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'archive');
+  const archDir = path.join(ROOT, '.aimt', 'runtime', 'archive');
   if (fs.existsSync(archDir)) {
     const out = [];
     for (const f of fs.readdirSync(archDir).filter((x) => x.endsWith('.md')).sort().reverse()) {
@@ -94,10 +94,10 @@ function archivedWorkorders() {
     }
     if (out.length) return out;
   }
-  const dir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'workorders', 'closed');
+  const dir = path.join(ROOT, '.aimt', 'runtime', 'workorders', 'closed');
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir).filter((f) => f.startsWith('WO-') && f.endsWith('.md')).map((f) => {
-    const text = read(path.join('.ai-matrix-team/runtime/workorders/closed', f));
+    const text = read(path.join('.aimt/runtime/workorders/closed', f));
     const one = text.split(/^## 1\. 目的与背景/m)[1]?.split('\n').map((s) => s.trim()).find(Boolean) || '';
     return { id: f.replace(/\.md$/, ''), purpose: one.replace(/^# /, '').slice(0, 60) };
   });
@@ -105,7 +105,7 @@ function archivedWorkorders() {
 
 function openDecisions() {
   // v2：decisions.md h2 条目块（增量真相源）；旧 decisions/open/ 作迁移前回落
-  const dfile = path.join(ROOT, '.ai-matrix-team', 'decisions.md');
+  const dfile = path.join(ROOT, '.aimt', 'decisions.md');
   if (fs.existsSync(dfile)) {
     const rows = [];
     for (const chunk of fs.readFileSync(dfile, 'utf8').split(/^## /m).slice(1)) {
@@ -125,7 +125,7 @@ function openDecisions() {
     if (rows.length) return rows;
   }
   // D3：实时扫 decisions/open/ 目录——LEDGER 仅 ledger-sync 时重建，并发会话新落的 DR 会漏
-  const dir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'decisions', 'open');
+  const dir = path.join(ROOT, '.aimt', 'runtime', 'decisions', 'open');
   if (!fs.existsSync(dir)) return [];
   const rows = [];
   for (const f of fs.readdirSync(dir)) {
@@ -143,7 +143,7 @@ function openDecisions() {
 }
 
 function lockState() {
-  const f = path.join(ROOT, '.ai-matrix-team', 'runtime', 'state', 'lock.json');
+  const f = path.join(ROOT, '.aimt', 'runtime', 'state', 'lock.json');
   if (!fs.existsSync(f)) return null;
   try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return null; }
 }
@@ -166,11 +166,11 @@ function lockView(l) {
 }
 
 function latestInspection() {
-  const dir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'reviews');
+  const dir = path.join(ROOT, '.aimt', 'runtime', 'reviews');
   if (!fs.existsSync(dir)) return null;
   const files = fs.readdirSync(dir).filter((f) => f.includes('巡检') && f.endsWith('.md')).sort();
   if (!files.length) return null;
-  const text = read(path.join('.ai-matrix-team/runtime/reviews', files.at(-1)));
+  const text = read(path.join('.aimt/runtime/reviews', files.at(-1)));
   // 只取「小结」所在行的计数，避免表格内容串行
   const summaryLine = text.split('\n').find((l) => l.includes('小结') && /PASS|WARN|FAIL/i.test(l)) || '';
   return { file: files.at(-1), summary: summaryLine.replace(/^#+\s*/, '').trim().slice(0, 120) };
@@ -205,10 +205,10 @@ function drAdvice(text) {
 
 function findDecisionFile(id) {
   for (const sub of ['open', 'closed']) {
-    const dir = path.join(ROOT, '.ai-matrix-team', 'runtime', 'decisions', sub);
+    const dir = path.join(ROOT, '.aimt', 'runtime', 'decisions', sub);
     if (!fs.existsSync(dir)) continue;
     const hit = fs.readdirSync(dir).find((f) => f.startsWith(id));
-    if (hit) return path.join('.ai-matrix-team/runtime/decisions', sub, hit);
+    if (hit) return path.join('.aimt/runtime/decisions', sub, hit);
   }
   return null;
 }

@@ -8,7 +8,7 @@
 - **C2**（轻单）：其余 `packages/**`、根 `scripts/**`、`infra/**`、根 `docs/**`、`<team-repo>/**`（专家团资产，团队仓自管）
 - **C3**（App 私有受控）：`apps/*/matrix.config.json`、`apps/*/.env.example`、`apps/*/docs/**` —— 跨 App 影响才开单
 - **F**（自由）：`apps/*/src|packages|scripts|public/**` —— 不开单，QA 门禁照跑
-- **T**（台账）：`<project>/.ai-matrix-team/runtime/**` —— 任何角色可写，格式套模板
+- **T**（台账）：`<project>/.aimt/runtime/**` —— 任何角色可写，格式套模板
 - **S**（跳过）：`.workbuddy/**`、`node_modules`、`dist`
 - 拿不准 → `surface` 查；仍拿不准 → 按 C2 处理（从严）。
 

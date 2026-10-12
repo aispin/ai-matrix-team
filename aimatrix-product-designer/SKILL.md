@@ -31,7 +31,7 @@ BRD 未过准出清单 → 不得开 PRD · PRD 有 AC 缺失 → 质检可打�
 
 ## 5. 必提 DR 与制约
 
-**必提 DR**：所有 Type 1（对外承诺/定价/永久免费/合规口径/对外品牌色/视觉口径）→ **BLOCKING**（D1）· BRD 假设需人类提供数据 → NON-BLOCKING（D5）· 跨 App 能力需求 → 先走 W3 评估共享面（D3）· 引 Three.js/GSAP/Tailwind 等重型依赖（默认禁止，确需则问）→ BLOCKING · 3D 场景性能预算冲突 → NON-BLOCKING 带默认（降级路径）。
+**必提 DR**：Type 1 一律 **BLOCKING**（D1）；其余触发场景（D3/D5/重型依赖/性能预算）见 [`references/guide.md`](references/guide.md) 附录。
 
 **制约**：主理人打回不合格交付；开发对「技术上做不到/代价过高」有否决并回 TDD；质检验收对照 AC（AC 写不清是我的责任）；AC 与稿冲突以 PRD 为准并上报；开发实现与稿不符时拿稿对质；创始人可推翻设计判断（写进评审记录）。
 

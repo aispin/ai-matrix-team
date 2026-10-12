@@ -2,7 +2,7 @@
 /**
  * aimatrix-redact.mjs — 薄层台账脱敏（lib + CLI）
  *
- * 定位：`.ai-matrix-team/` 审计台账（WO/DR/交接单/汇报/复检）要随 git 进库；
+ * 定位：`.aimt/` 审计台账（WO/DR/交接单/汇报/复检）要随 git 进库；
  * 当目标项目是 public 仓库（或台账会被分享）时，台账里不得出现：
  * ① 本机绝对路径（/Users/*、/Volumes/*） ② API 密钥/令牌
  * ③ 真实邮箱（github noreply 除外） ④ 内网地址
@@ -117,7 +117,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 if (argv.includes('--scan') || argv.includes('--fix')) {
   const ROOT = path.resolve(getArg('--project') || process.env.AIM_PROJECT_ROOT || process.cwd());
-  const LAYER = path.join(ROOT, '.ai-matrix-team');
+  const LAYER = path.join(ROOT, '.aimt');
   const FIX = argv.includes('--fix');
   const JSON_OUT = argv.includes('--json');
   if (!fs.existsSync(LAYER)) {

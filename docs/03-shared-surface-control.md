@@ -17,7 +17,7 @@
 | **C3** | App 私有受控 | `apps/<app>/matrix.config.json`、`apps/<app>/.env.example`、`apps/<app>/docs/<App>_{BRD,PRD,TDD}_*.md` | App 责任角色可写；**跨 App 影响时必须开 WO**；PRD/TDD 重大修订需主理人知会 |
 | **F** | 自由面 | `apps/<app>/src/**`、`apps/<app>/packages/**`、`apps/<app>/scripts/**`、`apps/<app>/public/**` | 直接改，无需 WO；仍需通过 QA 门禁（typecheck/test/build） |
 | **C2** | **专家团资产**（改 Agent 行为 = 影响全矩阵） | `<team-repo>/aimatrix-*/**`（角色 Skill 正文与 references）、`<team-repo>/members/**`（成员真源）、`<team-repo>/scripts/**`（guard / inspect / expert-sync / DR 生成器）、`<team-repo>/docs/**`（治理规范与模板） | **WO + 团长（风控）核准 + 共享锁**；改后当日登记；回归范围由守卫裁定（改 Skill 正文 ≥ 至少跑一次受影响角色的示例任务；改 `scripts/` 必须跑脚本自测） |
-| **T** | 台账面 | `<project>/.ai-matrix-team/runtime/**`（WO / DR / 台账 / 交接单 / 巡检报告） | 任何角色可写，**格式必须套模板**；由 `guard` 校验字段完整性；`runtime/state/` 为机器写（锁、日志），**不入库** |
+| **T** | 台账面 | `<project>/.aimt/runtime/**`（WO / DR / 台账 / 交接单 / 巡检报告） | 任何角色可写，**格式必须套模板**；由 `guard` 校验字段完整性；`runtime/state/` 为机器写（锁、日志），**不入库** |
 | **—** | 软链（非源码） | `<project>/<平台技能目录>/ai-matrix-team/SKILL.md` → `<team-repo>/SKILL.md`（平台目录见团队仓 SKILL.md 安装步骤 ②：`.agents/skills/` / `.workbuddy/skills/` / `.claude/skills/`，Codex 走 AGENTS.md 壳） | **不入库、禁止手改**；`<team-repo>/scripts/aimatrix-verify-skills.mjs` 校验 |
 
 > **判定原则**：吃不下面域的路径 → 按**更高级别**处理（从严）。
@@ -94,9 +94,9 @@ stateDiagram-v2
   DONE --> [*]: 释放锁并归档
 ```
 
-- **活动表**：`<project>/.ai-matrix-team/workorders.md`（一行一单；agent 只经 `guard wo table add|start|verify|done|block` 改行，`EXECUTING` 即锁定）
-- **详情单**：`<project>/.ai-matrix-team/runtime/wo-details/<WO-id>.md`（只放该单的路径白名单 / 验证命令 / 回滚，供 `guard check` 取白名单；C1/C2 或 L2 必挂）
-- **归档**：终态行经 `guard archive move --kind wo --id` 移入 `<project>/.ai-matrix-team/runtime/archive/YYYY-MM.md`（月文件，append-only）
+- **活动表**：`<project>/.aimt/workorders.md`（一行一单；agent 只经 `guard wo table add|start|verify|done|block` 改行，`EXECUTING` 即锁定）
+- **详情单**：`<project>/.aimt/runtime/wo-details/<WO-id>.md`（只放该单的路径白名单 / 验证命令 / 回滚，供 `guard check` 取白名单；C1/C2 或 L2 必挂）
+- **归档**：终态行经 `guard archive move --kind wo --id` 移入 `<project>/.aimt/runtime/archive/YYYY-MM.md`（月文件，append-only）
 
 ---
 
@@ -104,7 +104,7 @@ stateDiagram-v2
 
 落实 `shared-contracts.md` §2-3「串行优先」；**按面域分片**：面域**不相交**的多个 WO 可同时持锁，**同面域仍互斥**。
 
-- **状态文件**：`<project>/.ai-matrix-team/runtime/state/lock.json`（schema 2，**多持有者**）
+- **状态文件**：`<project>/.aimt/runtime/state/lock.json`（schema 2，**多持有者**）
   ```json
   {
     "schema": 2,
@@ -126,7 +126,7 @@ stateDiagram-v2
   ```
   > 顶层 `holder` / `surfaces` / `acquiredAt` / `ttlMinutes` / `renewable` 是**主持有者（`holders[0]`）的 legacy 镜像**——保留给未适配 `holders[]` 的历史消费者，也是 `git revert` 回滚到旧 guard 的硬前提（无镜像则回滚后会把已持锁**误判为空闲**）。读侧兼容 `holders[]` 与 legacy 单持有者两种残留；`holders` 为空时删除该文件。
 - **规则**：
-  1. **按面域分片**：多个 WO 可同时持锁，**前提是各自 C1/C2 冲突面两两不相交**；同面域（相交）仍互斥。holder 的冲突面 = 其白名单在 **C1/C2** 面域的子集（**T/F/S 路径不计入**——锁只序列化 C1/C2 写入；否则凡共用 `<project>/.ai-matrix-team/runtime/**`（T 面）的单会恒相交）。C1/C2 写入前必须持锁。
+  1. **按面域分片**：多个 WO 可同时持锁，**前提是各自 C1/C2 冲突面两两不相交**；同面域（相交）仍互斥。holder 的冲突面 = 其白名单在 **C1/C2** 面域的子集（**T/F/S 路径不计入**——锁只序列化 C1/C2 写入；否则凡共用 `<project>/.aimt/runtime/**`（T 面）的单会恒相交）。C1/C2 写入前必须持锁。
   2. 锁有 TTL（默认 4h，可续）；**TTL 过期自动释放**并写入 `guard.log`，防止「忘记释放」把全团队堵死。
   3. **面域相交才排队**：新单面域与在持单冲突面相交时，守卫拒绝 `acquire` 并报出**相交的 glob 对**—— newcomer 要么等、要么只做 F 面工作；**面域不相交者无须排队，可并行持锁**。
   4. **紧急热修例外**：生产事故可先修（走 W6），**24h 内补 WO 与登记**，并在交接单标注 `EXCEPTION`。
@@ -217,13 +217,13 @@ stateDiagram-v2
     aimatrix-architect（开发深读）｜guardian（守门手册）
     aimatrix-guard｜aimatrix-decision（跨角色工具）
 
-<project>/.ai-matrix-team/          项目薄层（项目仓入库；runtime/state/ 除外）
+<project>/.aimt/          项目薄层（项目仓入库；runtime/state/ 除外）
 ├── issues.md / workorders.md / decisions.md   单据三表（唯一增量真相源）
 ├── project.json                    项目档案（init 生成：apps/面域/规范绑定/术语表）
 ├── surfaces.json                   面域规则（可覆盖团队默认；与 docs/03 §1 同源）
 └── runtime/                        运行台账（入库）
     ├── wo-details/  ├── archive/  ├── handoffs/  └── reviews/
-<project>/.ai-matrix-team/runtime/state/   机器写（lock.json / guard.log / instances.json），gitignore
+<project>/.aimt/runtime/state/   机器写（lock.json / guard.log / instances.json），gitignore
 
 <project>/<平台技能目录>/ai-matrix-team/   ← 激活入口（真目录 + 文件级软链；平台目录见团队仓 SKILL.md 安装步骤 ②），**不入库、禁止手改**
 ```

@@ -97,11 +97,11 @@ UI 上的「转发」不是独立对象，程序化等价物有四条路径，�
 
 | 设计项 | 决定 | 理由 |
 |---|---|---|
-| **WO / DR 台账形态** | 继续用**仓库 Markdown 单表**（`<project>/.ai-matrix-team/` 下 `issues.md` / `workorders.md` / `decisions.md` 三表；详情单挂 `runtime/wo-details/`，归档落 `runtime/archive/`） | 唯一可跨会话、可 review、可 CI 校验的载体 |
+| **WO / DR 台账形态** | 继续用**仓库 Markdown 单表**（`<project>/.aimt/` 下 `issues.md` / `workorders.md` / `decisions.md` 三表；详情单挂 `runtime/wo-details/`，归档落 `runtime/archive/`） | 唯一可跨会话、可 review、可 CI 校验的载体 |
 | **要不要把 WO 镜像成原生任务** | **暂不做**；列为开放项 **D-06**，P3 之后再议 | 镜像 = 两份真相源 + 同步成本（违反 Charter P2）；原生任务无法承载面域/锁/DR 字段 |
 | **Agent 执行与协作机制** | 用专家团（Team）+ Agent 派成员 + `SendMessage`，**不依赖 daemon REST** | 这是当前受支持、稳定、随版本演进的路径；REST 控制面需要额外起 daemon 且端口/鉴权随版本变 |
 | **进度可见性** | 每轮会话内可以用 Task 工具自己列步骤；**跨会话进度看 `guard report`**（在办 WO / 锁 / DR 一屏摘要） | 让「此刻谁在改共享面」在文件层面可见，而不是藏在某个会话里 |
-| **交接（handoff）** | 交接单**落文件**（`<project>/.ai-matrix-team/runtime/handoffs/WO-xxx-handoff.md`），UI 上的「转发」只当作**把这段 Markdown 发给下一个会话**的搬运手段 | 内容才是资产，转发只是信道 |
+| **交接（handoff）** | 交接单**落文件**（`<project>/.aimt/runtime/handoffs/WO-xxx-handoff.md`），UI 上的「转发」只当作**把这段 Markdown 发给下一个会话**的搬运手段 | 内容才是资产，转发只是信道 |
 
 ---
 

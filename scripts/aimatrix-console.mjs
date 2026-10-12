@@ -31,26 +31,28 @@ const PORT = Number(getArg('--port') || 4780);
 const SERVER = path.join(TEAM_REPO, 'dashboard', 'server', 'server.mjs');
 const slug = () => {
   try {
-    const j = JSON.parse(fs.readFileSync(path.join(PROJECT, '.ai-matrix-team', 'project.json'), 'utf8'));
+    const j = JSON.parse(fs.readFileSync(path.join(PROJECT, '.aimt', 'project.json'), 'utf8'));
     return String(j.project?.name || path.basename(PROJECT)).replace(/[^\w.-]+/g, '-');
   } catch { return path.basename(PROJECT); }
 };
 
 // ---------- 前置校验 ----------
-if (!fs.existsSync(path.join(PROJECT, '.ai-matrix-team', 'project.json'))) {
-  console.error(`✗ 不是 ai-matrix-team 项目（缺 .ai-matrix-team/project.json）：${PROJECT}`);
+if (!fs.existsSync(path.join(PROJECT, '.aimt', 'project.json')) && !fs.existsSync(path.join(PROJECT, '.ai-matrix-team', 'project.json'))) {
+  console.error(`✗ 不是 ai-matrix-team 项目（缺 .aimt/project.json）：${PROJECT}`);
   console.error('  先跑：node <team-repo>/scripts/aimatrix-init.mjs --project ' + PROJECT);
   process.exit(1);
 }
 
-// ---------- ⓪ v2 三表自动迁移（SPEC-20261010-03）：旧项目在启动时静默升级一次 ----------
+// ---------- ⓪ 目录改名 + v2 三表自动迁移：旧布局项目在启动时静默升级一次 ----------
 try {
   const mtScript = path.join(TEAM_REPO, 'scripts', 'aimatrix-migrate-v2.mjs');
-  const marker = path.join(PROJECT, '.ai-matrix-team', 'runtime', 'state', 'v2-migrated');
-  if (fs.existsSync(mtScript) && !fs.existsSync(marker)) {
+  const marker = path.join(PROJECT, '.aimt', 'runtime', 'state', 'v2-migrated');
+  const legacyDir = path.join(PROJECT, '.ai-matrix-team');
+  if (fs.existsSync(mtScript) && (!fs.existsSync(marker) || fs.existsSync(legacyDir))) {
     const r = spawnSync(process.execPath, [mtScript, '--project', PROJECT, '--auto'], { encoding: 'utf8', env: { ...process.env, NODE_OPTIONS: '' } });
-    if (r.status === 0 && (r.stdout || '').includes('➜')) log('⟳ 台账已自动迁移 v2：\n' + (r.stdout || '').trim());
-    else if (r.status !== 0) log(`⚠ v2 自动迁移失败（服务照常启动）：${((r.stderr || '').split('\n')[0] || '').slice(0, 120)}`);
+    if (r.status === 0 && (r.stdout || '').includes('➜|✎')) log('⟳ 台账已自动迁移：\n' + (r.stdout || '').trim());
+    else if (r.status === 0 && (r.stdout || '').includes('✎')) log('⟳ ' + (r.stdout || '').trim().split('\n').filter((l) => l.includes('✎')).join('；'));
+    else if (r.status !== 0) log(`⚠ 自动迁移失败（服务照常启动）：${((r.stderr || '').split('\n')[0] || '').slice(0, 120)}`);
   }
 } catch { /* 迁移钩子不阻断启动 */ }
 
@@ -160,7 +162,7 @@ try {
 } catch { /* 写不了不影响使用 */ }
 log(`${ok ? '✓' : '✗'} 控制台：${url}`);
 log(`  项目：${PROJECT}`);
-log(`  台账：${path.join(PROJECT, '.ai-matrix-team', 'runtime')}`);
+log(`  台账：${path.join(PROJECT, '.aimt', 'runtime')}`);
 log(`  日志：${path.relative(TEAM_REPO, logPath)}`);
 log('  首页=管线看板 · 汇报页=最新已置顶 · 关于=团队');
 process.exit(ok ? 0 : 1);

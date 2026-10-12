@@ -2,7 +2,7 @@
 
 **目的**：开发拿到设计稿后，能按「组件名 + 类名 + 令牌名」**直接搬运**，而不是对着截图重画。本表是 **B1 方案**的交付物——只用规格对齐拿到「同源」收益，**不引入 React / HeroUI / Tailwind 运行时**（产物仍是单文件零依赖）。
 
-> 背景与取舍见决策单：`<project>/.ai-matrix-team/runtime/decisions/`（DR「设计稿渲染是否引入 HeroUI+Tailwind 同栈」）。
+> 背景与取舍见决策单：`<project>/.aimt/runtime/decisions/`（DR「设计稿渲染是否引入 HeroUI+Tailwind 同栈」）。
 
 ## 1. 组件对照（稿里的 `data-ui` → 实现用什么）
 

@@ -10,20 +10,20 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// ---------- 项目根解析（--project / AIM_PROJECT_ROOT / 含 .ai-matrix-team 的 cwd） ----------
+// ---------- 项目根解析（--project / AIM_PROJECT_ROOT / 含 .aimt 的 cwd） ----------
 let _PROJECT;
 function PROJECT() {
   if (_PROJECT) return _PROJECT;
   const i = process.argv.indexOf('--project');
   const cand = i > 0 && process.argv[i + 1] ? path.resolve(process.argv[i + 1])
     : process.env.AIM_PROJECT_ROOT ? path.resolve(process.env.AIM_PROJECT_ROOT)
-    : fs.existsSync(path.join(process.cwd(), '.ai-matrix-team')) ? process.cwd()
+    : fs.existsSync(path.join(process.cwd(), '.aimt')) ? process.cwd()
     : process.cwd();
   _PROJECT = cand;
   return cand;
 }
 const REPO_ROOT = PROJECT();
-const DR_DIR = path.join(REPO_ROOT, '.ai-matrix-team', 'runtime', 'decisions');
+const DR_DIR = path.join(REPO_ROOT, '.aimt', 'runtime', 'decisions');
 
 const argv = process.argv.slice(2);
 const appIdx = argv.indexOf('--app');
