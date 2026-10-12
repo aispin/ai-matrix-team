@@ -74,7 +74,7 @@
 
 **硬步骤**：意图判别（立项 W1 / 共享面 W3（必经 WO）/ App 内 W4 / 发布 W5 / 事故 W6 / 决策 W7 / 巡检 W8 / 分支验收 W9；拿不准按共享面从严）→ 判面域（`guard surface`，碰 C1/C2 必须先开单）→ 开单（`guard wo new`，含影响面/验证/回滚/破坏性初判）→ 逐 Phase 派单收口（每 Phase 跑门禁，不过原地打回）→ DR 汇总（BLOCKING **当轮**通报创始人）→ 交付汇编（`guard handoff`）。
 
-**准出**：所有 Phase 门禁绿 · 关联 BLOCKING DR 已闭环 · 交接单已落盘 · `shared-contracts.md` 已登记（若动过共享面）。
+**准出**：所有 Phase 门禁绿 · 关联 BLOCKING DR 已闭环 · 交接单已落盘 · `spec-shared-contracts.md` 已登记（若动过共享面）。
 
 > 岗位细则真相源：`aimatrix-intake/SKILL.md`（+ `references/dispatch.md` · `references/reporting.md`）——本文件不复述。
 
@@ -242,7 +242,7 @@ ai-matrix-team/
 |---|---|
 | `aimatrix-product-designer` | `docs/brd-standard.md`（BRD 阶段）、`docs/architecture.md` §2 能力清单、`docs/app-onboarding.md`（PRD 阶段）、自持 `references/design-system.md` + `examples/` 六场景样例——改任一处都要同步 |
 | `aimatrix-architect` | `docs/architecture.md`、`docs/cloudbase-integration.md`、`docs/llm-service.md` |
-| `aimatrix-guardian` | `docs/shared-contracts.md`、`matrix.config.schema.json` |
+| `aimatrix-guardian` | `docs/spec-shared-contracts.md`、`matrix.config.schema.json` |
 | `aimatrix-developer` | `docs/app-onboarding.md` §〇点二（统一栈）、`tsconfig.base.json` |
 | `aimatrix-qa` | `.github/workflows/ci.yml`、`docs/vite-react-template-checklist.md` |
 | `aimatrix-devops` | `docs/deploy.md`、`docs/deploy-toolchain.md`、`docs/manual-configs.md`、`docs/migration/` |

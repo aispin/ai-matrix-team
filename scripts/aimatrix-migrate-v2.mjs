@@ -62,7 +62,7 @@ if (fs.existsSync(LEGACY)) {
     log('✎ 目录已改名：.ai-matrix-team → .aimt');
   }
 }
-if (!fs.existsSync(M)) die(`${M} 不存在——不是 ai-matrix 项目，拒绝迁移`);
+if (!fs.existsSync(M) && !(DRY && fs.existsSync(LEGACY))) die(`${M} 不存在——不是 ai-matrix 项目，拒绝迁移`);
 
 // ---------- 0. surfaces.json 漂移自愈（幂等，AUTO/marker 前置执行）：补齐默认 wo 块 + 旧措辞归一 ----------
 // 存量项目副本落后于 surfaces-default.json（如 statusesActive 缺 TODO/EXECUTING）时，EXECUTING 单 check 恒失败。
@@ -90,6 +90,38 @@ if (fs.existsSync(surfFile) && fs.existsSync(defSurf)) {
     if (changed && !DRY) fs.writeFileSync(surfFile, out);
     if (changed) log(`✎ surfaces.json 漂移自愈（wo 块补齐/措辞归一）${DRY ? '（dry-run 未写盘）' : ''}`);
   } catch (e) { log(`⚠ surfaces.json 自愈失败：${e.message}`); }
+}
+
+// ---------- 0.5 消费端旧引用扫描/改写（githooks + CI workflows + project.json）----------
+// 改名 .aimt 后消费端 .githooks/pre-commit 与 CI 可能仍读旧路径 → 门禁静默失效（比报错更危险），在此一并改写；
+// 旧脚本名与旧台账布局无法安全自动改写，只告警指路。
+const consumerFiles = () => {
+  const found = [];
+  for (const dir of ['.githooks', '.github/workflows']) {
+    const d = path.join(ROOT, dir);
+    if (!fs.existsSync(d)) continue;
+    const walk = (p) => fs.readdirSync(p, { withFileTypes: true }).forEach((e) => {
+      const fp = path.join(p, e.name);
+      if (e.isDirectory()) walk(fp);
+      else if (/\.(sh|yml|yaml|json|md|txt)$|pre-commit|pre-push/.test(e.name)) found.push(fp);
+    });
+    walk(d);
+  }
+  const pj = path.join(fs.existsSync(M) ? M : LEGACY, 'project.json');
+  if (fs.existsSync(pj)) found.push(pj);
+  return found;
+};
+{
+  let hits = 0; const warns = [];
+  for (const f of consumerFiles()) {
+    let txt; try { txt = fs.readFileSync(f, 'utf8'); } catch { continue; }
+    const out2 = txt.replace(/\.ai-matrix-team/g, '.aimt');
+    if (/install-to-workbuddy\.mjs/.test(txt)) warns.push(`${path.relative(ROOT, f)}: 引用已弃用脚本 install-to-workbuddy.mjs（早已改名 aimatrix-install.mjs），请改调用行`);
+    if (/runtime\/(workorders\/WO-|decisions\/open\/DR-)/.test(txt)) warns.push(`${path.relative(ROOT, f)}: 引用旧台账布局 runtime/workorders|decisions/open（v2 起为 runtime/wo-details/ 与 decisions.md 条目块），lint 可能空转`);
+    if (out2 !== txt) { hits++; if (!DRY) fs.writeFileSync(f, out2); }
+  }
+  if (hits) log(`✎ 消费端旧目录引用 .ai-matrix-team → .aimt：${hits} 个文件${DRY ? '（dry-run 未写盘）' : '（已改写）'}`);
+  for (const w of warns) log(`⚠ ${w}`);
 }
 
 // 自动模式：marker 已在且旧布局详情单已清空 → 静默跳过（否则补跑第 4 步的搬迁/规范化）

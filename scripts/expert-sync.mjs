@@ -470,6 +470,10 @@ const desired = desiredFiles();
 writeFileSafe;
 for (const [p, content] of desired) {
   const cur = fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : undefined;
+  if (cur === undefined && path.basename(p) === 'settings.json') {
+    if (checkOnly) console.log('  ℹ 源包 settings.json 被 watcher 清理（运行时以 cache 为准，不计漂移）');
+    continue;
+  }
   if (cur !== content) {
     drift++;
     if (checkOnly) console.log(`  ✗ 漂移 ${path.relative(PLUGINS, p)}`);

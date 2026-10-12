@@ -41,7 +41,7 @@
 | 项目面域/台账/项目档案 | 项目仓 `.aimt/` | 项目仓 commit；surfaces.json 与 docs/03 §1 表格同源自检 |
 | 成员定义 | 团队仓 `members/` | 跑 `expert-sync.mjs` → validate/register/package + cache 落位 → `guard agents` 体检 |
 
-**hooks 化**：项目侧不 import 团队仓代码，只通过 CLI 边界调用——`package.json` scripts、`.githooks/pre-commit`、CI governance job 全部以 `node <team-repo>/scripts/aimatrix-guard.mjs --project . …` 形式引用；团队仓路径记录在 `<project>/.aimt/project.json` 的 `teamRepo` 字段（唯一耦合点）。
+**hooks 化**：项目侧不 import 团队仓代码，只通过 CLI 边界调用——`package.json` scripts、`.githooks/pre-commit`、CI governance job 全部以 `node <team-repo>/scripts/aimatrix-guard.mjs --project . …` 形式引用。**真实耦合点有二**：① 各调用行里的 `<team-repo>` 路径（团队仓移动/改名时须同步改写）；② guard 对项目薄层**硬编码直读 `.aimt/`**——`project.json` 的 `team.repo` 字段仅供工具参考，guard 不读它，改 `.aimt` 目录名须连引擎一起改。
 
 ## 4. 接入新项目的 Checklist
 

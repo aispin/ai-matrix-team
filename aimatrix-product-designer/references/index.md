@@ -6,4 +6,4 @@
 
 ## 多变体 App 顶层 app_id 口径
 - 顶层 `app_id` = **App 品牌标识**（与目录名一致，如 `lucia`）；运行时 AppId 在 `matrix.config.json` 的 `variants[].app_id`（如 `daily_english` / `daily_chinese`）——见 architecture.md §1.2 多变体范式注、app-onboarding.md Step 1 多变体分支
-- 产品立项（BRD/PRD）时：多变体 App 按**变体**各占王国名册位，AppId 登记=登记制（shared-contracts.md §3）
+- 产品立项（BRD/PRD）时：多变体 App 按**变体**各占王国名册位，AppId 登记=登记制（spec-shared-contracts.md §3）

@@ -184,6 +184,19 @@ if (CHECK) {
     console.error('⚠️ project.json 与项目现状漂移（workspace/docs/CI 变化）—— 重跑 init 刷新');
     process.exit(1);
   }
+  // 路径口径比对：team.* 不得指旧目录名；home/runtimeDir 目标必须真实存在（gateRules 的 surfaces.json
+  // 由档案 surfaces 段延后生成，新项目缺省属正常，只查旧名）
+  const t = cur.team || {};
+  const stalePaths = [];
+  for (const k of ['home', 'gateRules', 'runtimeDir']) {
+    const v = t[k] ? String(t[k]) : '';
+    if (!v) continue;
+    if (v.includes('.ai-matrix-team') || (k !== 'gateRules' && !fs.existsSync(path.join(ROOT, v)))) stalePaths.push(k);
+  }
+  if (stalePaths.length) {
+    console.error(`⚠️ project.json team.${stalePaths.join('/team.')} 路径口径漂移（指旧目录或目标不存在）—— 重跑 init --force 刷新`);
+    process.exit(1);
+  }
   // 版本闭环：档案由哪个引擎版本生成。不一致（含旧档案缺字段）= 需对齐一次。
   // 对齐方式二选一：preflight --fix 仅补记版本字段（不重扫）；或重跑 init --force 全量刷新。
   if ((cur.engineVersion || '') !== ENGINE_VERSION) {
@@ -211,6 +224,7 @@ if (fs.existsSync(CONFIG) && !FORCE) {
 
 fs.mkdirSync(path.dirname(CONFIG), { recursive: true });
 fs.writeFileSync(CONFIG, serialized);
+fs.mkdirSync(path.join(ROOT, profile.team.runtimeDir), { recursive: true }); // runtime 目录随建档落地，保证 --check 存在性判定自洽
 ensureGitignore();
 // guide.md（原 AIM-T-Guide.md）受管范本随接入自动携带（项目副本由 AIM-T 维护，升级时覆盖；项目补充写在项目侧流程文档）
 const guideTpl = path.join(TEAM_ROOT, 'templates', 'guide.md');

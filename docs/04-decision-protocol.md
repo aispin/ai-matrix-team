@@ -73,7 +73,7 @@ stateDiagram-v2
 1. **BLOCKING DR 不闭环，相关 WO 不得进入下一阶段**（章程 T2）——门禁：`node <team-repo>/scripts/aimatrix-guard.mjs dr scan --blocking --wo <id>`，退出码 4 即停。
 2. **Type 1 不许沉默通过**（沿用 `brd-standard.md` C4）：BLOCKING 项**不会**因为超时自动按默认执行，必须显式答复。
 3. **NON-BLOCKING 可超时按默认推进**，但必须在条目「回填」行标注「按默认执行 + 日期」，且结论可被推翻（推翻代价写进 DR）。
-4. **谁提出谁回填**：答复后由提出者把结论写回 BRD/PRD/TDD/代码注释/`shared-contracts.md`，再关闭 DR。**不许「答复了但没落地」**。
+4. **谁提出谁回填**：答复后由提出者把结论写回 BRD/PRD/TDD/代码注释/`spec-shared-contracts.md`，再关闭 DR。**不许「答复了但没落地」**。
 5. **当轮通报**：主理人不得攒 DR，BLOCKING 项在产生的那一轮就告知创始人。
 
 ---

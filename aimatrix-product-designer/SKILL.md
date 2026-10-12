@@ -6,7 +6,7 @@ version: 2.2.0
 
 # aimatrix-product-designer · 产品设计一条链（BRD → PRD → 可交互视觉稿）
 
-**使命**：三问连答——「**为什么值得做**」（BRD）→「**做什么 / 验收是什么**」（PRD）→「**长什么样 / 状态怎么兜底**」（可交互视觉稿）。顺序不可跳：BRD 未过准出清单不许开 PRD，PRD 未过闸不许动稿。
+**使命**：三问连答——「**为什么值得做**」（BRD）→「**做什么 / 验收是什么**」（PRD）→「**长什么样 / 状态怎么兜底**」（可交互视觉稿）。顺序不可跳（闸门见 §4）。
 
 ## 1. 负责 / 绝不负责
 
@@ -15,20 +15,20 @@ version: 2.2.0
 
 ## 2. 触发与输入
 
-**触发**：W1 立项 P3（BRD+PRD）与 P3.5（视觉稿，与开发 TDD 并行）· 变体定位（W2）· W4 ②.5（新界面/改版）· PRD 重大修订 · 创始人直接说「出设计稿」「画原型」「补状态页」。
-**输入**：创始人意图原文 + WO + 既有 `apps/<app>/docs/` 现状。缺创始人对「目标用户/付费意愿」的输入 → 落 DR（D5）。设计阶段输入 = 自产 PRD + 品牌/主题约束（缺则用 `references/design-system.md` §2 默认值并标注假设）+ 目标平台（不明确默认 Web 桌面端）。
+**触发**：W1 立项 P3（BRD+PRD）与 P3.5（视觉稿，与开发 TDD 并行）· 变体定位（W2）· W4 ②.5（新界面/改版）· PRD 重大修订 · 创始人直接说「出设计稿」「画原型」等。
+**输入**：创始人意图原文 + WO + 既有 `apps/<app>/docs/` 现状。缺创始人对「目标用户/付费意愿」的输入 → 落 DR（D5）。设计阶段输入 = 自产 PRD + 品牌/主题约束（缺则用 `design-system.md` §2 默认值并标注假设）+ 目标平台（不明确默认 Web 桌面端）。
 
 ## 3. 硬步骤（细则见 §8 参考表）
 
 1. **BRD** → `apps/<app>/docs/<App>_BRD_CN.md`，14 节 + §8 准出清单。
 2. **PRD** → `<App>_PRD_CN.md` + 验收清单；从 BRD 引用不要复制；AC 必须可观测。
-   **文档写作铁律**：文件名与标题**不带版本号**；正文**不写**「变更记录 / 修订记录」章节与修订注释（「vX.Y 新增」「已更正为」「原口径」等一律禁止）；文档永远只保留**最新真相**，历史去 git 找。口径实现处：产品仓 `docs/README.md` §6。
-3. **可交互视觉稿** → 四阶段两闸门（需求摘要 → 状态矩阵 → 出稿 → 比样自检）。**默认出稿路径 = 草稿 JSON + 渲染**：`node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --out <page.html>`——HTML/CSS/SVG/八态样板由脚本生成，模型侧输出约省 8 倍；**3D 与强定制插画**照 [`examples/`](examples/) 手写；未知组件会报错不产出（处置见参考表）。
+   **文档写作铁律**：文件名与标题**不带版本号**；正文**不写**「变更记录 / 修订记录」章节与修订注释（「vX.Y 新增」「原口径」等一律禁止）；文档永远只保留**最新真相**，历史去 git 找。口径实现处：产品仓 `docs/README.md` §6。
+3. **可交互视觉稿** → 四阶段两闸门（需求摘要 → 状态矩阵 → 出稿 → 比样自检）。**默认出稿路径 = 草稿 JSON + 渲染**：`node <team-repo>/scripts/aimatrix-render.mjs --in <draft.json> --out <page.html>`——样板由脚本生成，模型侧输出约省 8 倍；**3D 与强定制插画**照 [`examples/`](examples/) 手写；未知组件会报错不产出（处置见参考表）。
 4. **产出落盘**：`apps/<app>/docs/design/<场景>-design.html`（**一份**；C3 面；团队自身页面按 WO 指定路径走 C2）。单文件零依赖、双击即开、375px 无横向滚动。
 
 ## 4. 门禁与准出
 
-BRD 未过准出清单 → 不得开 PRD · PRD 有 AC 缺失 → 质检可打回 · Type 1 未签字 → W1 停在 P2.5 · 状态矩阵不全 → 不动稿 · 无深色主题 → 不交付 · SVG 内硬编码颜色 → 不交付（必须走 CSS 变量/currentColor）· emoji 当图标 → 出现即重做 · 空态无行动出口 → 不交付 · 自检清单（`design-system.md` §8）逐条打勾。
+BRD 未过准出清单 → 不得开 PRD · PRD 有 AC 缺失 → 质检可打回 · Type 1 未签字 → W1 停在 P2.5 · 状态矩阵不全 → 不动稿 · 无深色主题 → 不交付 · SVG 内硬编码颜色 → 不交付（必须走 CSS 变量）· emoji 当图标 → 出现即重做 · 空态无行动出口 → 不交付 · 自检清单（`design-system.md` §8）逐条打勾。
 
 ## 5. 必提 DR 与制约
 
@@ -49,6 +49,6 @@ BRD 未过准出清单 → 不得开 PRD · PRD 有 AC 缺失 → 质检可打�
 | 出视觉稿（默认路径与组件词汇） | [`references/design-draft-spec.md`](references/design-draft-spec.md) + [`drafts/02-dashboard.draft.json`](drafts/02-dashboard.draft.json) |
 | 设计实操四阶段两闸门 | [`references/design-draft.md`](references/design-draft.md) |
 | 设计系统 / 图标 / 自检清单 | [`references/design-system.md`](references/design-system.md) |
-| 画图（选型与风格：两轴定位 / 单一真相源管线 / 闭环流程 / 何时改用对照表） | [`references/diagrams.md`](references/diagrams.md) |
+| 画图（选型 / 单一真相源管线 / 闭环 / 对照表） | [`references/diagrams.md`](references/diagrams.md) |
 | 场景风格基准 | [`examples/`](examples/)（只读对应场景那一份） |
 | 流程调度位置 | `docs/05-workflows.md` W1 P3/P3.5、W4 ②.5 |

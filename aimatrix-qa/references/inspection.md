@@ -14,7 +14,7 @@
 
 L2 起逐条核对：
 
-1. 变更是否触及 `docs/shared-contracts.md` 登记契约的消费方；
+1. 变更是否触及 `docs/spec-shared-contracts.md` 登记契约的消费方；
 2. 是否有未登记的调用方（grep 前后对照）；
 3. 回滚方案是否可执行。
 

@@ -76,7 +76,7 @@ flowchart TD
 | ① 开 WO | PC | 填齐影响面 / 验证方式 / 回滚方案（三缺一 → 守卫退回） |
 | ② 设计 | Bruce | 兼容性判定（additive / 破坏性）+ 兼容证明（既有消费方行为不变） |
 | ③ 核准 | PC（风控例外裁定）| 判级、写路径白名单、`lock acquire` |
-| ④ INTENT | PC（风控例外裁定）| 破坏性 → 动手**前**在 `shared-contracts.md` §3 追加 INTENT 条目 |
+| ④ INTENT | PC（风控例外裁定）| 破坏性 → 动手**前**在 `spec-shared-contracts.md` §3 追加 INTENT 条目 |
 | ⑤ 实施 | Bruce | 只碰白名单路径；commit 带 WO 号 |
 | ⑥ 门禁 | 石头 | 全矩阵 `pnpm -r typecheck` → `test` → `build`；范围由守卫裁定 |
 | ⑦ 登记 | PC（风控例外裁定）| **当日**追加 §3 日志（含 WO 号列） |
@@ -129,7 +129,7 @@ flowchart TD
 1. 跑 `node <team-repo>/scripts/aimatrix-guard.mjs dr scan` → 列出 OPEN 项。
 2. 主理人按「阻塞 > Type 1 > 等待时长」排序，输出**一页决策清单**（每项：一句话问题 + 建议默认 + 不做的后果）。
 3. 创始人逐条答复（「按默认」即可）。
-4. 主理人**回填**：结论写回 BRD/PRD/TDD/ADR/`shared-contracts.md` → `guard archive move --kind dr --id <DR-id>` 收口 → `<team-repo>/scripts/render-open-items.mjs` 同步 OPEN-ITEMS。
+4. 主理人**回填**：结论写回 BRD/PRD/TDD/ADR/`spec-shared-contracts.md` → `guard archive move --kind dr --id <DR-id>` 收口 → `<team-repo>/scripts/render-open-items.mjs` 同步 OPEN-ITEMS。
 5. 输出「本轮闭环 N 项，遗留 M 项，其中 BLOCKING K 项」。
 
 ---

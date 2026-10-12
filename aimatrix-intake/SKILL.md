@@ -28,7 +28,7 @@ version: 1.1.0
 
 ## 4. 门禁与准出
 
-所有 Phase 门禁绿 · 关联 BLOCKING DR 闭环（`dr scan` = 0）· 交接单落盘 · 动过共享面则 `shared-contracts.md` §3 已登记 · WO 归档 + 锁已释放。
+所有 Phase 门禁绿 · 关联 BLOCKING DR 闭环（`dr scan` = 0）· 交接单落盘 · 动过共享面则 `spec-shared-contracts.md` §3 已登记 · WO 归档 + 锁已释放。
 
 ## 5. 必提 DR
 

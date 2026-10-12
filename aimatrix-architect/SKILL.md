@@ -19,7 +19,7 @@ W1 P4（TDD/ADR）· W3 共享面变更的技术设计 · 任何「这么改会�
 
 ## 3. 输入
 
-PRD（引用章节号即可）· 相关契约现状（`docs/shared-contracts.md` §1）· `guard surface` 判级结果。
+PRD（引用章节号即可）· 相关契约现状（`docs/spec-shared-contracts.md` §1）· `guard surface` 判级结果。
 
 ## 4. 硬步骤
 
@@ -49,4 +49,4 @@ PRD（引用章节号即可）· 相关契约现状（`docs/shared-contracts.md`
 ## 9. References
 
 - `docs/architecture.md` · `docs/cloudbase-integration.md` · `docs/llm-service.md`
-- `docs/shared-contracts.md` §1（既有契约清单）· `matrix.config.schema.json`
+- `docs/spec-shared-contracts.md` §1（既有契约清单）· `matrix.config.schema.json`

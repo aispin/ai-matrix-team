@@ -34,7 +34,7 @@ healthcheck.mjs    → 全绿
 
 ## 4. 契约登记
 
-- [ ] 已追加 `shared-contracts.md` §3（含 WO 号）／ 不涉及共享面
+- [ ] 已追加 `spec-shared-contracts.md` §3（含 WO 号）／ 不涉及共享面
 - [ ] 破坏性 → 事前 INTENT 已登记
 
 ## 5. 回滚方式

@@ -14,7 +14,7 @@
 - **对内**：把「多个 AI Agent 各干各的」变成「一条有门禁的交付流水线」。
 - **对外**：保证每款 App（moozi / cruru / lucia / boduo / …）在**共享资产不被污染**的前提下快速上线。
 - **不做什么**：
-  - ❌ 不替代既有工程文档（`architecture.md` / `shared-contracts.md` / `brd-standard.md` 仍是各自领域的唯一真相源，本团队只做**执行与守门**）。
+  - ❌ 不替代既有工程文档（`architecture.md` / `spec-shared-contracts.md` / `brd-standard.md` 仍是各自领域的唯一真相源，本团队只做**执行与守门**）。
   - ❌ 不引入 PR 审批流——一人公司 + Agent，流程要轻；靠**机器门禁**而不是人工签字。
   - ❌ 不为对齐而重写存量文档（既有约定）。
 
@@ -108,7 +108,7 @@
 | 既有文档 | 它管什么 | 本团队怎么用 |
 |---|---|---|
 | `docs/architecture.md` | 架构与数据模型 | Bruce的输入与约束；改动需 ADR |
-| `docs/shared-contracts.md` | **共享面清单 + 变更日志（事实登记表）** | 团长（守门人）的登记落点；本团队提供「登记前的闸门」 |
+| `docs/spec-shared-contracts.md` | **共享面清单 + 变更日志（事实登记表）** | 团长（守门人）的登记落点；本团队提供「登记前的闸门」 |
 | `docs/brd-standard.md` | BRD 写作规范 | 毛毛的执行标准 |
 | `docs/app-onboarding.md` | 接入部署 SOP | 波波的执行标准 |
 | `docs/decisions/ADR-*` | **已决策**记录 | DR 答复后的归档去向之一 |
