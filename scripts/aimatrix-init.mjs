@@ -212,12 +212,14 @@ if (fs.existsSync(CONFIG) && !FORCE) {
 fs.mkdirSync(path.dirname(CONFIG), { recursive: true });
 fs.writeFileSync(CONFIG, serialized);
 ensureGitignore();
-// AIM-T-Guide 受管范本随接入自动携带（项目副本由 AIM-T 维护，升级时覆盖；项目补充写在项目侧流程文档）
-const guideTpl = path.join(TEAM_ROOT, 'templates', 'AIM-T-Guide.md');
+// guide.md（原 AIM-T-Guide.md）受管范本随接入自动携带（项目副本由 AIM-T 维护，升级时覆盖；项目补充写在项目侧流程文档）
+const guideTpl = path.join(TEAM_ROOT, 'templates', 'guide.md');
 if (fs.existsSync(guideTpl)) {
-  const guideDst = path.join(path.dirname(CONFIG), 'AIM-T-Guide.md');
+  const guideDst = path.join(path.dirname(CONFIG), 'guide.md');
   fs.copyFileSync(guideTpl, guideDst);
-  console.log(`✅ AIM-T-Guide 已携带：${path.relative(ROOT, guideDst)}（受管文件，随升级刷新）`);
+  const guideLegacy = path.join(path.dirname(CONFIG), 'AIM-T-Guide.md');
+  if (fs.existsSync(guideLegacy)) fs.rmSync(guideLegacy);
+  console.log(`✅ guide.md 已携带：${path.relative(ROOT, guideDst)}（受管文件，随升级刷新）`);
 }
 console.log(`✅ 项目档案已落盘：${path.relative(ROOT, CONFIG)}`);
 console.log(`   项目：${profile.project.name}（apps: ${profile.workspace.apps.length} · packages: ${profile.workspace.packages.length} · services: ${profile.workspace.services.length}）`);

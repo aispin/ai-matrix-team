@@ -1804,17 +1804,22 @@ try {
       if (r.status === 0 && /➜|✎/.test(r.stdout || '')) console.error((r.stdout || '').trim());
       else if (r.status !== 0) console.error(`⚠ v2 自动迁移失败（不影响本命令）：${((r.stderr || r.stdout || '').trim().split('\n').pop() || '').slice(0, 200)}——可显式运行 aimatrix-migrate-v2.mjs 重试`);
     }
-    // AIM-T-Guide 保鲜：受管范本，项目副本缺失/落后团队仓 templates/ 即覆盖
+    // guide.md（原 AIM-T-Guide.md）保鲜：受管范本，项目副本缺失/落后/仍用旧名即覆盖
     try {
-      const guideTpl = path.join(TEAM_ROOT, 'templates', 'AIM-T-Guide.md');
-      const guideDst = path.join(projMatrix, 'AIM-T-Guide.md');
+      const guideTpl = path.join(TEAM_ROOT, 'templates', 'guide.md');
+      const guideDst = path.join(projMatrix, 'guide.md');
+      const guideLegacy = path.join(projMatrix, 'AIM-T-Guide.md');
       if (fs.existsSync(guideTpl)) {
         const t = fs.readFileSync(guideTpl, 'utf8');
         let p = '';
         try { p = fs.readFileSync(guideDst, 'utf8'); } catch { /* 缺失即携带 */ }
-        if (p !== t) {
+        if (fs.existsSync(guideLegacy)) {
+          try { const lp = fs.readFileSync(guideLegacy, 'utf8'); if (lp !== t) p = lp; } catch { /* 读不了当缺失 */ }
+        }
+        if (p !== t || fs.existsSync(guideLegacy)) {
           fs.writeFileSync(guideDst, t);
-          if (p) console.error('✎ AIM-T-Guide.md 已随 AIM-T 更新（受管文件，项目补充写在项目侧流程文档）');
+          if (fs.existsSync(guideLegacy)) fs.rmSync(guideLegacy);
+          console.error('✎ guide.md 已随 AIM-T 更新（受管文件，项目补充写在项目侧流程文档）');
         }
       }
     } catch { /* 保鲜钩子绝不阻断主流程 */ }
