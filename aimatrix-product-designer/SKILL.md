@@ -48,5 +48,6 @@ BRD 未过准出清单 → 不得开 PRD · PRD 有 AC 缺失 → 质检可打�
 | 出视觉稿（默认路径与组件词汇） | [`references/design-draft-spec.md`](references/design-draft-spec.md) + [`drafts/02-dashboard.draft.json`](drafts/02-dashboard.draft.json) |
 | 设计实操四阶段两闸门 | [`references/design-draft.md`](references/design-draft.md) |
 | 设计系统 / 图标 / 自检清单 | [`references/design-system.md`](references/design-system.md) |
+| 画图（选型与风格：两轴定位 / 单一真相源管线 / 闭环流程 / 何时改用对照表） | [`references/diagrams.md`](references/diagrams.md) |
 | 场景风格基准 | [`examples/`](examples/)（只读对应场景那一份） |
 | 流程调度位置 | `docs/05-workflows.md` W1 P3/P3.5、W4 ②.5 |
