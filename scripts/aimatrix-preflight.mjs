@@ -195,6 +195,19 @@ add('⑥ 工单 / 决策单',
       : '无在途工单、无未闭环决策单',
   openBlocking.length ? '先请创始人答复决策单，闭环后再升级' : inFlight.length ? '建议先收口在途工单再升级（升级会改治理脚本，混跑易出幺蛾子）' : null);
 
+/* ⑦ AIM-T-Guide 保鲜（受管范本：项目副本应与团队仓 templates/ 一致） */
+const guideTpl = readText(path.join(TEAM_ROOT, 'templates', 'AIM-T-Guide.md'));
+const guideProj = readText(path.join(HOME, 'AIM-T-Guide.md'));
+if (guideTpl === null) {
+  add('⑦ AIM-T-Guide', 'pass', '团队仓无范本（旧版引擎），跳过');
+} else if (guideProj === null) {
+  add('⑦ AIM-T-Guide', 'warn', '项目缺受管指南副本', '重跑 init 或任一 guard 命令（启动钩子会自动携带）');
+} else if (guideProj !== guideTpl) {
+  add('⑦ AIM-T-Guide', 'warn', '项目副本落后团队仓范本', '任一 guard 命令会自动覆盖保鲜；或重跑 init');
+} else {
+  add('⑦ AIM-T-Guide', 'pass', '与范本一致 ✓');
+}
+
 /* ---------- 汇报 ---------- */
 const icon = { pass: '✅', warn: '⚠️ ', fail: '❌' };
 console.log('== 升级预检 ==');

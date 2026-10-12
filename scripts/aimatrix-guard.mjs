@@ -231,8 +231,8 @@ function parseWo(id) {
     if (!line.includes('|')) continue;
     for (const c of cells(line)) {
       const cleaned = c.replace(/`/g, '');
-      // 像 glob 的 token：含 / 或 *，且不含空格与中文
-      if ((cleaned.includes('/') || cleaned.includes('*')) && !/\s/.test(cleaned) && !/[\u4e00-\u9fff]/.test(cleaned)) {
+      // 像 glob/路径的 token：含 / 或 *，或根级文件（含 . 扩展名形态）；不含空格与中文
+      if ((cleaned.includes('/') || cleaned.includes('*') || cleaned.includes('.')) && !/\s/.test(cleaned) && !/[\u4e00-\u9fff]/.test(cleaned)) {
         globs.add(cleaned);
       }
     }
@@ -1800,6 +1800,20 @@ try {
       if (r.status === 0 && /➜|✎/.test(r.stdout || '')) console.error((r.stdout || '').trim());
       else if (r.status !== 0) console.error(`⚠ v2 自动迁移失败（不影响本命令）：${((r.stderr || r.stdout || '').trim().split('\n').pop() || '').slice(0, 200)}——可显式运行 aimatrix-migrate-v2.mjs 重试`);
     }
+    // AIM-T-Guide 保鲜：受管范本，项目副本缺失/落后团队仓 templates/ 即覆盖
+    try {
+      const guideTpl = path.join(TEAM_ROOT, 'templates', 'AIM-T-Guide.md');
+      const guideDst = path.join(projMatrix, 'AIM-T-Guide.md');
+      if (fs.existsSync(guideTpl)) {
+        const t = fs.readFileSync(guideTpl, 'utf8');
+        let p = '';
+        try { p = fs.readFileSync(guideDst, 'utf8'); } catch { /* 缺失即携带 */ }
+        if (p !== t) {
+          fs.writeFileSync(guideDst, t);
+          if (p) console.error('✎ AIM-T-Guide.md 已随 AIM-T 更新（受管文件，项目补充写在项目侧流程文档）');
+        }
+      }
+    } catch { /* 保鲜钩子绝不阻断主流程 */ }
   }
 } catch { /* 迁移钩子绝不阻断主流程 */ }
 

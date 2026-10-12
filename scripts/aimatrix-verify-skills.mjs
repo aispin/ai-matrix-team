@@ -8,6 +8,9 @@
  *   每处校验 ai-matrix-team/SKILL.md：
  *     存在 → 是软链 → 解析目标具备真源特征
  *     （frontmatter 含 `name: ai-matrix-team` 且其所在仓根有 members/ 目录）。
+ *   Codex 入口（存在才查）：项目根 AGENTS.md——含 `managed-by: ai-matrix-team`
+ *     标记才视为 AIM-T 管辖，校验其中的 SKILL.md 指针可达真源；无标记视为项目
+ *     自有文件，不代管、不判失败。
  *   布局约定：真目录 + 链单个 SKILL.md 文件——平台递归扫描技能目录时，
  *   链仓根会把岗位技能（aimatrix-<role>）再次暴露出来；文件级链接在
  *   递归 / 非递归两种行为下都只暴露这一个入口。岗位技能不进任何技能列表，
@@ -97,6 +100,20 @@ function inspectSkillsDir(root, base) {
   return { base, state, detail, legacy };
 }
 
+/** 校验 Codex 入口 AGENTS.md 壳；返回 { state, detail }（无标记 = n/a，不代管项目自有文件） */
+function inspectAgentsShell(root) {
+  const file = path.join(root, 'AGENTS.md');
+  let text = '';
+  try { text = fs.readFileSync(file, 'utf8'); } catch { return { state: 'n/a', detail: '' }; }
+  if (!text.includes('managed-by: ai-matrix-team')) return { state: 'n/a', detail: '（存在但非 AIM-T 管辖）' };
+  // 指针提取：markdown 链接 / 反引号 / 以 / . / $ 开头的路径 token（防止把中文前缀等非路径文本吃进路径）
+  const m = text.match(/\(([^()\s]*SKILL\.md)\)/) || text.match(/`([^`\s]*SKILL\.md)`/) || text.match(/((?:\/|\.\/|\$[\w-]+\/)[^\s`()]*SKILL\.md)/);
+  if (!m) return { state: 'drift', detail: '有 managed 标记但缺 SKILL.md 指针' };
+  const resolved = path.resolve(root, m[1]);
+  if (!insideTeamRepo(resolved)) return { state: 'drift', detail: `指针不可达真源：${m[1]}` };
+  return { state: 'ok', detail: `→ ${m[1]}` };
+}
+
 function main() {
   let args;
   try { args = parseArgs(process.argv.slice(2)); }
@@ -108,19 +125,20 @@ function main() {
 
   const root = path.resolve(args.project);
   const results = SKILL_DIRS.map((b) => inspectSkillsDir(root, b));
+  results.push({ base: 'AGENTS.md', ...inspectAgentsShell(root) });
   const lines = [];
 
   for (const r of results) {
-    if (r.state === 'n/a') continue; // 平台未使用，静默
+    if (r.state === 'n/a') continue; // 平台未使用 / 非 AIM-T 管辖，静默
     const mark = { ok: '=', missing: '!', drift: '!' }[r.state];
-    lines.push(`${mark} ${r.base}/${ENTRY}/SKILL.md：${r.state}${r.detail ? ' — ' + r.detail : ''}`);
-    for (const p of r.legacy) lines.push(`  ! 残留岗位技能链 ${path.relative(root, p)}（应删除：岗位技能按团队仓路径直读，不进技能列表）`);
+    lines.push(`${mark} ${r.base}${r.base === 'AGENTS.md' ? '' : '/' + ENTRY + '/SKILL.md'}：${r.state}${r.detail ? ' — ' + r.detail : ''}`);
+    for (const p of r.legacy || []) lines.push(`  ! 残留岗位技能链 ${path.relative(root, p)}（应删除：岗位技能按团队仓路径直读，不进技能列表）`);
   }
 
   const problems = results.filter((r) => r.state === 'missing' || r.state === 'drift');
   // 任一平台「目录存在但入口缺失/漂移」即失败；legacy 残留不判失败但计入输出
   if (!args.json) {
-    if (!lines.length) console.log(`${root}：未发现已接入的技能目录（三个平台均未接入）`);
+    if (!lines.length) console.log(`${root}：未发现已接入的激活入口（各平台均未接入）`);
     else console.log(lines.join('\n'));
   }
 
@@ -128,7 +146,7 @@ function main() {
   if (args.json) {
     process.stdout.write(JSON.stringify({
       project: root,
-      entries: results.map(({ base, state, detail, legacy }) => ({ base, state, detail, legacy: legacy.length })),
+      entries: results.map(({ base, state, detail, legacy }) => ({ base, state, detail, legacy: (legacy || []).length })),
       exit,
     }, null, 2) + '\n');
   }
