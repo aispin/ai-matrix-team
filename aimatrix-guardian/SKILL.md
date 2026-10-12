@@ -27,7 +27,7 @@ version: 1.1.1
 2. **判级**：C1 需 INTENT（破坏性）· C2 轻单 + 登记。判定与 WO 声明不符 → 打回重判（找开发）。
 3. **抢锁**：`node <team-repo>/scripts/aimatrix-guard.mjs lock acquire --wo <id> --surfaces <...>`；**面域相交**（本单 C1/C2 冲突面与在持单重叠）才被拒 → 返回相交的 WO 与 glob 对，**排队不硬抢**（面域不相交者并行持锁；紧急热修走 W6 例外，24h 内补单）。
 4. **核准路径白名单**：把「本次允许写入的路径清单」写进 WO §2 —— 开发只能改这些；`guard check` 逐路径校验。
-5. **登记**：改完后**当日**追加 `docs/shared-contracts.md` §3 日志（追加式，不改历史，含 WO 号）；破坏性变更须有**事前** INTENT 条目（影响面 + 验证方式）。
+5. **登记**：改完后**当日**追加 `docs/shared-contracts.md` §3 日志（追加式，不改历史，含 WO 号）；破坏性变更须有**事前** INTENT 条目（影响面 + 验证方式）。⚠ **边界**：这条「追加式」只约束**事件台账**；**文档正文**必须只保留最新真相——不写「变更记录 / 修订记录」、不加修订注释、不把版本号写进文件名（历史去 git 找）。
 6. **回归裁定**：`packages/shared-types` / `services/*` → 全矩阵 `pnpm -r typecheck && test && build`；仅 `docs/` → 通常免跑，但 ★ 契约类文档需跑 `guard sync-check`。
 7. **释放锁**：门禁绿 + 登记完成 → `guard lock release --wo <id>` → 通知PC收口。
 
