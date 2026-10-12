@@ -31,6 +31,15 @@ const MARKER = path.join(M, 'runtime', 'state', 'v2-migrated');
 const today = new Date().toISOString().slice(0, 10);
 const read = (p) => (fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '');
 
+const USAGE = [
+  '用法：node aimatrix-migrate-v2.mjs --project <项目根> [--dry | --auto]',
+  '  --dry   显式预演（不写盘）',
+  '  --auto  自动模式（guard/console 启动钩子调用，幂等）',
+  '两者必选其一——不带模式参数一律拒绝执行，防误触真迁移。',
+].join('\n');
+if (argv.includes('--help') || argv.includes('-h')) { console.log(USAGE); process.exit(0); }
+if (!DRY && !AUTO) { console.error('⛔ 缺模式参数（--dry / --auto 必选其一），已拒绝执行、未写盘。\n' + USAGE); process.exit(2); }
+
 const SKELETONS = {
   'issues.md': '# Issues · 未处理事项白板\n\n> 用户随手记：文末追加 `## 标题` + 一句话即可；agent 一律经 `guard issues add|triage|close|normalize` 写入。\n> 状态：OPEN / TRIAGED。闭环整块移入 `runtime/archive/YYYY-MM.md`。\n\n（当前无未处理事项）\n',
   'workorders.md': '# Workorders · 任务表\n\n> agent 经 `guard wo table add|start|verify|done|block` 维护；EXECUTING 即锁定。C1/C2 或 L2 必挂详情单 `runtime/wo-details/<单号>.md`。\n\n| 单号 | 任务名 | 简述 | 关联 | 状态 | 处理者 | 锁定 | 更新 |\n|---|---|---|---|---|---|---|---|\n',

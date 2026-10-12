@@ -251,8 +251,10 @@ function parseWo(id) {
     id,
     file,
     relFile: file ? rel(file) : null,
-    // 归档判定：表行在 = 未归档；旧布局看 closed/；详情单在 wo-details/ 而表里没有行（且表在用）= 已归档
-    closed: row ? false : (file && !inDetails ? file.includes(`${path.sep}closed${path.sep}`) : woTableRows().length > 0),
+    // 归档判定：表行在 = 未归档；旧布局只看 closed/ 目录。详情单无表行 ≠ 已归档（可能是孤儿，check 另行提示认领）
+    closed: row ? false : (file && !inDetails ? file.includes(`${path.sep}closed${path.sep}`) : false),
+    hasRow: !!row,
+    inDetails,
     status: row ? (row.c[4] || null) : (statusM ? statusM[1] : null),
     executor: row ? (row.c[5] && row.c[5] !== '—' ? row.c[5] : null) : (execM ? execM[2].replace(/`/g, '').trim() : null),
     globs: [...globs],
@@ -933,6 +935,10 @@ function cmdCheck(args) {
     console.error(R(`⛔ WO 已归档：${wo.relFile}`));
     process.exit(EXIT.NOLOCK);
   }
+  if (!wo.hasRow && wo.inDetails) {
+    console.error(R(`⛔ WO 详情单无表行（孤儿）——先认领再执行：guard wo table add --title <任务名> --brief <简述> --id ${woId}`));
+    process.exit(EXIT.NOLOCK);
+  }
   const activeStatuses = surfaces().wo.statusesActive;
   if (!wo.status || !activeStatuses.includes(wo.status)) {
     console.error(R(`⛔ WO 状态为 ${wo.status || '未知'}（需为 ${activeStatuses.join('/')} 之一）——未核准/已结束的单不可写入：${wo.relFile}`));
@@ -1521,7 +1527,7 @@ function cmdIssues(sub, args) {
 }
 
 // --- workorders 表 ---
-const WO_TABLE_HEADER = '# Workorders · 任务表\n\n> agent 经 `guard wo table add|start|verify|done|block` 维护；EXECUTING 即锁定。C1/C2 或 L2 必挂详情单 `runtime/wo-details/<单号>.md`。\n\n| 单号 | 任务名 | 简述 | 关联 | 状态 | 处理者 | 锁定 | 更新 |\n|---|---|---|---|---|---|---|---|\n';
+const WO_TABLE_HEADER = '# Workorders · 任务表\n\n> agent 经 `guard wo table add|start|verify|done|block|back` 维护；EXECUTING 即锁定。C1/C2 或 L2 必挂详情单 `runtime/wo-details/<单号>.md`。\n\n| 单号 | 任务名 | 简述 | 关联 | 状态 | 处理者 | 锁定 | 更新 |\n|---|---|---|---|---|---|---|---|\n';
 
 function woRows() {
   const text = readOrCreate(WO_TABLE(), WO_TABLE_HEADER);
@@ -1567,7 +1573,7 @@ function cmdWoTable(sub, args) {
     tidyWoDone();
     process.exit(EXIT.OK);
   }
-  if (sub === 'start' || sub === 'verify' || sub === 'done' || sub === 'block') {
+  if (sub === 'start' || sub === 'verify' || sub === 'done' || sub === 'block' || sub === 'back') {
     const id = args.get('--id');
     requireTableId(id, /^WO-\d{8}-\d{2}$/, 'WO');
     const r = find(id);
@@ -1583,6 +1589,12 @@ function cmdWoTable(sub, args) {
     } else if (sub === 'done') {
       if (!['EXECUTING', 'VERIFYING', 'BLOCKED_DR'].includes(st)) die(EXIT.VIOLATION, `⛔ ${id} 状态 ${st} 不可 done`);
       mutate(r, { 4: 'DONE', 6: '—', 7: todayStr() });
+    } else if (sub === 'back') {
+      // 回退：VERIFYING→EXECUTING / EXECUTING→TODO / BLOCKED_DR→TODO；DONE 是终态（已归档）不可退
+      if (st === 'DONE') die(EXIT.VIOLATION, `⛔ ${id} 已完结归档，不可回退`);
+      if (st === 'VERIFYING') mutate(r, { 4: 'EXECUTING', 7: todayStr() });
+      else if (st === 'EXECUTING' || st === 'BLOCKED_DR') mutate(r, { 4: 'TODO', 5: '—', 6: '—', 7: todayStr() });
+      else die(EXIT.VIOLATION, `⛔ ${id} 状态 ${st} 无需回退`);
     } else {
       const dr = args.get('--dr') || '—';
       if (st === 'DONE') die(EXIT.VIOLATION, `⛔ ${id} 已完成`);
@@ -1596,7 +1608,7 @@ function cmdWoTable(sub, args) {
     tidyWoDone();
     process.exit(EXIT.OK);
   }
-  die(EXIT.USAGE, '用法：wo table add|start|verify|done|block');
+  die(EXIT.USAGE, '用法：wo table add|start|verify|done|block|back');
 }
 
 // --- decisions 条目块 ---
@@ -1619,14 +1631,22 @@ function cmdDrAdd(args) {
   const title = args.get('--title');
   const opts = many(args.get('--opt'));
   if (!title || opts.length < 2) die(EXIT.USAGE, '用法：dr add --title <问题> --opt <方案1> --opt <方案2> [--opt <方案3>] [--recommend <序号>] [--ref <关联>] [--blocking]');
-  const { pre, blocks } = drBlocks();
-  const id = nextDrId(blocks);
   const rec = args.get('--recommend') || '—';
-  const lines = ['方案：', ...opts.map((o, i) => `${i + 1}. ${o}`), `推荐: ${rec} · 关联: ${args.get('--ref') || '—'} · 状态: OPEN · 阻塞: ${args.has('--blocking') ? 'BLOCKING' : 'NON-BLOCKING'} · 更新: ${todayStr()}`, '回填: （待答复，直接改本行）'];
-  blocks.push({ head: `## ${id} ${title}`, lines });
-  writeBlocks(DR_TABLE(), pre, blocks);
-  console.log(G(`✅ 已落 DR ${id}（${args.has('--blocking') ? 'BLOCKING' : 'NON-BLOCKING'}）：${title}`));
-  process.exit(EXIT.OK);
+  const blocking = args.has('--blocking');
+  // 并发防护：写前以盘上最新内容复检（相邻两次 dr add / 多会话同时登记），撞号→重取；基底取最新读，防覆盖丢条目
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { pre, blocks } = drBlocks();
+    const id = nextDrId(blocks);
+    const fresh = drBlocks();
+    if (fresh.blocks.some((b) => b.head.startsWith(`## ${id} `))) continue;
+    const base = fresh.blocks.length > blocks.length ? fresh : { pre, blocks };
+    const lines = ['方案：', ...opts.map((o, i) => `${i + 1}. ${o}`), `推荐: ${rec} · 关联: ${args.get('--ref') || '—'} · 状态: OPEN · 阻塞: ${blocking ? 'BLOCKING' : 'NON-BLOCKING'} · 更新: ${todayStr()}`, '回填: （待答复，直接改本行）'];
+    base.blocks.push({ head: `## ${id} ${title}`, lines });
+    writeBlocks(DR_TABLE(), base.pre, base.blocks);
+    console.log(G(`✅ 已落 DR ${id}（${blocking ? 'BLOCKING' : 'NON-BLOCKING'}）：${title}`));
+    process.exit(EXIT.OK);
+  }
+  die(EXIT.FORMAT, '⛔ 取号冲突：连续 3 次复检撞号——有并发写入，请稍后重试');
 }
 
 // decisions.md 条目块扫描（并回填 decisions table）
@@ -1785,6 +1805,12 @@ try {
 
 try {
   switch (cmd) {
+    case '--version':
+    case '-v': {
+      const vf = path.join(TEAM_ROOT, 'VERSION');
+      console.log(exists(vf) ? read(vf).trim() : 'unknown');
+      process.exit(EXIT.OK);
+    }
     case 'surface': cmdSurface(positional); break;
     case 'check': cmdCheck(args); break;
     case 'lock':
@@ -1810,11 +1836,11 @@ try {
       if (positional[0] === 'lint') { cmdWoLint(positional.slice(1)); break; }
       if (positional[0] === 'journal') { cmdWoJournal(args); break; }
       if (positional[0] === 'table') {
-        if (!positional[1]) die(EXIT.USAGE, '用法：wo table <add|start|verify|done|block>');
+        if (!positional[1]) die(EXIT.USAGE, '用法：wo table <add|start|verify|done|block|back>');
         cmdWoTable(positional[1], args);
         break;
       }
-      die(EXIT.USAGE, '用法：wo new --slug <kebab> | wo lint <files...> | wo journal --wo <id> --who <who> --what <text> | wo table <add|start|verify|done|block>');
+      die(EXIT.USAGE, '用法：wo new --slug <kebab> | wo lint <files...> | wo journal --wo <id> --who <who> --what <text> | wo table <add|start|verify|done|block|back>');
     case 'handoff': cmdHandoffNew(args); break;
     case 'sync-check': cmdSyncCheck(args); break;
     case 'audit': cmdAudit(args); break;
