@@ -13,3 +13,7 @@ dashboard/tsconfig.tsbuildinfo
 .workbuddy/
 .agents/
 .claude/
+
+# AIM-T 台账运行态（机器写，不入库）
+.aimt/runtime/state/
+.ai-matrix-team/runtime/state/
