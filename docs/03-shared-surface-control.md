@@ -148,7 +148,7 @@ stateDiagram-v2
 | **破坏性**（对外签名/语义/删除/重命名） | WO + **`shared-contracts.md` §3 追加 `INTENT` 条目**（影响面 + 验证方式）+ Bruce兼容证明 | 同上，且 INTENT 条目标注已执行与验证结果 |
 | 新增契约（如新公共服务/新包） | WO + ADR | 登记进 §1 共享面清单 |
 
-> **台账 ≠ 文档修订历史**（创始人 2026-10-12 定调）：上表「追加式，不改历史」只约束**事件台账**（`shared-contracts.md` §3 / `issues.md` / `decisions.md` / `workorders.md` / `runtime/archive/` / `*.journal.md`）——它们记「何时 / 因何 / 影响谁」，是审计与溯源凭据（git diff 只有 what，没有 why）。**文档正文**（`docs/**`、`apps/*/docs/**`）相反：只保留最新真相，**禁止**「变更记录 / 修订记录」章节、修订注释与版本号入名；历史一律去 git 找（实现口径见产品仓 `docs/README.md` §6「文档写作总则」）。
+> **台账 ≠ 文档修订历史**：上表「追加式，不改历史」只约束**事件台账**（`shared-contracts.md` §3 / `issues.md` / `decisions.md` / `workorders.md` / `runtime/archive/` / `*.journal.md`）——它们记「何时 / 因何 / 影响谁」，是审计与溯源凭据（git diff 只有 what，没有 why）。**文档正文**（`docs/**`、`apps/*/docs/**`）相反：只保留最新真相，**禁止**「变更记录 / 修订记录」章节、修订注释与版本号入名；历史一律去 git 找（实现口径见产品仓 `docs/README.md` §6「文档写作总则」）。
 
 **登记字段**（沿用既有表头）：日期 · 变更者（WO 号）· 契约 · 类型 · 内容 · 影响面与验证。
 **新增一列**：`WO`（便于从台账反查任务单）。
