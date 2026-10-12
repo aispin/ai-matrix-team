@@ -9,3 +9,6 @@
 
 ## I-018 aimatrix-verify-skills 不校验 Codex 的 AGENTS.md 激活入口
 来源: bobika-dev#1 2026-10-12 建根 AGENTS.md 后跑巡检发现：脚本只扫 .workbuddy/skills、.claude/skills、.agents/skills 三个目录（SKILL_DIRS），而安装器文档把 Codex 的入口定义为项目根 AGENTS.md（壳文件 + managed-by 标记 + 指向团队仓 SKILL.md 的指针）。后果：Codex 入口缺失/漂移不会被巡检发现，退出码仍为 0（'就绪'结论失真）。建议：把 AGENTS.md 纳入校验（存在性 + 标记 + 指针可达） 10-12 · 状态: OPEN · 去向: — · 更新: 2026-10-12
+
+## I-019 接入流程应把 templates/AIM-T-Guide.md 自动带到 <项目>/.ai-matrix-team/ 并随升级刷新
+来源: 创始人 2026-10-12 建议 + bobika-dev#1 实操：AIM-T 侧已新增通用范本 templates/AIM-T-Guide.md（题名与正文统一简称 AIM-T），项目接入时应复制为 <项目>/.ai-matrix-team/AIM-T-Guide.md，并在 aimatrix-init / preflight / 升级流程里检查其新鲜度（建议比对与 templates 的一致性，漂移则提示重放或自动覆盖）。当前只能人工 cp，易漏。 10-12 · 状态: OPEN · 去向: — · 更新: 2026-10-12
