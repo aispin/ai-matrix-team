@@ -249,7 +249,7 @@ export default function App() {
             </div>
           </div>
           <p className="subtle hidden text-[11px] leading-relaxed md:block">
-            数据来源：.ai-matrix-team/runtime 台账（唯一真相源）· 汇报库 dashboard/data/db
+            数据来源：.aimt/runtime 台账（唯一真相源）· 汇报库 dashboard/data/db
           </p>
         </div>
       </aside>

@@ -2,7 +2,7 @@
 
 > **AIM-T 是什么**：**AIM-T = AI Matrix Team**——一套独立维护的「交付专家团」，提供岗位技能、引擎脚本与治理规范，用来给项目做**研发流程规范化管理**。本文档统一简称 **AIM-T**（不再写作 `ai-matrix-team` 或"团队仓"）。
 >
-> **本文件的身份**：这是 **AIM-T 官方范本**。项目接入 AIM-T 时，本文件被带到 `<项目>/.aimt/AIM-T-Guide.md`。
+> **本文件的身份**：这是 **AIM-T 官方范本**。项目接入 AIM-T 时，本文件被带到 `<项目>/.aimt/guide.md`。
 > ⚠️ **该副本由 AIM-T 维护**：升级 AIM-T 时会被覆盖，**项目不得就地修改**；项目自己的补充写在**项目侧的研发流程文档**里（见 §10）。
 >
 > 记号：`$AIMT` = AIM-T 所在目录（真源仓绝对路径）；`$PROJECT` = 接入项目根目录。
@@ -27,7 +27,7 @@ AIM-T 是**独立于项目**的真源仓（仓库名 `ai-matrix-team`，工程�
 | 引擎脚本 | `aimatrix-guard.mjs`（面域/校验/锁/单据/审计）· `aimatrix-init.mjs`（项目档案）· `aimatrix-preflight.mjs`（升级预检）· `aimatrix-migrate-v2.mjs`（结构迁移）· `aimatrix-verify-skills.mjs`（入口巡检）· `expert-sync.mjs`（WorkBuddy 专家包）· `aimatrix-report.mjs` 等 |
 | 治理规范 | `docs/01-charter.md` … `docs/08-portability.md` · `docs/index/`（写作与派单细则） |
 | 角色定义 | `members/`（五席：主理人 / 产品设计 / 研发 / 质检 / 运维） |
-| 模板 | `templates/`（如本文件 `AIM-T-Guide.md`） |
+| 模板 | `templates/`（如本文件 `guide.md`） |
 
 **与项目的关系（三条硬规矩）**：
 
@@ -43,7 +43,7 @@ AIM-T 是**独立于项目**的真源仓（仓库名 `ai-matrix-team`，工程�
 
 ```text
 <项目>/.aimt/
-├── AIM-T-Guide.md      # 本文件（AIM-T 维护、升级覆盖；勿改）
+├── guide.md            # 本文件（AIM-T 维护、升级覆盖；勿改）
 ├── project.json        # 项目档案（生成物：仓库结构、workspace globs、引擎版本）
 ├── surfaces.json       # 面域规则（C1/C2/C3/F → 路径 glob → 写入要求）
 ├── workorders.md       # 工单台账（表行是唯一真相源：id/slug/简述/DR/状态/执行角色/锁/更新日）
@@ -256,4 +256,4 @@ node $AIMT/scripts/aimatrix-guard.mjs lock release --wo WO-…
 
 ---
 
-*本范本由 AIM-T 维护。修订请改 AIM-T 仓 `templates/AIM-T-Guide.md`，不要在项目副本上就地修改。*
+*本范本由 AIM-T 维护。修订请改 AIM-T 仓 `templates/guide.md`，不要在项目副本上就地修改。*

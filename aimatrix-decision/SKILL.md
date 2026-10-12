@@ -23,7 +23,7 @@ version: 1.1.0
 
 ## 2. 怎么落（v2：decisions.md 条目块）
 
-`guard dr add --title "问题" --opt "方案1" --opt "方案2" --recommend <序号> [--blocking] [--ref <关联单号>]` —— 一条命令写入 `<project>/.ai-matrix-team/decisions.md`，h2 条目块（问题 · 方案有序列表 · 推荐序号 · 状态 · 回填行）。
+`guard dr add --title "问题" --opt "方案1" --opt "方案2" --recommend <序号> [--blocking] [--ref <关联单号>]` —— 一条命令写入 `<project>/.aimt/decisions.md`，h2 条目块（问题 · 方案有序列表 · 推荐序号 · 状态 · 回填行）。
 
 - **用户唯一编辑点 = 「回填」行**：格式 `ZEO MM-DD 选<序号>`（谁+日期+结论），同时把状态改 `ANSWERED`。
 - 收口：答复落定后 `guard archive move --kind dr --id <DR-id>` 整块移入 `runtime/archive/YYYY-MM.md`（回填原文随行存活）。

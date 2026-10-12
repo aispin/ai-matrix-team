@@ -21,3 +21,6 @@
 
 ## I-026 文档与实现口径不一致：08-portability 说 team.repo 是「唯一耦合点」，实际 guard 硬编码 .aimt 直读
 来源: docs/08-portability.md:44 称「团队仓路径记录在 <project>/.aimt/project.json 的 teamRepo 字段（唯一耦合点）」；实际 aimatrix-guard.mjs 的 PROJECT/RUNTIME/CONFIG 全部硬编码 path.join(PROJECT(), '.aimt', ...)，既不读 teamRepo（字段实名 team.repo，也非唯一耦合点），也不读 team.home/gateRules。文档口径会误导消费端实现者 10-12 · 状态: OPEN · 去向: — · 更新: 2026-10-12
+
+## I-027 designer SKILL.md 再超阈 5.2KB（在途会话持续写入）
+来源: PC·repo-check 10-12 10-12 · 状态: OPEN · 去向: — · 更新: 2026-10-12
