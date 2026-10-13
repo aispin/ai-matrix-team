@@ -61,16 +61,16 @@
       "apps/*/packages/*/src/**"
     ],
     "T": [
-      ".ai-matrix-team/runtime/**"
+      ".aimt/runtime/**"
     ]
   },
   "team": {
     "name": "ai-matrix-team",
     "repo": "/Volumes/Pluto/dev/github/aispin/ai-matrix-team",
-    "home": ".ai-matrix-team",
-    "gateRules": ".ai-matrix-team/surfaces.json",
+    "home": ".aimt",
+    "gateRules": ".aimt/surfaces.json",
     "docsDir": "docs",
-    "runtimeDir": ".ai-matrix-team/runtime"
+    "runtimeDir": ".aimt/runtime"
   },
   "terms": {
     "wo": {

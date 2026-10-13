@@ -83,11 +83,12 @@ function buildProfile() {
   // 规范文档绑定：按约定文件名匹配，找不到就 null（各角色 Skill 需容忍缺失）
   const pickDoc = (re) => docsMd.find((f) => re.test(f)) || null;
   const docs = {
-    brd: pickDoc(/^brd/i),
-    prdStandard: pickDoc(/^(architecture|prd)/i),
+    brd: pickDoc(/^(spec-)?brd/i),
+    prdStandard: pickDoc(/^(architecture|prd|spec-prd|\d{2}\.prd)/i),
+    tdd: pickDoc(/^(spec-)?tdd/i) || pickDoc(/^\d{2}\.tdd(?!-deploy)/i),
     sharedContracts: pickDoc(/shared-contracts/i),
     appOnboarding: pickDoc(/app-onboarding|onboarding/i),
-    deploy: pickDoc(/^deploy/i),
+    deploy: pickDoc(/^deploy/i) || pickDoc(/^\d{2}\..*deploy/i),
     all: docsMd,
   };
 
@@ -166,6 +167,8 @@ try {
     const prev = JSON.parse(fs.readFileSync(CONFIG, 'utf8'));
     if (prev.terms) profile.terms = prev.terms;
     if (prev.team) profile.team = { ...profile.team, ...prev.team };
+    // docs 绑定为人工可校正项：旧档案有值时继承（手修不被 --force 清空），all 清单始终取实时扫描
+    if (prev.docs) profile.docs = { ...profile.docs, ...prev.docs, all: profile.docs.all };
   }
 } catch { /* 旧档案损坏 → 按新档案生成 */ }
 const serialized = JSON.stringify(profile, null, 2) + '\n';

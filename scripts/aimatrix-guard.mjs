@@ -1353,6 +1353,12 @@ function cmdReport() {
   const actives = activeWos();
   if (!actives.length) console.log('  无');
   for (const w of actives) console.log(`  ${w.id}  status=${w.status}  executor=${w.executor || '—'}  whitelist=[${w.globs.slice(0, 3).join(', ')}${w.globs.length > 3 ? ' …' : ''}]  DR=[${w.drs.join(', ') || '—'}]`);
+  // 僵尸单巡检（I-033）：活动表 WO 白名单基路径在项目内全部不存在 → 疑似资产已迁出，提示交割
+  const zombies = actives.filter((w) => {
+    const bases = [...new Set(w.globs.map((x) => x.split('*')[0].replace(/\/+.?$/, '').trim()).filter(Boolean))];
+    return bases.length > 0 && bases.every((b) => !fs.existsSync(path.join(PROJECT(), b)));
+  });
+  for (const w of zombies) console.error(Y(`  ⚠ 疑似僵尸单 ${w.id}：白名单基路径全部不存在（资产可能已迁出，请按 09-wo 交割清单置终态归档）`));
   console.log(T('\n== 实例呼号 =='));
   const instanceWarns = checkInstances();
   if (!instanceWarns.length) console.log(G('  通过：无撞号、无未登记呼号。'));
