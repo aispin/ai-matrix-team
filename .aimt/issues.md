@@ -21,3 +21,24 @@
 3. **随接入下发**：`aimatrix-init` / 项目接入流程里把该规范随项目档案同步，避免每个项目各自定义。
 
 **参考实现（可直接搬用）**：`ai-matrix-growth` 的 `docs/spec-tdd.md` §9。
+
+## I-030 [规范] 共享契约 §3 台账可退休：以 commit（带 WO 号）+ WO 详情单为准
+来源: 创始人 2026-10-13（ai-matrix-growth 实测后判定） 10-13 · 状态: OPEN · 去向: — · 更新: 2026-10-13
+
+**实测证据（ai-matrix-growth，2026-10-13）**：
+
+1. `guard` **完全不读** `spec-shared-contracts.md`（门禁脚本内 `rg spec-shared-contracts` **0 命中**）；`guard audit` 的「有无单覆盖」是靠 **commit message 里的 WO 号**算的——**门禁与 §3 无关**。
+2. 该 §3 台账**占契约文档 95% 字节**（68KB/126 行，其中 §3 约 65KB；69 行、平均 621 字符/行、最长 1880 字符/行），当前契约正文只剩 5% → "又长又臭"。
+3. §3 **自身腐坏**：69 行里 **24 行（35%）**仍引用改名前的路径/文档名（`.skills/`、`architecture.md`、`BRD.md`）——一份自己有 1/3 陈旧指向的"审计凭据"已经不能当凭据。
+4. §3 的内容**是 commit/WO 单的二手副本**：what 在 git diff，why 在 commit message（本就要求带 WO 号）+ WO 详情单；维护第二份必然漂移，且钝化真正的门禁（人以为"登记过就没问题"，实际校验走的是 commit）。
+
+**创始人判定（2026-10-13）**：vibe coding 项目里，**人类与 agent 都不需要这份日志**（人类看 git；agent 要的是"当前契约现状"+"在办单"+"有无单覆盖"，各有更准的一手源）。唯一独有的「**事前** INTENT」职责，改由 **WO 详情单**承担（模板本就强制写「变更类型 / 影响面 / 验证 / 回滚」四节）。
+
+**建议 AIMT 侧动作**：
+
+1. `aimatrix-guardian` SKILL §5 与 `docs/03-shared-surface-control.md`（§「当日追加 §3 日志」与"破坏性→§3 追加 INTENT"两行）：改为「**commit（message 带 WO 号）+ 本单详情单四节**为准」，不再要求 §3 日志 / §3 INTENT 条目；
+2. `docs/templates/wo.md` 收口项「`spec-shared-contracts.md` §3 已登记」→ 改为「**commit 带 WO 号（`guard audit` 可验）+ 详情单影响面已写**」；
+3. 保留一处可选说明：若个别项目确有"人要读台账"的合规需求，可自建 `runtime/archive/YYYY-MM.md`（按月归档），**但不作为默认要求**；
+4. 同步产品仓：`docs/README.md` §6.2 台账面清单**已移除**该文档（台账面只留 `.aimt/*` 与 `runtime/`）。
+
+**参考实现**：`ai-matrix-growth` 改造后的 `docs/spec-shared-contracts.md`（= 共享面**清单** + 协作纪律，约 4KB；变更记录一律指向 commit + WO 详情单）。
