@@ -15,7 +15,8 @@
 2. **开工三件套**：`guard surface <路径>`（判面域）→ 需要授权就 `wo new` + `lock acquire` + `check` → 写码时 commit 带 **WO 单号**。
 3. **收口三件套**：跑测试/构建 → `wo journal` → `wo table verify`（→ `done`）+ `lock release`。
 4. **只有人能拍板的事走 DR**：agent 开单（`dr add`），由项目负责人在台账「回填」行答复，agent 据此执行并 `archive move` 闭环。
-5. **AIM-T 升级后**：把 AIM-T 的**每一份副本**都 pull 到同一版本，再跑预检/体检（§5）。
+5. **技术方案先调研选型**：一手来源附出处 + ≥2 备选量化对比，按最佳实践目标态一次做到位（细则 `$AIMT/docs/index/10-research.md`）。
+6. **AIM-T 升级后**：把 AIM-T 的**每一份副本**都 pull 到同一版本，再跑预检/体检（§5）。
 
 ## 1. AIM-T 是什么
 

@@ -4,7 +4,7 @@
 
 
 > **本文是全团队最硬的一篇**：它把「不要乱改共享模块」从倡议变成**闸门**。
-> 唯一真相源：[`spec-shared-contracts.md`](../../docs/spec-shared-contracts.md)（清单与日志）+ 本文（面域、权限、流程、门禁）。
+> 唯一真相源：[`spec-shared-contracts.md`](../../docs/spec-shared-contracts.md)（共享面清单 + 协作纪律；变更历史以 commit 带 WO 号 + WO 详情单为准）+ 本文（面域、权限、流程、门禁）。
 
 ---
 
@@ -12,7 +12,7 @@
 
 | 级别 | 面 | 路径 | 写入要求 |
 |---|---|---|---|
-| **C1** | 共享核心 | `packages/shared-types/**`、`packages/llm/**`、`packages/config/**`、`packages/utils/**`、`services/**`（auth/payment/llm/boss/telemetry）、`matrix.config.schema.json`、`pnpm-workspace.yaml`、`tsconfig.base.json`、`package.json`、`.github/**`、`.env.example` | **WO + 团长（风控）核准 + 共享锁**；破坏性 → 事前 **INTENT** + 兼容证明；改后当日登记；**全矩阵 typecheck/test/build 必绿** |
+| **C1** | 共享核心 | `packages/shared-types/**`、`packages/llm/**`、`packages/config/**`、`packages/utils/**`、`services/**`（auth/payment/llm/boss/telemetry）、`matrix.config.schema.json`、`pnpm-workspace.yaml`、`tsconfig.base.json`、`package.json`、`.github/**`、`.env.example` | **WO + 团长（风控）核准 + 共享锁**；破坏性 → 事前 **INTENT** + 兼容证明；改后收口 commit 带 WO 号；**全矩阵 typecheck/test/build 必绿** |
 | **C2** | 共享外围 | 其余 `packages/**`（如 `telemetry`、`ui`、`sdk-client`）、`scripts/**`、`infra/**`（含 `cloudbase/migrations`）、**根 `docs/**`（全部）**<br/>其中 ★ 契约类：`docs/architecture.md`、`docs/spec-shared-contracts.md`、`docs/brd-standard.md`、`docs/app-onboarding.md`、`docs/deploy*.md`、`docs/llm-service.md`、`docs/cloudbase-integration.md` | **WO（轻单）+ 团长（风控）核准 + 共享锁**；改后当日登记；回归范围由守卫裁定（纯文档通常免跑全矩阵）<br/>★ 额外要求：**同一次提交必须同步对应 Role Skill 的 `references/`**（`guard check` 会提示；见下文 1.1） |
 | **C3** | App 私有受控 | `apps/<app>/matrix.config.json`、`apps/<app>/.env.example`、`apps/<app>/docs/<App>_{BRD,PRD,TDD}_*.md` | App 责任角色可写；**跨 App 影响时必须开 WO**；PRD/TDD 重大修订需主理人知会 |
 | **F** | 自由面 | `apps/<app>/src/**`、`apps/<app>/packages/**`、`apps/<app>/scripts/**`、`apps/<app>/public/**` | 直接改，无需 WO；仍需通过 QA 门禁（typecheck/test/build） |
@@ -102,7 +102,7 @@ stateDiagram-v2
 
 ## 4. 串行锁（Shared Lock · 按面域分片）
 
-落实 `spec-shared-contracts.md` §2-3「串行优先」；**按面域分片**：面域**不相交**的多个 WO 可同时持锁，**同面域仍互斥**。
+落实共享面「串行优先」纪律；**按面域分片**：面域**不相交**的多个 WO 可同时持锁，**同面域仍互斥**。
 
 - **状态文件**：`<project>/.aimt/runtime/state/lock.json`（schema 2，**多持有者**）
   ```json
@@ -144,11 +144,11 @@ stateDiagram-v2
 
 | 变更类型 | 事前 | 事后 |
 |---|---|---|
-| additive / 非破坏 | WO 里声明 | **当日**追加 `spec-shared-contracts.md` §3 日志（追加式，不改历史） |
-| **破坏性**（对外签名/语义/删除/重命名） | WO + **`spec-shared-contracts.md` §3 追加 `INTENT` 条目**（影响面 + 验证方式）+ Bruce兼容证明 | 同上，且 INTENT 条目标注已执行与验证结果 |
+| additive / 非破坏 | WO 里声明 | **当日**收口 commit（message 带 WO 号，`guard audit` 可验） |
+| **破坏性**（对外签名/语义/删除/重命名） | WO + **详情单事前写明 INTENT 四节**（变更类型 / 影响面 / 验证 / 回滚）+ Bruce兼容证明 | 同上，且详情单标注已执行与验证结果 |
 | 新增契约（如新公共服务/新包） | WO + ADR | 登记进 §1 共享面清单 |
 
-> **台账 ≠ 文档修订历史**：上表「追加式，不改历史」只约束**事件台账**（`spec-shared-contracts.md` §3 / `issues.md` / `decisions.md` / `workorders.md` / `runtime/archive/` / `*.journal.md`）——它们记「何时 / 因何 / 影响谁」，是审计与溯源凭据（git diff 只有 what，没有 why）。**文档正文**（`docs/**`、`apps/*/docs/**`）相反：只保留最新真相，**禁止**「变更记录 / 修订记录」章节、修订注释与版本号入名；历史一律去 git 找（实现口径见产品仓 `docs/README.md` §6「文档写作总则」）。
+> **台账 ≠ 文档修订历史**：上表「追加式，不改历史」只约束**事件台账**（`issues.md` / `decisions.md` / `workorders.md` / `runtime/archive/` / `*.journal.md`）——它们记「何时 / 因何 / 影响谁」，是审计与溯源凭据（git diff 只有 what，没有 why）。**文档正文**（`docs/**`、`apps/*/docs/**`）相反：只保留最新真相，**禁止**「变更记录 / 修订记录」章节、修订注释与版本号入名；历史一律去 git 找（实现口径见产品仓 `docs/README.md` §6「文档写作总则」）。
 
 **登记字段**（沿用既有表头）：日期 · 变更者（WO 号）· 契约 · 类型 · 内容 · 影响面与验证。
 **新增一列**：`WO`（便于从台账反查任务单）。

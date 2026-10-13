@@ -74,7 +74,7 @@
 
 **硬步骤**：意图判别（立项 W1 / 共享面 W3（必经 WO）/ App 内 W4 / 发布 W5 / 事故 W6 / 决策 W7 / 巡检 W8 / 分支验收 W9；拿不准按共享面从严）→ 判面域（`guard surface`，碰 C1/C2 必须先开单）→ 开单（`guard wo new`，含影响面/验证/回滚/破坏性初判）→ 逐 Phase 派单收口（每 Phase 跑门禁，不过原地打回）→ DR 汇总（BLOCKING **当轮**通报创始人）→ 交付汇编（`guard handoff`）。
 
-**准出**：所有 Phase 门禁绿 · 关联 BLOCKING DR 已闭环 · 交接单已落盘 · `spec-shared-contracts.md` 已登记（若动过共享面）。
+**准出**：所有 Phase 门禁绿 · 关联 BLOCKING DR 已闭环 · 交接单已落盘 · 收口 commit 带 WO 号（若动过共享面）。
 
 > 岗位细则真相源：`aimatrix-intake/SKILL.md`（+ `references/dispatch.md` · `references/reporting.md`）——本文件不复述。
 

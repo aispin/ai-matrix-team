@@ -108,7 +108,7 @@
 | 既有文档 | 它管什么 | 本团队怎么用 |
 |---|---|---|
 | `docs/architecture.md` | 架构与数据模型 | Bruce的输入与约束；改动需 ADR |
-| `docs/spec-shared-contracts.md` | **共享面清单 + 变更日志（事实登记表）** | 团长（守门人）的登记落点；本团队提供「登记前的闸门」 |
+| `docs/spec-shared-contracts.md` | **共享面清单 + 协作纪律** | 变更历史以 commit（带 WO 号）+ WO 详情单为准；本团队提供「动手前的闸门」 |
 | `docs/brd-standard.md` | BRD 写作规范 | 毛毛的执行标准 |
 | `docs/app-onboarding.md` | 接入部署 SOP | 波波的执行标准 |
 | `docs/decisions/ADR-*` | **已决策**记录 | DR 答复后的归档去向之一 |
