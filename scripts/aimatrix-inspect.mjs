@@ -194,26 +194,52 @@ function chkSecrets() {
 }
 
 // ---- 11. open-items 一致性 ----
+// 已知 DR id 集合：.aimt/decisions.md（唯一真相源）+ runtime/decisions/{open,closed}/ + runtime/archive/
+// closed/ 一并纳入：归档块只收录移入 archive 的条目，其余历史上单仍只以文件形式存在于此。
+function knownDrIds() {
+  const ids = new Set();
+  let files = 0;
+  const absorb = (text) => { for (const m of text.matchAll(/DR-\d{8}-\d{3}/g)) ids.add(m[0]); };
+  const filesIn = (dir) => (fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.md')).map((f) => path.join(dir, f)) : []);
+  const out = [path.join(REPO_ROOT, '.aimt', 'decisions.md')];
+  for (const sub of ['open', 'closed']) out.push(...filesIn(path.join(REPO_ROOT, '.aimt', 'runtime', 'decisions', sub)));
+  out.push(...filesIn(path.join(REPO_ROOT, '.aimt', 'runtime', 'archive')));
+  for (const f of out) {
+    if (!fs.existsSync(f)) continue;
+    absorb(fs.readFileSync(f, 'utf8'));
+    files += 1;
+  }
+  return { ids, files };
+}
+
 function chkOpenItems() {
-  const ledger = path.join(REPO_ROOT, '.aimt', 'runtime', 'decisions', 'LEDGER.md');
-  if (!fs.existsSync(ledger)) { record('11.OPEN-ITEMS 与 DR 台账一致', 'WARN', 'LEDGER 不存在'); return; }
-  const bad = [];
-  for (const app of listApps()) {
-    const oi = path.join(REPO_ROOT, 'apps', app, 'docs', 'OPEN-ITEMS.md');
-    if (!fs.existsSync(oi)) continue;
-    const text = fs.readFileSync(oi, 'utf8');
-    // A/B/C 段的非空条目必须带 DR id
-    const lines = text.split('\n');
+  const targets = listApps()
+    .map((app) => ({ app, file: path.join(REPO_ROOT, 'apps', app, 'docs', 'OPEN-ITEMS.md') }))
+    .filter((t) => fs.existsSync(t.file));
+  if (!targets.length) { record('11.OPEN-ITEMS 与 DR 台账一致', 'PASS', '无 App OPEN-ITEMS.md，无需对照'); return; }
+  const { ids, files } = knownDrIds();
+  if (!files) { record('11.OPEN-ITEMS 与 DR 台账一致', 'WARN', '有 OPEN-ITEMS 但 DR 台账源均不存在（decisions.md / runtime/decisions/ / runtime/archive/），无法核验'); return; }
+  const noId = [];
+  const ghost = [];
+  for (const { app, file } of targets) {
+    const lines = fs.readFileSync(file, 'utf8').split('\n');
     let sec = '';
     lines.forEach((l, i) => {
       const m = l.match(/^##\s+([A-F])\./);
       if (m) sec = m[1];
-      if (/^[-*]\s/.test(l) && ['A', 'B', 'C'].includes(sec) && !/DR-\d{8}-\d{3}/.test(l) && !/（暂无）/.test(l)) {
-        bad.push(`${app}/docs/OPEN-ITEMS.md:${i + 1}（${sec} 段条目无 DR id）`);
-      }
+      if (!/^[-*]\s/.test(l) || !['A', 'B', 'C'].includes(sec) || /（暂无）/.test(l)) return;
+      const refs = l.match(/DR-\d{8}-\d{3}/g);
+      if (!refs) { noId.push(`${app}/docs/OPEN-ITEMS.md:${i + 1}（${sec} 段条目无 DR id）`); return; }
+      for (const id of refs) if (!ids.has(id)) ghost.push(`${app}/docs/OPEN-ITEMS.md:${i + 1}（${sec} 段引用 ${id} 不在台账）`);
     });
   }
-  record('11.OPEN-ITEMS 每条带 DR id', bad.length ? 'WARN' : 'PASS', bad.length ? bad.join(' · ') : '一致');
+  const detail = [...ghost, ...noId];
+  const status = ghost.length ? 'FAIL' : noId.length ? 'WARN' : 'PASS';
+  record(
+    '11.OPEN-ITEMS 与 DR 台账一致',
+    status,
+    detail.length ? detail.slice(0, 8).join(' · ') + (detail.length > 8 ? ` …共 ${detail.length}` : '') : `每条 A/B/C 条目均带真实 DR id（台账 ${ids.size} 条）`,
+  );
 }
 
 // ---- 12. 巡检时效 ----

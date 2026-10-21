@@ -114,7 +114,9 @@ stateDiagram-v2
 `apps/lucia/docs/OPEN-ITEMS.md` 已被证明是**非常好用的**人类视图（A 拍板 / B 提供 / C 选型 / D 我替你决定 / E 下一步 / F 风险登记）。保留它，但加两条约束：
 
 1. **DR 是唯一真相源**：OPEN-ITEMS 里的 A/B/C 每一条 **必须带 DR id**；没有 id 的条目 = 未登记，24h 内补 DR。
-2. **OPEN-ITEMS 是渲染产物**：由 `<team-repo>/scripts/render-open-items.mjs` 从 LEDGER 生成骨架（A/B/C/D/F 分节映射），Agent 再补叙述细节；**禁止手改台账数据**（改了会被下次渲染覆盖）。
+2. **OPEN-ITEMS 是渲染产物**：由 `<team-repo>/scripts/render-open-items.mjs` 从 `.aimt/decisions.md` 与 `runtime/decisions/` 下的 DR 文件生成骨架（A/B/C/D/F 分节映射），Agent 再补叙述细节；**禁止手改台账数据**（改了会被下次渲染覆盖）。
+
+> **DR 台账唯一真相源 = `<project>/.aimt/decisions.md`**（闭环条目进 `runtime/archive/YYYY-MM.md`）；`.aimt/runtime/decisions/LEDGER.md` 已废弃——不再生成，看板与巡检也不再读取它。
 
 | OPEN-ITEMS 分节 | 对应 DR 类型 |
 |---|---|

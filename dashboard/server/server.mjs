@@ -227,18 +227,6 @@ function decisions() {
       }
     }
   }
-  // 旧 LEDGER 兜底（迁移前项目 / 历史视图），去重
-  if (existsP('.aimt/runtime/decisions/LEDGER.md')) {
-    const seen = new Set([...open, ...closedRecent].map((x) => x.id));
-    for (const line of read('.aimt/runtime/decisions/LEDGER.md').split('\n')) {
-      if (!/^\| DR-/.test(line)) continue;
-      const c = line.split('|').map((x) => x.trim()).filter((x) => x !== '');
-      if (seen.has(c[0])) continue;
-      const item = { id: c[0], oneLine: c[3] || '', blocking: /BLOCKING/i.test(c[5] || ''), status: c[6] || '', due: c[8] || '' };
-      if (/OPEN/i.test(item.status)) open.push(item);
-      else closedRecent.push(item);
-    }
-  }
   return { open, closedRecent: closedRecent.slice(0, 5) };
 }
 
@@ -472,8 +460,8 @@ const server = http.createServer(async (req, res) => {
       return row ? json(res, row) : send(res, 404, JSON.stringify({ error: 'not found' }));
     }
     // 工单/决定原文（创始人需求：点击台账条目右侧抽屉展示）。双目录查找 + id 白名单防穿越。
-    const LEDGER_ID = '(?:WO|DR)-\\d{8}-[A-Za-z0-9-]+';
-    const woGet = url.pathname.match(new RegExp(`^/api/workorders/(${LEDGER_ID})$`));
+    const DOC_ID = '(?:WO|DR)-\\d{8}-[A-Za-z0-9-]+';
+    const woGet = url.pathname.match(new RegExp(`^/api/workorders/(${DOC_ID})$`));
     if (woGet && req.method === 'GET') {
       const id = woGet[1];
       for (const sub of ['closed', 'open']) {
@@ -490,7 +478,7 @@ const server = http.createServer(async (req, res) => {
       }
       return send(res, 404, JSON.stringify({ error: '工单不存在' }));
     }
-    const drGet = url.pathname.match(new RegExp(`^/api/decisions/(${LEDGER_ID})$`));
+    const drGet = url.pathname.match(new RegExp(`^/api/decisions/(${DOC_ID})$`));
     if (drGet && req.method === 'GET') {
       const id = drGet[1];
       // v2 优先：decisions.md 条目块（OPEN 在此）
@@ -510,7 +498,7 @@ const server = http.createServer(async (req, res) => {
     }
     // DR 批复回填：勾选推荐选项 + 补充说明 → 回写单据「答复」段。
     // 双目录查找（open 优先）+ id 白名单防穿越；无结构化答复段时文末追加，不破坏原文其余部分。
-    const drPost = url.pathname.match(new RegExp(`^/api/decisions/(${LEDGER_ID})/verdict$`));
+    const drPost = url.pathname.match(new RegExp(`^/api/decisions/(${DOC_ID})/verdict$`));
     if (drPost && req.method === 'POST') {
       const id = drPost[1];
       let body;
