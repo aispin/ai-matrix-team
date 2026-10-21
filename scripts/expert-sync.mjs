@@ -6,8 +6,18 @@
  * 实例: 专家团包 ai-matrix-team + 独立专家包 aimatrix-team-team-lead / aimatrix-team-product-designer
  *
  * 用法:
- * node scripts/expert-sync.mjs # 写入实例 + 官方 validate→register→package + cache 落位 + installed_plugins 对齐
- * node scripts/expert-sync.mjs --check # 只报告漂移不写入（退出码 1 = 有漂移）
+ * node scripts/expert-sync.mjs # 写入实例 + 官方 validate→register→package + cache 落位 + installed_plugins 对齐 + 全账号专家白名单登记
+ * node scripts/expert-sync.mjs --check # 只报告漂移不写入（退出码 1 = 有漂移，含账号白名单缺失）
+ *
+ * 账号归属（专家中心「我的专家/专家团」可见性）：
+ *   App 侧 ExpertPluginService.scanCustomExperts 扫完 marketplace 条目后，用
+ *   readUserExpertIds(userId) 读 <configDir>/experts/custom/<userId>/experts.json（字符串 id 数组）做过滤，
+ *   不在数组里的包直接跳过。官方 register_expert.py 只写 marketplace.json（不支持指定账号），
+ *   故本脚本直接维护该 id 数组并回读校验。
+ *   node scripts/expert-sync.mjs                # 默认：遍历全部已存在账号目录（无账号目录时退回 legacyOwnerUid）
+ *   node scripts/expert-sync.mjs --all-users    # 显式声明遍历（等同默认）
+ *   node scripts/expert-sync.mjs --user <uid>   # 只登记指定账号
+ *   node scripts/expert-sync.mjs --single       # 旧行为：只用 settings.json 的 claw.legacyOwnerUid（逃生阀）
  *
  * 纪律: 永远只改 members/ 真源 → 跑本脚本；禁止手改任何包内实例文件。
  */
@@ -21,13 +31,40 @@ const TEAM_REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 const MEMBERS = path.join(TEAM_REPO, 'members');
 const AVATARS = path.join(TEAM_REPO, 'assets', 'avatars');
 const HOME = os.homedir();
-const MP = path.join(HOME, '.workbuddy/plugins/marketplaces/my-experts');
+// 配置根：与 App 侧 resolveConfigDir 的 HOME 派生分支同口径（沙箱可用 HOME 重定向）。
+// 官方 python 脚本另认 WORKBUDDY_CONFIG_DIR，若两者分叉会在 runOfficial 里检测并跳过，绝不跨目录混写。
+const CONFIG_DIR = path.join(HOME, '.workbuddy');
+const USER_SETTINGS = path.join(CONFIG_DIR, 'settings.json');
+const CUSTOM_EXPERTS = path.join(CONFIG_DIR, 'experts', 'custom');
+const MP = path.join(CONFIG_DIR, 'plugins/marketplaces/my-experts');
 const PLUGINS = path.join(MP, 'plugins');
-const CACHE = path.join(HOME, '.workbuddy/plugins/cache/my-experts');
-const INSTALLED = path.join(HOME, '.workbuddy/plugins/installed_plugins.json');
+const CACHE = path.join(CONFIG_DIR, 'plugins/cache/my-experts');
+const INSTALLED = path.join(CONFIG_DIR, 'plugins/installed_plugins.json');
 const DIST = path.join(HOME, 'WorkBuddy/ISkills/expert-dist');
 const EM_SCRIPTS = '/Applications/WorkBuddy.app/Contents/Resources/app.asar.unpacked/resources/plugins/workbuddy-builtin/skills/expert-manager/scripts';
-const checkOnly = process.argv.includes('--check');
+
+// ---------------------------------------------------------------- 命令行
+
+const ARGV = process.argv.slice(2);
+const checkOnly = ARGV.includes('--check');
+const singleMode = ARGV.includes('--single');
+const allUsersMode = ARGV.includes('--all-users');
+const userIdx = ARGV.indexOf('--user');
+const userArg = userIdx >= 0 ? ARGV[userIdx + 1] : undefined;
+if (userIdx >= 0 && (!userArg || userArg.startsWith('--'))) {
+  console.error('❌ --user 需要一个账号 uid：node scripts/expert-sync.mjs --user <uid>');
+  process.exit(2);
+}
+if (userArg && (singleMode || allUsersMode)) {
+  console.error('❌ --user 与 --single / --all-users 互斥');
+  process.exit(2);
+}
+// 早失败：--user 指向不存在的账号目录（在写任何文件之前拦下）
+if (userArg && !fs.existsSync(path.join(CUSTOM_EXPERTS, userArg))) {
+  console.error(`❌ --user ${userArg} 无对应账号目录：${path.join(CUSTOM_EXPERTS, userArg)}`);
+  console.error('   本脚本只登记已存在的账号目录（账号目录由 App 登录时创建），不凭空创建。');
+  process.exit(2);
+}
 const LEGACY_KEYS = ['aimatrix-pm@my-experts', 'hugo@my-experts'];
 const LEGACY_PLUGIN_NAMES = ['aimatrix-pm', 'hugo'];
 
@@ -287,6 +324,7 @@ const manifest = (name, version) => `name: ${name}\nversion: "${version}"\ntype:
 // ---------------------------------------------------------------- 动作
 
 let drift = 0;
+let skippedSteps = 0; // 上游步骤的「显式跳过」计数（沙箱/无官方脚本），用于收尾如实播报
 function writeFileSafe(p, content) {
   const cur = fs.existsSync(p) ? fs.readFileSync(p, p.endsWith('.png') ? null : 'utf8') : undefined;
   const same = cur !== undefined && (Buffer.isBuffer(content) ? cur.equals(content) : cur === content);
@@ -373,17 +411,38 @@ function copyAvatars() {
 
 function runOfficial(pkgName) {
   const dir = path.join(PLUGINS, pkgName);
+  if (!fs.existsSync(path.join(EM_SCRIPTS, 'register_expert.py'))) {
+    console.log('  ℹ 官方 expert-manager 脚本不存在 → 跳过 validate/register/package（源包与账号登记不受影响）');
+    skippedSteps++;
+    return 0;
+  }
+  // 官方脚本按 WORKBUDDY_CONFIG_DIR（其次 HOME/.workbuddy）自行定位专家目录；
+  // 与本脚本源包目录不一致时（沙箱 HOME 重定向 / 自定义配置根）会校验错位，直接跳过并说明。
+  const officialPluginsRoot = path.join(
+    (process.env.WORKBUDDY_CONFIG_DIR || '').trim() || path.join(HOME, '.workbuddy'),
+    'plugins/marketplaces/my-experts/plugins');
+  if (path.resolve(officialPluginsRoot) !== path.resolve(PLUGINS)) {
+    console.log(`  ℹ 官方脚本将按 ${officialPluginsRoot} 定位专家包，与本脚本源包 ${PLUGINS} 不一致 → 跳过 validate/register/package`);
+    skippedSteps++;
+    return 0;
+  }
   const py = process.env.PYTHONPATH ? { ...process.env, PYTHONPATH: '' } : { ...process.env };
   const run = (script) => {
     console.log(`  ▸ ${script.split('/').pop()} ${pkgName}`);
     execFileSync('python3', [path.join(EM_SCRIPTS, script), dir], { env: py, stdio: 'inherit' });
   };
-  run('validate_expert.py');
-  run('register_expert.py');
-  // package 到 expert-dist
-  fs.mkdirSync(DIST, { recursive: true });
-  console.log('  ▸ package_expert.py');
-  execFileSync('python3', [path.join(EM_SCRIPTS, 'package_expert.py'), dir, DIST], { env: py, stdio: 'inherit' });
+  try {
+    run('validate_expert.py');
+    run('register_expert.py');
+    // package 到 expert-dist
+    fs.mkdirSync(DIST, { recursive: true });
+    console.log('  ▸ package_expert.py');
+    execFileSync('python3', [path.join(EM_SCRIPTS, 'package_expert.py'), dir, DIST], { env: py, stdio: 'inherit' });
+  } catch (e) {
+    console.error(`❌ 官方脚本失败：${pkgName}（${e?.message?.split('\n')[0] ?? e}）`);
+    return 1;
+  }
+  return 0;
 }
 
 function cacheInstall(pkgName, version) {
@@ -397,7 +456,12 @@ function cacheInstall(pkgName, version) {
 }
 
 function syncInstalled() {
-  if (checkOnly) return;
+  if (checkOnly) return 0;
+  if (!fs.existsSync(INSTALLED)) {
+    console.log(`  ℹ ${INSTALLED} 不存在 → 跳过 installed_plugins 对齐（新环境/沙箱；首次由 App 建库）`);
+    skippedSteps++;
+    return 0;
+  }
   const now = new Date().toISOString();
   const data = JSON.parse(fs.readFileSync(INSTALLED, 'utf8'));
   data.plugins = data.plugins || {};
@@ -429,6 +493,128 @@ function syncInstalled() {
       if (mk.plugins.length !== before) console.log('✓ marketplace.json 旧条目已清除');
     }
   }
+  return 0;
+}
+
+// ---------------------------------------------------------------- 账号归属登记（experts/custom/<uid>/experts.json）
+//
+// 为什么需要这一段：专家中心对「本地自定义专家」按账号白名单过滤——
+// App 侧 ExpertPluginService.scanCustomExperts 扫完 my-experts/plugins/* 后调用
+// readUserExpertIds(userId) 读 <configDir>/experts/custom/<userId>/experts.json（裸 id 字符串数组），
+// 不在数组里的包直接 continue（跳过）。官方 register_expert.py 只写 marketplace.json，
+// 且只认 --marketplace-dir / --session-id，**不支持指定账号** → 账号维度只能由本脚本维护。
+// 故这里：遍历账号目录 → 合并式写入 id 数组 → 回读校验；--check 时逐账号比对。
+
+const TEAM_PKG = 'ai-matrix-team';
+// 与 App 侧 isUnsafePath 同口径：账号名不得含路径分隔符或 ..，避免写到 custom/ 之外
+const SAFE_UID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+
+/** 每个账号白名单里必须出现的专家 id：团队包 + 各独立包（由 ROLES 派生，不写死三处） */
+const requiredExpertIds = () => [TEAM_PKG, ...ROLES.filter((r) => r.standalone).map((r) => r.id)];
+
+const expertsJsonPath = (uid) => path.join(CUSTOM_EXPERTS, uid, 'experts.json');
+
+function readJsonSafe(p) {
+  try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return undefined; }
+}
+
+/** settings.json 的 claw.legacyOwnerUid（旧单账号行为的唯一账号来源） */
+function legacyOwnerUid() {
+  const uid = readJsonSafe(USER_SETTINGS)?.claw?.legacyOwnerUid;
+  return typeof uid === 'string' && SAFE_UID.test(uid) ? uid : undefined;
+}
+
+/** 已存在账号目录（与 App 侧 readAllUserExpertIds 同口径：只认目录，忽略非法名） */
+function discoverAccounts() {
+  if (!fs.existsSync(CUSTOM_EXPERTS)) return [];
+  return fs.readdirSync(CUSTOM_EXPERTS, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && SAFE_UID.test(d.name))
+    .map((d) => d.name)
+    .sort();
+}
+
+/**
+ * 目标账号解析：
+ *   --user <uid>      → 仅该账号（必须已存在账号目录，不凭空造账号）
+ *   --single          → 旧行为：仅 claw.legacyOwnerUid（逃生阀）
+ *   默认 / --all-users → 全部已存在账号；一个都没有时退回旧行为（legacyOwnerUid）
+ */
+function resolveTargetAccounts() {
+  if (userArg) return { accounts: [userArg], mode: '--user', missingDir: !fs.existsSync(path.join(CUSTOM_EXPERTS, userArg)) };
+  const legacy = legacyOwnerUid();
+  if (singleMode) return { accounts: legacy ? [legacy] : [], mode: '--single（仅 legacyOwnerUid）' };
+  const all = discoverAccounts();
+  if (all.length) return { accounts: all, mode: allUsersMode ? '--all-users 全账号遍历' : '默认全账号遍历' };
+  return { accounts: legacy ? [legacy] : [], mode: '无账号目录 → 退回 legacyOwnerUid' };
+}
+
+/** 合并式登记（只增不删、保留原有顺序）；返回本次补了哪些 id */
+function mergeAccountExpertIds(uid) {
+  const p = expertsJsonPath(uid);
+  const cur = readJsonSafe(p);
+  const ids = Array.isArray(cur) ? cur.filter((x) => typeof x === 'string') : [];
+  const have = new Set(ids);
+  const missing = requiredExpertIds().filter((id) => !have.has(id));
+  if (!missing.length || checkOnly) return { path: p, missing, wrote: false };
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  // 格式对齐 App 侧 addUserExperts：JSON 数组 + 2 空格缩进
+  fs.writeFileSync(p, JSON.stringify([...ids, ...missing], null, 2), 'utf8');
+  return { path: p, missing, wrote: true };
+}
+
+/** 回读校验：读回该账号 experts.json，返回仍缺的 id（文件缺失/非法 JSON 都按「全缺」处理） */
+function verifyAccount(uid) {
+  const cur = readJsonSafe(expertsJsonPath(uid));
+  const ids = Array.isArray(cur) ? cur : [];
+  return requiredExpertIds().filter((id) => !ids.includes(id));
+}
+
+/** 账号维度同步/校验总入口；返回 { failed, usage }（usage = 目标账号无效，属用法错误） */
+function syncAccounts() {
+  const { accounts, mode, missingDir } = resolveTargetAccounts();
+  console.log(`\n== 账号归属${checkOnly ? '校验' : '登记'}（${mode}）==`);
+  if (missingDir) {
+    console.error(`❌ --user ${userArg} 无对应账号目录：${path.join(CUSTOM_EXPERTS, userArg)}`);
+    console.error('   本脚本只登记已存在的账号目录（账号目录由 App 登录时创建），不凭空创建。');
+    return { failed: 1, usage: true };
+  }
+  if (!accounts.length) {
+    console.log(`  ℹ 未发现账号目录（${CUSTOM_EXPERTS}）且 settings.json 无 claw.legacyOwnerUid → 跳过账号登记`);
+    console.log('    登录一次 WorkBuddy 会生成账号目录；或显式指定：node scripts/expert-sync.mjs --user <uid>');
+    return { failed: 0, usage: false };
+  }
+  let failed = 0;
+  if (checkOnly) {
+    for (const uid of accounts) {
+      const missing = verifyAccount(uid);
+      if (missing.length) {
+        failed++;
+        drift++;
+        console.log(`  ✗ 账号 ${uid} 白名单缺 ${missing.join(', ')}`);
+        console.log(`    补登记：node scripts/expert-sync.mjs --user ${uid}`);
+      } else {
+        console.log(`  ✓ 账号 ${uid} 白名单齐全`);
+      }
+    }
+    return { failed, usage: false };
+  }
+  for (const uid of accounts) {
+    const { missing, wrote } = mergeAccountExpertIds(uid);
+    console.log(wrote
+      ? `  ✓ 登记账号 ${uid}（补 ${missing.join(', ')}）`
+      : `  • 已齐全 账号 ${uid}`);
+  }
+  // 回读校验：写完全部账号后逐个读回，缺 id → 指名账号并非 0 退出（防 watcher 回滚/并发覆盖）
+  for (const uid of accounts) {
+    const missing = verifyAccount(uid);
+    if (missing.length) {
+      failed++;
+      console.error(`  ✗ 回读校验失败：账号 ${uid} 的 experts.json 仍缺 ${missing.join(', ')}`);
+    }
+  }
+  if (failed) console.error(`❌ 账号登记回读校验失败（${failed}/${accounts.length} 个账号）`);
+  else console.log(`✓ 账号登记回读校验通过（${accounts.length} 个账号，id：${requiredExpertIds().join(', ')}）`);
+  return { failed, usage: false };
 }
 
 // ---------------------------------------------------------------- 岗位 SKILL.md frontmatter 校验
@@ -482,7 +668,8 @@ for (const [p, content] of desired) {
 copyAvatars();
 pruneStale(); // 清理旧编制残留（--check 时只报告不删）
 if (checkOnly) {
-  console.log(drift === 0 ? 'CHECK OK：全部实例与真源一致' : `CHECK DRIFT：${drift} 处漂移`);
+  syncAccounts(); // 账号维度一并计入 drift（缺登记 = 漂移）
+  console.log(drift === 0 ? 'CHECK OK：全部实例与真源一致（含账号白名单）' : `CHECK DRIFT：${drift} 处漂移`);
   process.exit(drift === 0 ? 0 : 1);
 }
 // 写入模式：重写全部期望文件
@@ -493,9 +680,23 @@ for (const [p, content] of desired) {
 drift = 0; // 已写入
 console.log(`✓ 实例已按真源重写（团队包 + ${ROLES.filter((r) => r.standalone).length} 独立包）`);
 
-runOfficial('ai-matrix-team');
-for (const r of ROLES.filter((x) => x.standalone)) runOfficial(r.id);
+let pipelineFailed = 0;
+pipelineFailed += runOfficial('ai-matrix-team');
+for (const r of ROLES.filter((x) => x.standalone)) pipelineFailed += runOfficial(r.id);
 cacheInstall('ai-matrix-team', TEAM_VERSION);
 for (const r of ROLES.filter((x) => x.standalone)) cacheInstall(r.id, SOLO_VERSION);
-syncInstalled();
-console.log('SYNC DONE：validate→register→package→cache→installed 全链完成。重开会话生效。');
+pipelineFailed += syncInstalled();
+// 账号登记放在最后：即便上游官方步骤降级/失败，白名单也照常补齐并回读校验
+const acct = syncAccounts();
+if (acct.usage) {
+  console.error('❌ 账号登记未执行（目标账号无效），本次同步判定失败');
+  process.exit(2);
+}
+if (acct.failed) process.exitCode = 3;
+const problems = pipelineFailed + acct.failed;
+console.log(problems
+  ? `SYNC 未完成：上游失败 ${pipelineFailed} 步 / 账号失败 ${acct.failed} 个（详见上方 ❌）`
+  : skippedSteps
+    ? `SYNC DONE（降级）：跳过 ${skippedSteps} 个上游步骤（详见上方 ℹ），账号白名单已按实际账号登记。重开会话生效。`
+    : 'SYNC DONE：validate→register→package→cache→installed→账号白名单 全链完成。重开会话生效。');
+if (problems) process.exitCode = process.exitCode || 1;
