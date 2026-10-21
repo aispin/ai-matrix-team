@@ -30,7 +30,7 @@ flowchart LR
 | Phase | 谁 | 产出 | 门禁 |
 |---|---|---|---|
 | P0 意图收集 | PC | WO（立项单）+ 面域初判 + 拟物名/App ID 待定 | 三要素明确：赛道 / 定位 / 目标人群 |
-| P1 BRD | 毛毛 | `<App>_BRD_v1.0_CN.md` | `brd-standard.md` §8 准出清单全过 |
+| P1 BRD | 毛毛 | `<App>_BRD_v1.0_CN.md` | BRD 规范（`docs/spec-brd*.md`，`project.json.docs.brd` 绑定）§8 准出清单全过 |
 | P2 立项评审 | PC（Bruce 咨询） | `<project>/.aimt/runtime/reviews/<App>-立项评审.md` | 共享面影响已初判；技术可行性有结论 |
 | **P2.5 人类决策** | 创始人 | — | **Type 1 必须显式签字**（定价/永久免费/合规口径） |
 | P3 PRD | 毛毛（**同 P1 同一人**） | `<App>_PRD_v1.0_CN.md` + 验收清单 | 每条需求有可观测 AC；BRD 结论以章节号引用而非复制 |
@@ -110,7 +110,7 @@ flowchart TD
 | ⑤ 冒烟 | 石头 | 登录 / 权益 / webhook / 创作主链路（含 fail-open 断网验证） | 关键链路全通 |
 | ⑥ 记录 | 波波 | 部署记录进交接单 + 回滚方案 | — |
 
-**长期 BLOCKING DR**：生产前必须绑 **ICP 备案自定义域**替换网关默认域（`app-onboarding.md` §六.4）。
+**长期 BLOCKING DR**：生产前必须绑 **ICP 备案自定义域**替换网关默认域（见接入部署 SOP §六.4：`project.json.docs.appOnboarding` 绑定）。
 
 ---
 

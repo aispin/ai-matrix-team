@@ -14,7 +14,7 @@
 - **对内**：把「多个 AI Agent 各干各的」变成「一条有门禁的交付流水线」。
 - **对外**：保证每款 App（moozi / cruru / lucia / boduo / …）在**共享资产不被污染**的前提下快速上线。
 - **不做什么**：
-  - ❌ 不替代既有工程文档（`architecture.md` / `spec-shared-contracts.md` / `brd-standard.md` 仍是各自领域的唯一真相源，本团队只做**执行与守门**）。
+  - ❌ 不替代既有工程文档（架构 TDD `docs/03.tdd-*.md`、共享契约 `docs/spec-shared-contracts.md`、BRD 规范 `docs/spec-brd*.md` 仍是各自领域的唯一真相源，本团队只做**执行与守门**；三者均按 `project.json.docs` 绑定发现）。
   - ❌ 不引入 PR 审批流——一人公司 + Agent，流程要轻；靠**机器门禁**而不是人工签字。
   - ❌ 不为对齐而重写存量文档（既有约定）。
 
@@ -85,7 +85,7 @@
 - ❌ 主理人代写 BRD/PRD/TDD/代码/验收结论
 - ❌ 未完成前序阶段就跳到后续阶段（尤其：BRD 未过 → 不许开工）
 - ❌ 「顺手改一下共享面」——没有 WO 的受控面改动，无论多小
-- ❌ 把未验证假设写成结论（沿用 `brd-standard.md` C7）
+- ❌ 把未验证假设写成结论（沿用 BRD 规范 C7）
 - ❌ 交付物里裸用行业缩写（KYB 之类）——要么写全称，要么文档头部附释义表（T4）
 
 ---
@@ -107,10 +107,10 @@
 
 | 既有文档 | 它管什么 | 本团队怎么用 |
 |---|---|---|
-| `docs/architecture.md` | 架构与数据模型 | Bruce的输入与约束；改动需 ADR |
+| 架构 TDD（`docs/03.tdd-*.md`，`project.json.docs.tdd` 绑定） | 架构与数据模型 | Bruce的输入与约束；改动需 ADR |
 | `docs/spec-shared-contracts.md` | **共享面清单 + 协作纪律** | 变更历史以 commit（带 WO 号）+ WO 详情单为准；本团队提供「动手前的闸门」 |
-| `docs/brd-standard.md` | BRD 写作规范 | 毛毛的执行标准 |
-| `docs/app-onboarding.md` | 接入部署 SOP | 波波的执行标准 |
+| BRD 规范（`docs/spec-brd*.md`，`project.json.docs.brd` 绑定） | BRD 写作规范 | 毛毛的执行标准 |
+| 接入部署 SOP（`project.json.docs.appOnboarding` 绑定） | 接入部署 SOP | 波波的执行标准 |
 | `docs/decisions/ADR-*` | **已决策**记录 | DR 答复后的归档去向之一 |
 | `apps/<app>/docs/OPEN-ITEMS.md` | 面向人的叙述式待办清单 | 由 DR 台账驱动，必须交叉引用 DR id（见 [`04`](04-decision-protocol.md) §7） |
 
@@ -129,4 +129,4 @@
 | **INTENT** | 破坏性变更的**事前**预登记（动手前登记，注明影响面与验证方式） |
 | **门禁（Gate）** | 阶段之间的硬检查点，由 `aimatrix-guard` 或资深质检工程师执行，不通过不得推进 |
 | **交接单（Handoff）** | WO 收尾产物：改动清单 + 验证证据 + 回滚方式 + 遗留 DR |
-| **Type 1 / Type 2** | 不可逆 / 可逆决策（沿用 `brd-standard.md` §11） |
+| **Type 1 / Type 2** | 不可逆 / 可逆决策（沿用 BRD 规范 §11） |

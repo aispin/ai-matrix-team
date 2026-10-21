@@ -83,7 +83,7 @@
     }
   ],
   "contractDocs": {
-    "$comment": "★ 契约类文档 → 改动必须同步对应 Role Skill 的 references/ 或正文（guard sync-check，退出码 6 提示不阻塞）",
+    "$comment": "★ 契约类文档 → 改动必须同步对应 Role Skill 的 references/ 或正文（guard sync-check，退出码 6 提示不阻塞）。旧命名规则保留兼容存量项目；新规则按 NN.<kind>-<scope>.md 与 spec-<kind>.md 命名分条登记，避免一条通配把所有 TDD 都指向同一 Skill",
     "rules": [
       { "pattern": "docs/architecture.md", "skills": ["aimatrix-architect", "aimatrix-product-designer"] },
       { "pattern": "docs/shared-contracts.md", "skills": ["aimatrix-guardian"] },
@@ -91,7 +91,14 @@
       { "pattern": "docs/app-onboarding.md", "skills": ["aimatrix-product-designer", "aimatrix-developer"] },
       { "pattern": "docs/deploy*.md", "skills": ["aimatrix-devops"] },
       { "pattern": "docs/llm-service.md", "skills": ["aimatrix-architect"] },
-      { "pattern": "docs/cloudbase-integration.md", "skills": ["aimatrix-architect"] }
+      { "pattern": "docs/cloudbase-integration.md", "skills": ["aimatrix-architect"] },
+      { "pattern": "docs/03.tdd-arch.md", "skills": ["aimatrix-architect", "aimatrix-product-designer"] },
+      { "pattern": "docs/03.tdd-llm-service.md", "skills": ["aimatrix-architect"] },
+      { "pattern": "docs/03.tdd-cloudbase-integration.md", "skills": ["aimatrix-architect"] },
+      { "pattern": "docs/03.tdd-deploy*.md", "skills": ["aimatrix-devops"] },
+      { "pattern": "docs/spec-brd*.md", "skills": ["aimatrix-product-designer"] },
+      { "pattern": "docs/spec-shared-contracts.md", "skills": ["aimatrix-guardian"] },
+      { "pattern": "docs/spec-onboarding*.md", "skills": ["aimatrix-product-designer", "aimatrix-developer"] }
     ]
   },
   "wo": {

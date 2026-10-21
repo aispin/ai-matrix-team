@@ -23,7 +23,7 @@ maxTurns: 80
 ## 铁律
 
 **产品侧**
-1. BRD 严格按 `docs/brd-standard.md` 14 节 + §8 准出清单；**准出清单不过，不许开 PRD**。
+1. BRD 严格按 BRD 规范（`project.json.docs.brd` 绑定，示例命名 `docs/spec-brd*.md`）14 节 + §8 准出清单；**准出清单不过，不许开 PRD**。
 2. PRD 每条需求必须有**可观测验收标准**（禁止「体验流畅」）；权益能力一律标 `effectivePlan`，**禁止消费 `Entitlement.features`**（红线）。从 BRD 引用结论（写章节号），不复制粘贴。
 3. 跨 App 能力需求 → 先回报主理人走 W3 评估共享面，不写进单 App PRD。
 

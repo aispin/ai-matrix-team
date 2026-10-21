@@ -85,7 +85,7 @@
 **使命**：三问连答——「**为什么值得做**」（BRD）→「**做什么 / 验收是什么**」（PRD）→「**长什么样 / 状态怎么兜底**」（可交互视觉稿）。顺序不可跳。
 
 **负责**：
-- **BRD**（严格按 `docs/brd-standard.md` 14 节）· Go/No-Go 底线值与目标值 · 共享面影响**初判** · Type 1/2 决策清单
+- **BRD**（严格按 BRD 规范 14 节：`project.json.docs.brd` 绑定，示例命名 `docs/spec-brd*.md`）· Go/No-Go 底线值与目标值 · 共享面影响**初判** · Type 1/2 决策清单
 - **PRD**（功能地图、能力矩阵、状态机、NFR、埋点）· 每条需求的可观测验收标准 · 需求变更控制
 - **可交互视觉稿**（单文件 HTML 高保真，浅深双主题，可点击走查，单份交付）· SVG 图标与插画 · 页面状态矩阵（八态）
 
@@ -184,7 +184,7 @@ per-WO 分支 `wo/WO-<id>`；**面域不相交才允许并行**（guard 锁分�
 
 **硬步骤**：前置（QA ✅ · BLOCKING DR 闭环）→ 部署（云函数 / 前端托管）→ env/CORS 脚本同步（**禁止手改**）→ 迁移（`--dry-run` → 确认 → 执行，需凭据走 DR 授权）→ 验收（healthcheck + 关键链路冒烟）→ 回滚动作与验证方式写清；生产事故走 W6。
 **必提 DR**：需要人类凭据或资金的云操作（绑域名 / 建商品 / 执行迁移 / 付费资源）→ BLOCKING。
-**红线**：网关默认域 `*.service.tcloudbase.com` **仅供开发测试**，生产前必须绑 ICP 备案自定义域（见 `app-onboarding.md` §六.4），此项为长期 BLOCKING DR。
+**红线**：网关默认域 `*.service.tcloudbase.com` **仅供开发测试**，生产前必须绑 ICP 备案自定义域（见接入部署 SOP §六.4：`project.json.docs.appOnboarding` 绑定），此项为长期 BLOCKING DR。
 
 > 岗位细则真相源：`aimatrix-devops/SKILL.md`。**启用条件**：仅当项目存在云后端（部署 / 迁移 / 生产事故）时按需启用；纯静态站或纯仓库类工作（发布 = git push / Pages）由主理人直连，不 spawn 本席。
 
@@ -240,12 +240,12 @@ ai-matrix-team/
 
 | Skill | 强绑定的规范文档（规范改 → Skill 必须同步改） |
 |---|---|
-| `aimatrix-product-designer` | `docs/brd-standard.md`（BRD 阶段）、`docs/architecture.md` §2 能力清单、`docs/app-onboarding.md`（PRD 阶段）、自持 `references/design-system.md` + `examples/` 六场景样例——改任一处都要同步 |
-| `aimatrix-architect` | `docs/architecture.md`、`docs/cloudbase-integration.md`、`docs/llm-service.md` |
-| `aimatrix-guardian` | `docs/spec-shared-contracts.md`、`matrix.config.schema.json` |
-| `aimatrix-developer` | `docs/app-onboarding.md` §〇点二（统一栈）、`tsconfig.base.json` |
+| `aimatrix-product-designer` | BRD 规范（`project.json.docs.brd` 绑定，示例命名 `docs/spec-brd.md`）、PRD 规范 §2 能力清单 / effectivePlan 口径（`docs.prdStandard` 绑定，示例命名 `docs/03.tdd-arch.md`）、接入 SOP（`docs.appOnboarding` 绑定，PRD 阶段）、自持 `references/design-system.md` + `examples/` 六场景样例——改任一处都要同步 |
+| `aimatrix-architect` | 架构 TDD（`project.json.docs.tdd` 绑定，示例命名 `docs/03.tdd-arch.md`）、CloudBase 接入 TDD（示例命名 `docs/03.tdd-cloudbase-integration.md`）、LLM 服务 TDD（示例命名 `docs/03.tdd-llm-service.md`） |
+| `aimatrix-guardian` | `docs/spec-shared-contracts.md`（`project.json.docs.sharedContracts` 绑定）、`matrix.config.schema.json` |
+| `aimatrix-developer` | 接入 SOP §〇点二 统一栈纪律（`project.json.docs.appOnboarding` 绑定）、`tsconfig.base.json` |
 | `aimatrix-qa` | `.github/workflows/ci.yml`、`docs/vite-react-template-checklist.md` |
-| `aimatrix-devops` | `docs/deploy.md`、`docs/deploy-toolchain.md`、`docs/manual-configs.md`、`docs/migration/` |
+| `aimatrix-devops` | 部署 SOP（`project.json.docs.deploy` 绑定）、部署工具链、人工配置项、迁移记录 |
 | `aimatrix-intake` / `aimatrix-decision` | 本目录全部文档 |
 
 > **同步纪律**：规范文档改动后，改动者必须在同一次提交里更新对应 Skill 的 `references/` 或 SKILL.md 正文；`aimatrix-guard audit` 会检查「受控面文档改动是否伴随 Skill 同步」。

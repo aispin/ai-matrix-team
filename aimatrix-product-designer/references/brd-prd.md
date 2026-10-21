@@ -11,7 +11,7 @@
 5. 北极星 + Go/No-Go 底线值
 6. Type 1/2 决策清单
 7. 共享面影响初判（`guard surface`）
-8. **过准出清单**（`docs/brd-standard.md` §8，全过才许开 PRD）
+8. **过准出清单**（BRD 规范 §8：`project.json.docs.brd` 绑定，示例命名 `docs/spec-brd*.md`；全过才许开 PRD）
 
 ## 2. 阶段二 · PRD（产出 `<App>_PRD_vX.Y_CN.md` + 验收清单）
 

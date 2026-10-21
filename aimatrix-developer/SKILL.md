@@ -60,5 +60,5 @@ typecheck / test 任一红 → 不得进入 QA 阶段 · `guard check --staged` 
 
 ## 9. References
 
-- `docs/app-onboarding.md` §〇点二（统一栈纪律）· `tsconfig.base.json`
+- 项目接入 SOP §〇点二（`project.json.docs.appOnboarding` 绑定；统一栈纪律）· `tsconfig.base.json`
 - `<team-repo>/docs/03-shared-surface-control.md` §7（违规处置）

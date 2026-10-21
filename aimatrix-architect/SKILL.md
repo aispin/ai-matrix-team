@@ -42,11 +42,11 @@ PRD（引用章节号即可）· 相关契约现状（`docs/spec-shared-contract
 
 | 症状 | 根因 | 修法 |
 |---|---|---|
-| CloudBase 云函数直连 PG 不通 | 个人版无内网互联/VPC | 走 `@cloudbase/manager-node` 的 `executePGSql`（见 `docs/cloudbase-integration.md`） |
+| CloudBase 云函数直连 PG 不通 | 个人版无内网互联/VPC | 走 `@cloudbase/manager-node` 的 `executePGSql`（见本项目 CloudBase 接入 TDD 章节） |
 | 迁移 SQL 半途失败重跑报错 | 非幂等 | 一律幂等写法；DDL 偶发 InternalError 指数退避重试 |
 | 公共服务里长出 App 业务词 | 图省事直接在 service 里 if(app) | 纪律：公共服务零 App 词；能力差异走配置/注册表 |
 
 ## 9. References
 
-- `docs/architecture.md` · `docs/cloudbase-integration.md` · `docs/llm-service.md`
+- 架构 / CloudBase 接入 / LLM 服务 TDD（按 `.aimt/project.json` 的 `docs` 绑定发现，示例命名 `docs/03.tdd-arch.md` · `docs/03.tdd-cloudbase-integration.md` · `docs/03.tdd-llm-service.md`；未绑定则该节降级运行）
 - `docs/spec-shared-contracts.md` §1（既有契约清单）· `matrix.config.schema.json`
