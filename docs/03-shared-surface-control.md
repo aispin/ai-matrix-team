@@ -17,7 +17,7 @@
 | **C3** | App 私有受控 | `apps/<app>/matrix.config.json`、`apps/<app>/.env.example`、`apps/<app>/docs/<App>_{BRD,PRD,TDD}_*.md` | App 责任角色可写；**跨 App 影响时必须开 WO**；PRD/TDD 重大修订需主理人知会 |
 | **F** | 自由面 | `apps/<app>/src/**`、`apps/<app>/packages/**`、`apps/<app>/scripts/**`、`apps/<app>/public/**` | 直接改，无需 WO；仍需通过 QA 门禁（typecheck/test/build） |
 | **C2** | **专家团资产**（改 Agent 行为 = 影响全矩阵） | `<team-repo>/aimatrix-*/**`（角色 Skill 正文与 references）、`<team-repo>/members/**`（成员真源）、`<team-repo>/scripts/**`（guard / inspect / expert-sync / DR 生成器）、`<team-repo>/docs/**`（治理规范与模板） | **WO + 团长（风控）核准 + 共享锁**；改后当日登记；回归范围由守卫裁定（改 Skill 正文 ≥ 至少跑一次受影响角色的示例任务；改 `scripts/` 必须跑脚本自测） |
-| **T** | 台账面 | `<project>/.aimt/runtime/**`（WO / DR / 台账 / 交接单 / 巡检报告） | 任何角色可写，**格式必须套模板**；由 `guard` 校验字段完整性；`runtime/state/` 为机器写（锁、日志），**不入库** |
+| **T** | 台账面 | `<project>/.aimt/runtime/**`（WO / DR / 台账 / 交接单 / 巡检报告）+ 台账三件套 `<project>/.aimt/{issues,workorders,decisions}.md`（旧布局 `.ai-matrix-team/` 同名文件同判） | 任何角色可写，**格式必须套模板**；由 `guard` 校验字段完整性；**台账三件套只经 `guard` 命令写入**（`issues add|normalize|triage|close`、`wo table`、`dr add`）——手改会绕过格式校验与取号器；`runtime/state/` 为机器写（锁、日志），**不入库** |
 | **—** | 软链（非源码） | `<project>/<平台技能目录>/ai-matrix-team/SKILL.md` → `<team-repo>/SKILL.md`（平台目录见团队仓 SKILL.md 安装步骤 ②：`.agents/skills/` / `.workbuddy/skills/` / `.claude/skills/`，Codex 走 AGENTS.md 壳） | **不入库、禁止手改**；`<team-repo>/scripts/aimatrix-verify-skills.mjs` 校验 |
 
 > **判定原则**：吃不下面域的路径 → 按**更高级别**处理（从严）。

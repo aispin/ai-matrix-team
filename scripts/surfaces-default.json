@@ -20,8 +20,17 @@
   "rules": [
     {
       "tier": "T",
-      "note": "台账面：任何角色可写，格式必须套模板（wo lint 校验）；runtime/state/ 为机器写、不入库",
-      "patterns": [".aimt/runtime/**", ".ai-matrix-team/runtime/**"]
+      "note": "台账面：任何角色可写，格式必须套模板（wo lint 校验）；台账三件套（issues/workorders/decisions）只经 guard 命令写入，不经手改绕门禁；runtime/state/ 为机器写、不入库",
+      "patterns": [
+        ".aimt/runtime/**",
+        ".ai-matrix-team/runtime/**",
+        ".aimt/issues.md",
+        ".aimt/workorders.md",
+        ".aimt/decisions.md",
+        ".ai-matrix-team/issues.md",
+        ".ai-matrix-team/workorders.md",
+        ".ai-matrix-team/decisions.md"
+      ]
     },
     {
       "tier": "C1",

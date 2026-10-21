@@ -1473,6 +1473,47 @@ function nextIssueId(blocks) {
   return `I-${String(max + 1).padStart(3, '0')}`;
 }
 
+/** 同步自旋休眠（零依赖；Atomics.wait 不可用时退化忙等） */
+function sleepSync(ms) {
+  try { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms); }
+  catch { const t = Date.now(); while (Date.now() - t < ms) { /* 忙等兜底 */ } }
+}
+
+const ISSUES_LOCK = () => path.join(STATE_DIR(), 'issues.lock');
+
+/**
+ * 台账写锁：同级 lockfile + O_CREAT|O_EXCL 抢锁，抢不到自旋重试，超时按「锁冲突」退出。
+ * 取号（读→算→写）必须在临界区内，否则两条并行 add 会各自算出同一编号、后写者静默覆盖。
+ * 纪律：临界区内禁止 die()/process.exit()——process.exit 不跑 finally，会留下死锁文件；
+ * 异常路径由 finally 兜底清理。持锁进程被强杀留下的过期锁按 staleMs 自愈摘除。
+ */
+function withLedgerLock(lockPath, fn, { timeoutMs = 8000, staleMs = 60000 } = {}) {
+  fs.mkdirSync(path.dirname(lockPath), { recursive: true });
+  const t0 = Date.now();
+  let fd = null;
+  while (fd === null) {
+    try {
+      fd = fs.openSync(lockPath, 'wx');
+      fs.writeSync(fd, `${process.pid} ${new Date().toISOString()}\n`);
+    } catch (e) {
+      if (e.code !== 'EEXIST') die(EXIT.USAGE, `⛔ 台账写锁不可用（${lockPath}）：${e.message}`);
+      let aged = false;
+      try { aged = Date.now() - fs.statSync(lockPath).mtimeMs > staleMs; } catch { aged = true; }
+      if (aged) { try { fs.unlinkSync(lockPath); } catch { /* 已被他人摘除 */ } continue; }
+      if (Date.now() - t0 > timeoutMs) {
+        die(EXIT.NOLOCK, `⛔ 台账写锁超时（${timeoutMs}ms）：${rel(lockPath)} 被占用——确认无并发写后删除该锁文件再重试`);
+      }
+      sleepSync(20);
+    }
+  }
+  try {
+    return fn();
+  } finally {
+    try { fs.closeSync(fd); } catch { /* 忽略 */ }
+    try { fs.unlinkSync(lockPath); } catch { /* 已被摘除 */ }
+  }
+}
+
 function cmdIssues(sub, args) {
   const { pre, blocks } = issueBlocks();
   // 已有真实条目时清掉迁移播种的占位行，避免白板同时显示「无未处理事项」与 OPEN 条目
@@ -1481,10 +1522,30 @@ function cmdIssues(sub, args) {
   if (sub === 'add') {
     const title = args.get('--title');
     if (!title) die(EXIT.USAGE, '用法：issues add --title <标题> [--source <来源>]');
-    const id = nextIssueId(blocks);
-    blocks.push({ head: `## ${id} ${title}`, lines: [`来源: ${args.get('--source') || 'agent'} ${todayStr().slice(5)} · 状态: OPEN · 去向: — · 更新: ${todayStr()}`] });
-    write();
-    console.log(G(`✅ 已登记 ${id}：${title}`));
+    const source = args.get('--source') || 'agent';
+    // 取号 + 落盘 + 回读校验整段进写锁：并行 add 各算同一编号后互相覆盖 = 静默丢单。
+    // 回读校验兜住锁外写入（手写批次 / 旧版本进程）：写完读不到目标 id 就重取一次号再报错。
+    const got = withLedgerLock(ISSUES_LOCK(), () => {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const cur = issueBlocks(); // 锁内重读：并发已落盘的块必须参与取号
+        const curPre = cur.pre.split('\n').filter((l) => !l.includes('（当前无未处理事项）')).join('\n');
+        const id = nextIssueId(cur.blocks);
+        cur.blocks.push({
+          head: `## ${id} ${title}`,
+          // 草稿块自带正文占位：补正文就地改这一行，勿另追加同号块（normalize 会判重号）
+          lines: [
+            `来源: ${source} ${todayStr().slice(5)} · 状态: OPEN · 去向: — · 更新: ${todayStr()}`,
+            '**事实**：（待补）',
+          ],
+        });
+        writeBlocks(ISSUES_FILE(), cur.blocks.length ? curPre : cur.pre, cur.blocks);
+        if (read(ISSUES_FILE()).includes(`## ${id} `)) return { id };
+      }
+      return null;
+    });
+    if (!got) die(EXIT.FORMAT, `⛔ 取号后回读校验失败：${rel(ISSUES_FILE())} 里读不到刚写入的块——疑似锁外并发写覆盖，请人工核查后重试`);
+    console.log(G(`✅ 已登记 ${got.id}：${title}`));
+    console.log(Y(`下一步：编辑 ${got.id} 块的「**事实**」行补正文，勿另追加同号块（同号重块 normalize 会判格式错误）。`));
     process.exit(EXIT.OK);
   }
   if (sub === 'normalize') {
@@ -1499,6 +1560,22 @@ function cmdIssues(sub, args) {
     }
     if (n) { write(); console.log(G(`✅ 规范化 ${n} 处。`)); }
     else console.log('无草稿条目，白板已规范。');
+    // 同号重块检出：补正文时另追加同号块 → 同一 `## I-<n>` 出现多块，此前 normalize 报「已规范」、
+    // audit 不告警，只能人眼发现。放在规范化之后：补齐动作照常落盘，不被重号短路。
+    const seen = new Map();
+    blocks.forEach((b, i) => {
+      const m = b.head.match(/^## (I-\d+)\b/);
+      if (!m) return;
+      if (!seen.has(m[1])) seen.set(m[1], []);
+      seen.get(m[1]).push(`第 ${i + 1} 块「${b.head.replace(/^##\s*/, '').slice(0, 30)}」`);
+    });
+    const dups = [...seen.entries()].filter(([, where]) => where.length > 1);
+    if (dups.length) {
+      console.error(R(`⛔ 同号重块 ${dups.length} 个（编号唯一，同一编号只能有一个块）：`));
+      for (const [id, where] of dups) console.error(`   ${id} ×${where.length}：${where.join(' / ')}`);
+      console.error('   处置：保留首个块抬头，把后出现块的内容并入后删块；确属两件事则改号（编号不复用）。');
+      process.exit(EXIT.FORMAT);
+    }
     process.exit(EXIT.OK);
   }
   if (sub === 'triage') {
