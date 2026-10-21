@@ -4,4 +4,12 @@
 > **agent 一律经命令写入**：`guard issues add|triage|close|normalize`。闭环条目整块移入 `runtime/archive/YYYY-MM.md`。  
 > 状态：OPEN（待归类）/ TRIAGED（已开单，去向必填）。
 
+## I-040 guard 无 instances.json 写入口：呼号只能手改，且 callsign 格式陷阱会让「未登记」告警永远消不掉
+来源: PC · WO-20261021-03/04 收口实测 10-21 · 状态: OPEN · 去向: — · 更新: 2026-10-21
+**事实**：`guard instances` 只读 `runtime/state/instances.json`，但全仓无任何命令写它（`guard role` 只打印可发版说明）。PC 只能手改 JSON，而 `instKey()` 用 `session` 前缀 + `callsign` 拼键：`callsign` 必须写纯数字 `"2"`（session 写 `developer#2 · …`），若按直觉写 `"developer#2"` 会拼出 `developer#developer#2`，`instances` 永远报「未登记」且不提示正确格式——本次收口实测踩中两次。另：手改是整文件重写，容易覆盖他人登记（本次一度覆盖 `developer#1` 历史条目，已恢复）。
+**建议**：① 增 `guard instances add|prune`（callsign 只收数字并自校验，写前合并、不整体覆盖）；② `instances` 未登记告警附一行正确格式示例；③ 顺带把 `templates/wo.md` §5 的 grep 示例改 `grep -E`（本机 toybox 的 BRE 不支持 `\|`，照模板写会恒返 0 行假绿）。
 
+## I-041 wo table done 不回写详情单元数据：状态/执行角色/journal 条数/收口勾选仍停在草稿态
+来源: PC · WO-20261021-01~04 收口实测 10-21 · 状态: OPEN · 去向: — · 更新: 2026-10-21
+**事实**：`wo table done` 只改活动表并归档表行，详情单 `runtime/wo-details/<id>.md` 全程不回写：`状态` 仍 `DRAFT`、`执行角色` 仍是骨架占位（`角色#呼号` 或默认 `developer#1`）、§9 的 `journal（N 条）· spawn 次数` 不更新、§10 收口清单不勾。结果：表里 DONE、详情单里 DRAFT；本次四单收口后由 PC 手工回写才对齐。详情单在收口提交后仍会被改写，除 journal 手工补记外无机器留痕。
+**建议**：`wo table done` 顺带回写详情单四字段（状态=`DONE`、执行角色取表行处理者、§9 journal 条数与 spawn、§10 打勾）；`start|done` 时把详情单纳入台账白名单说明；详情单在提交后仍被改写时 `audit` 应告警（mtime/hash 比对）。
