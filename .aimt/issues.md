@@ -7,7 +7,8 @@
 ## I-040 guard 无 instances.json 写入口：呼号只能手改，且 callsign 格式陷阱会让「未登记」告警永远消不掉
 来源: PC · WO-20261021-03/04 收口实测 10-21 · 状态: OPEN · 去向: — · 更新: 2026-10-21
 **事实**：`guard instances` 只读 `runtime/state/instances.json`，但全仓无任何命令写它（`guard role` 只打印可发版说明）。PC 只能手改 JSON，而 `instKey()` 用 `session` 前缀 + `callsign` 拼键：`callsign` 必须写纯数字 `"2"`（session 写 `developer#2 · …`），若按直觉写 `"developer#2"` 会拼出 `developer#developer#2`，`instances` 永远报「未登记」且不提示正确格式——本次收口实测踩中两次。另：手改是整文件重写，容易覆盖他人登记（本次一度覆盖 `developer#1` 历史条目，已恢复）。
-**建议**：① 增 `guard instances add|prune`（callsign 只收数字并自校验，写前合并、不整体覆盖）；② `instances` 未登记告警附一行正确格式示例；③ 顺带把 `templates/wo.md` §5 的 grep 示例改 `grep -E`（本机 toybox 的 BRE 不支持 `\|`，照模板写会恒返 0 行假绿）。
+**建议**：① 新增 `guard instances add --callsign <角色#N> --wo <id> --session "<描述>"`：读-改-写**按键合并**（复用现成 `instKey()`），撞号拒写并列出冲突单，`session` 前缀由命令自己拼、不让人手写，形态对齐 `dr add`/`issues add`（含 `withLedgerLock` 写锁 + 回读校验）；② `instances` 未登记告警附一行正确格式示例；③ 顺带把 `templates/wo.md` §5 的 grep 示例改 `grep -E`（本机 toybox 的 BRE 不支持 `\|`，照模板写会恒返 0 行假绿）。
+**定位**：`scripts/aimatrix-guard.mjs` 中写入口完全缺失——仅 `INSTANCES_FILE()`(L474)、`readInstances()`(L480)、`cmdInstances()`(L646 纯打印)；该文件承载「只增不删」语义却无机器写入口，覆盖丢失属结构性必然（本次已实测覆盖 `developer#1` 历史条目，PC 手工恢复）。
 
 ## I-041 wo table done 不回写详情单元数据：状态/执行角色/journal 条数/收口勾选仍停在草稿态
 来源: PC · WO-20261021-01~04 收口实测 10-21 · 状态: OPEN · 去向: — · 更新: 2026-10-21
